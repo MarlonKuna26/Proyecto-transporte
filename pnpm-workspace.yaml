@@ -1,0 +1,7 @@
+packages:
+  - 'packages/*'
+  - 'tests'
+
+# Configuraciones adicionales
+shared-workspace-lockfile: true
+strict-peer-dependencies: false
