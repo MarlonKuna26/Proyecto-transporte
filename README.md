@@ -77,44 +77,47 @@
 
 ---
 
-## 🚀 Instalación
+## 🚀 Instalación y Setup Rápido
 
-### 1. Clonar el repositorio
+### ⚡ La forma más fácil (Recomendado)
+
+**Solo 3 comandos y listo:**
 
 ```bash
-git clone <tu-repo-url>
+# 1. Clonar el repositorio
+git clone https://github.com/MarlonKuna26/Proyecto-transporte.git
+cd Proyecto-transporte
+
+# 2. Ejecutar script de setup (instala todo automáticamente)
+bash setup.sh
+
+# 3. Listo! Ya puedes desarrollar 🎉
+```
+
+El script hace automáticamente:
+- ✅ Instala todas las dependencias con pnpm
+- ✅ Crea la base de datos PostgreSQL
+- ✅ Compila el código TypeScript
+- ✅ Te da instrucciones para ejecutar
+
+---
+
+### Manual (Si prefieres hacerlo paso a paso)
+
+#### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/MarlonKuna26/Proyecto-transporte.git
 cd Proyecto-transporte
 ```
 
-### 2. Instalar dependencias
+#### 2. Instalar dependencias
 
 ```bash
 pnpm install
 ```
 
-Esto instala todas las dependencias de:
-- Frontend
-- Backend
-- Shared packages
-
-### 3. Configurar ambiente
-
-El archivo `.env` ya está configurado con valores por defecto:
-
-```env
-DB_USER=postgres
-DB_PASSWORD=182004
-DB_NAME=u_ride_dev
-DB_PORT=5432
-DB_HOST=localhost
-NODE_ENV=development
-PORT=3002
-JWT_SECRET=your-super-secret-key-change-in-production-immediately
-```
-
-### 4. Crear base de datos
-
-Ejecuta el script SQL para crear tablas:
+#### 3. Crear la base de datos
 
 ```bash
 PGPASSWORD=182004 psql -U postgres -f init.sql
@@ -124,36 +127,58 @@ PGPASSWORD=182004 psql -U postgres -f init.sql
 
 ## ⚡ Cómo Ejecutar
 
-### Opción 1: Ejecutar Backend y Frontend por separado (Recomendado para desarrollo)
+Después de ejecutar `bash setup.sh`, abre **dos terminales separadas**:
 
-**Terminal 1 - Backend:**
+### Terminal 1: Backend
 
 ```bash
 pnpm -F @u-ride/backend dev
 ```
 
-Esto:
-- Limpia automáticamente el puerto 3002
-- Compila TypeScript en modo watch
-- Reinicia el servidor automáticamente ante cambios
-- Accesible en: `http://localhost:3002`
+Espera a ver:
+```
+🚀 Server running on http://localhost:3002
+✅ Database connected successfully
+```
 
-**Terminal 2 - Frontend:**
+### Terminal 2: Frontend
 
 ```bash
 pnpm -F @u-ride/frontend dev
 ```
 
-Esto:
-- Levanta Vite dev server
-- Hot reload automático
-- Accesible en: `http://localhost:5173`
-
-### Opción 2: Ejecutar todo en paralelo
-
-```bash
-pnpm dev
+Espera a ver:
 ```
+VITE v5.4.21 ... http://localhost:5173
+```
+
+### 3. Abre el navegador
+
+```
+http://localhost:5173
+```
+
+**↓ Deberías ver:**
+- Página de login
+- Campo de email y contraseña
+- Botón "Inicia Sesión"
+
+---
+
+## 🔐 Inicia Sesión
+
+### Credenciales de prueba
+
+```
+Email: test@institucion.edu
+Contraseña: password123
+```
+
+**Después de iniciar sesión:**
+- ✅ Automáticamente redirige al dashboard
+- ✅ Muestra tu nombre y rol (Estudiante)
+- ✅ Botón "Cerrar Sesión" (rojo en la esquina superior derecha)
+- ✅ 3 opciones: Buscar Viajes, Publicar Viaje, Mis Viajes
 
 ---
 
@@ -297,15 +322,18 @@ router.post('/my-endpoint', (req, res) =>
 
 ## 🧪 Credenciales de Prueba
 
-### Usuario por defecto
+### Usuario por defecto (Automáticamente creado después de `bash setup.sh`)
 
 ```
 Email: test@institucion.edu
 Contraseña: password123
 Rol: STUDENT (Estudiante)
+Verificado: ✅ Sí
 ```
 
-Este usuario está precargado en la BD para facilitar testing.
+**Este usuario ya está en la BD gracias al script `setup.sh`.**
+
+Para crear más usuarios en el futuro, usaremos el endpoint de registro (proximamente).
 
 ---
 

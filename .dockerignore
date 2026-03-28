@@ -5,7 +5,7 @@ pnpm-debug.log
 .gitignore
 README.md
 .env
-.env.*
+.env.
 dist
 build
 coverage
