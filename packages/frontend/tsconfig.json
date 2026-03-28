@@ -1,0 +1,38 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "module": "ES2022",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "paths": {
+      "@/*": ["./*"],
+      "@components/*": ["./components/*"],
+      "@components": ["./components/index.ts"],
+      "@pages/*": ["./pages/*"],
+      "@pages": ["./pages/index.ts"],
+      "@services/*": ["./services/*"],
+      "@services": ["./services/index.ts"],
+      "@hooks/*": ["./hooks/*"],
+      "@hooks": ["./hooks/index.ts"],
+      "@types/*": ["./types/*"],
+      "@shared/*": ["../shared/src/*"]
+    },
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "build"]
+}
+
+
+

@@ -1,0 +1,22 @@
+{
+  "name": "u-ride",
+  "version": "1.0.0",
+  "description": "Ridesharing app for verified students - Clean Architecture Monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "test:watch": "pnpm -r --parallel run test:watch",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "clean": "pnpm -r run clean && rm -rf node_modules pnpm-lock.yaml",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:reset": "docker-compose down -v && docker-compose up -d",
+    "install-global": "pnpm add -g pnpm"
+  },
+  "devDependencies": {}
+}
