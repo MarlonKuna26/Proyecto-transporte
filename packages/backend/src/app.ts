@@ -15,13 +15,15 @@ class App {
   }
 
   private setupMiddlewares(): void {
+    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+
     // Seguridad
     this.express.use(helmet());
 
     // CORS
     this.express.use(
       cors({
-        origin: process.env.CORS_ORIGIN?.split(',') || 'http://localhost:5173',
+        origin: process.env.CORS_ORIGIN?.split(',') || defaultAllowedOrigins,
         credentials: true,
       }),
     );
