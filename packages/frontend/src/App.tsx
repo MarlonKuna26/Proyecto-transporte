@@ -1,65 +1,73 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { LoginPage, DashboardPage } from '@pages';
-import { AuthService } from '@services';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { Layout } from '@/components/Layout';
+import {
+  LoginPage, RegisterPage, DashboardPage, RidesPage,
+  MyRidesPage, MyRequestsPage, ProfilePage, AdminPage,
+} from '@/pages';
 
-/**
- * App Component
- * Router principal de la aplicación
- *
- * Estructura:
- * - / → Login (público)
- * - /login → Login (público)
- * - /dashboard → Dashboard (requiere autenticación)
- */
+/** Ruta protegida: redirige a /login si no hay sesión */
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div className="page-gradient min-h-screen flex items-center justify-center">
+      <div className="text-center animate-pulse">
+        <div className="text-5xl mb-4">🚗</div>
+        <p className="text-dark-400 font-medium">Cargando...</p>
+      </div>
+    </div>
+  );
+  return user ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+/** Ruta pública: redirige a /dashboard si ya hay sesión */
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+}
+
+/** Ruta que requiere rol ADMIN */
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (user?.role !== 'ADMIN') return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!AuthService.getToken());
-
-  // Detectar cambios en la autenticación
-  useEffect(() => {
-    // Función que se ejecuta cuando el storage cambia
-    const handleStorageChange = () => {
-      const hasToken = !!AuthService.getToken();
-      setIsAuthenticated(hasToken);
-    };
-
-    // Escuchar cambios en localStorage
-    window.addEventListener('storage', handleStorageChange);
-
-    // También escuchar cuando se guarda el token (en la misma pestaña)
-    const interval = setInterval(() => {
-      const hasToken = !!AuthService.getToken();
-      setIsAuthenticated(hasToken);
-    }, 500); // Checar cada 500ms
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
-
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rutas públicas */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
-        />
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
 
-        {/* Rutas protegidas */}
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />}
-        />
+          {/* Rutas protegidas con Layout */}
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/rides" element={<RidesPage />} />
+            <Route path="/my-rides" element={<MyRidesPage />} />
+            <Route path="/my-requests" element={<MyRequestsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+          </Route>
 
-        {/* 404 */}
-        <Route path="*" element={<div>Página no encontrada</div>} />
-      </Routes>
-    </BrowserRouter>
+          {/* Redirects */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={
+            <div className="page-gradient min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-6xl mb-4">🗺️</p>
+                <h1 className="text-2xl font-bold text-white mb-2">Página no encontrada</h1>
+                <a href="/dashboard" className="text-primary-400 hover:text-primary-300 font-medium">← Volver al inicio</a>
+              </div>
+            </div>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
 export default App;
-

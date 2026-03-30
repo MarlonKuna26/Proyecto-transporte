@@ -1,120 +1,109 @@
-/**
- * Página: Login
- * Autenticación de usuarios
- */
-
-import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Input, Card } from '@components';
-import { AuthService } from '@services';
+import React, { useState, FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccess('');
-
     try {
-      // Llamar al servicio de autenticación
-      const response = await AuthService.login({ email, password });
-
-      // Guardar tokens
-      AuthService.setToken(response.token);
-      localStorage.setItem('refreshToken', response.refreshToken);
-      localStorage.setItem('user', JSON.stringify(response.user));
-
-      // Mostrar éxito
-      setSuccess('¡Bienvenido! Redirigiendo...');
-
-      // Redirigir al dashboard después de 1.5 segundos
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+      await login(email, password);
+      navigate('/dashboard');
     } catch (err: any) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';
-      setError(errorMessage);
-      console.error('Login error:', err);
+      setError(err.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md" title="U-Ride" description="Inicia sesión en tu cuenta">
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="page-gradient min-h-screen flex items-center justify-center p-4">
+      {/* Decorative circles */}
+      <div className="fixed top-20 -left-32 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
+      <div className="fixed bottom-20 -right-32 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl" />
+
+      <div className="w-full max-w-md animate-slide-up relative z-10">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-3xl mb-4 shadow-glow">
+            🚗
+          </div>
+          <h1 className="text-3xl font-bold text-white">U-Ride</h1>
+          <p className="text-dark-400 mt-2">Transporte seguro para estudiantes</p>
+        </div>
+
+        {/* Card */}
+        <div className="glass-card p-8">
+          <h2 className="text-xl font-bold text-white mb-6">Iniciar sesión</h2>
+
           {error && (
-            <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
-              ❌ {error}
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+              <span>❌</span> {error}
             </div>
           )}
 
-          {success && (
-            <div className="p-3 bg-green-100 text-green-700 rounded-md text-sm">
-              ✅ {success}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Email institucional
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu.email@institucion.edu"
+                required
+                className="input-field"
+                disabled={loading}
+              />
             </div>
-          )}
 
-          <Input
-            id="email"
-            type="email"
-            label="Email Institucional"
-            placeholder="tu.email@institucion.edu"
-            value={email}
-            onChange={handleEmailChange}
-            required
-            disabled={loading}
-          />
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="input-field"
+                disabled={loading}
+              />
+            </div>
 
-          <Input
-            id="password"
-            type="password"
-            label="Contraseña"
-            placeholder="••••••••"
-            value={password}
-            onChange={handlePasswordChange}
-            required
-            disabled={loading}
-          />
+            <button type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Ingresando...
+                </span>
+              ) : (
+                'Iniciar sesión'
+              )}
+            </button>
+          </form>
 
-          <Button type="submit" loading={loading} className="w-full">
-            {loading ? 'Iniciando sesión...' : 'Inicia Sesión'}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          ¿No tienes cuenta? {''}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Regístrate aquí
-          </a>
+          <div className="mt-6 text-center">
+            <span className="text-dark-400 text-sm">¿No tienes cuenta? </span>
+            <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium text-sm transition-colors">
+              Regístrate aquí
+            </Link>
+          </div>
         </div>
-
-        {/* Credenciales de prueba */}
-        <div className="mt-6 p-3 bg-blue-50 rounded-md text-xs text-gray-600">
-          <strong>Credenciales de prueba:</strong>
-          <br />
-          Email: test@institucion.edu
-          <br />
-          Contraseña: password123
-        </div>
-      </Card>
+      </div>
     </div>
   );
 };
-
