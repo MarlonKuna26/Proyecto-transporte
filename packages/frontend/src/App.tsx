@@ -13,7 +13,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     <div className="page-gradient min-h-screen flex items-center justify-center">
       <div className="text-center animate-pulse">
         <div className="text-5xl mb-4">🚗</div>
-        <p className="text-dark-400 font-medium">Cargando...</p>
+        <p className="text-navy-300 font-medium">Cargando...</p>
       </div>
     </div>
   );
@@ -60,7 +60,7 @@ function App() {
               <div className="text-center">
                 <p className="text-6xl mb-4">🗺️</p>
                 <h1 className="text-2xl font-bold text-white mb-2">Página no encontrada</h1>
-                <a href="/dashboard" className="text-primary-400 hover:text-primary-300 font-medium">← Volver al inicio</a>
+                <a href="/dashboard" className="text-primary-300 hover:text-primary-200 font-medium">← Volver al inicio</a>
               </div>
             </div>
           } />

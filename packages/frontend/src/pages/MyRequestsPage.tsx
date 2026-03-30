@@ -38,16 +38,16 @@ export const MyRequestsPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold text-white">📨 Mis solicitudes de viaje</h1>
+      <h1 className="text-2xl font-bold text-navy-900">📨 Mis solicitudes de viaje</h1>
 
-      {feedback && <div className="p-3 rounded-xl bg-accent-500/10 border border-accent-500/20 text-accent-400 text-sm">✅ {feedback}</div>}
+      {feedback && <div className="p-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-700 text-sm">✅ {feedback}</div>}
 
       {loading ? (
-        <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="glass-card p-5 animate-pulse"><div className="h-4 bg-white/10 rounded w-2/3" /></div>)}</div>
+        <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="glass-card p-5 animate-pulse"><div className="h-4 bg-dark-200 rounded w-2/3" /></div>)}</div>
       ) : requests.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <p className="text-5xl mb-4">📨</p>
-          <p className="text-dark-300 text-lg">No tienes solicitudes aún</p>
+          <p className="text-dark-500 text-lg">No tienes solicitudes aún</p>
           <p className="text-dark-400 text-sm mt-2">Busca viajes y solicita unirte</p>
         </div>
       ) : (
@@ -60,10 +60,10 @@ export const MyRequestsPage: React.FC = () => {
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-lg">{cfg.icon}</span>
                     <span className={cfg.class}>{cfg.label}</span>
-                    <span className="text-dark-400 text-xs">{req.seatsRequested} asiento(s)</span>
+                    <span className="text-dark-500 text-xs">{req.seatsRequested} asiento(s)</span>
                   </div>
                   {req.message && <p className="text-dark-400 text-sm ml-8">💬 {req.message}</p>}
-                  <p className="text-dark-500 text-xs ml-8 mt-1">
+                  <p className="text-dark-400 text-xs ml-8 mt-1">
                     {new Date(req.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>

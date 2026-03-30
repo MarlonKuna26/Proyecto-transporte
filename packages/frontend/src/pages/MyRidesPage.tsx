@@ -56,51 +56,51 @@ export const MyRidesPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold text-white">📋 Mis viajes como conductor</h1>
+      <h1 className="text-2xl font-bold text-navy-900">📋 Mis viajes como conductor</h1>
 
-      {feedback && <div className="p-3 rounded-xl bg-accent-500/10 border border-accent-500/20 text-accent-400 text-sm">✅ {feedback}</div>}
+      {feedback && <div className="p-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-700 text-sm">✅ {feedback}</div>}
 
       {loading ? (
-        <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="glass-card p-6 animate-pulse"><div className="h-4 bg-white/10 rounded w-3/4 mb-3" /></div>)}</div>
+        <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="glass-card p-6 animate-pulse"><div className="h-4 bg-dark-200 rounded w-3/4 mb-3" /></div>)}</div>
       ) : rides.length === 0 ? (
-        <div className="glass-card p-12 text-center"><p className="text-5xl mb-4">🚗</p><p className="text-dark-300 text-lg">No has publicado viajes aún</p></div>
+        <div className="glass-card p-12 text-center"><p className="text-5xl mb-4">🚗</p><p className="text-dark-500 text-lg">No has publicado viajes aún</p></div>
       ) : (
         <div className="space-y-4">
           {rides.map(ride => (
             <div key={ride.id} className="glass-card p-5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2 text-white font-medium">
-                  <span>📍</span> {ride.originZone} <span className="text-dark-500">→</span> {ride.destinationZone}
+                <div className="flex items-center gap-2 text-navy-900 font-medium">
+                  <span>📍</span> {ride.originZone} <span className="text-dark-400">→</span> {ride.destinationZone}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={statusColor[ride.status]}>{statusLabel[ride.status]}</span>
-                  {ride.status === 'PUBLISHED' && <button onClick={() => cancelRide(ride.id)} className="text-red-400 hover:text-red-300 text-xs font-medium px-2 py-1 rounded-lg hover:bg-red-500/10 transition-colors">Cancelar</button>}
+                  {ride.status === 'PUBLISHED' && <button onClick={() => cancelRide(ride.id)} className="text-red-500 hover:text-red-600 text-xs font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Cancelar</button>}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3 text-dark-400 text-xs mb-3">
+              <div className="flex flex-wrap gap-3 text-dark-500 text-xs mb-3">
                 <span>📅 {ride.departureDate}</span><span>🕐 {ride.departureTime}</span><span>💺 {ride.availableSeats} asientos</span>
-                {ride.pricePerSeat > 0 && <span className="text-accent-400 font-bold">${ride.pricePerSeat.toLocaleString()}</span>}
+                {ride.pricePerSeat > 0 && <span className="text-primary-600 font-bold">${ride.pricePerSeat.toLocaleString()}</span>}
               </div>
-              <button onClick={() => loadRequests(ride.id)} className="text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors">
+              <button onClick={() => loadRequests(ride.id)} className="text-primary-500 hover:text-primary-600 text-sm font-medium transition-colors">
                 {requests[ride.id] ? '▲ Ocultar solicitudes' : '▼ Ver solicitudes'}
               </button>
 
               {requests[ride.id] && (
-                <div className="mt-3 space-y-2 p-3 rounded-xl bg-white/3">
+                <div className="mt-3 space-y-2 p-3 rounded-xl bg-dark-50">
                   {requests[ride.id].length === 0 ? (
                     <p className="text-dark-400 text-sm">No hay solicitudes</p>
                   ) : (
                     requests[ride.id].map(req => (
-                      <div key={req.id} className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-3 rounded-lg bg-white/5">
+                      <div key={req.id} className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-3 rounded-lg bg-white border border-primary-100">
                         <div>
                           <span className={reqStatusColor[req.status]}>{req.status}</span>
-                          <span className="text-dark-300 text-xs ml-2">{req.seatsRequested} asiento(s)</span>
+                          <span className="text-dark-500 text-xs ml-2">{req.seatsRequested} asiento(s)</span>
                           {req.message && <p className="text-dark-400 text-xs mt-1">💬 {req.message}</p>}
                         </div>
                         {req.status === 'PENDING' && (
                           <div className="flex gap-2">
-                            <button onClick={() => handleResponse(req.id, ride.id, 'accept')} className="px-3 py-1.5 rounded-lg bg-accent-500/20 text-accent-400 text-xs font-medium hover:bg-accent-500/30 transition-colors">✅ Aceptar</button>
-                            <button onClick={() => handleResponse(req.id, ride.id, 'reject')} className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors">❌ Rechazar</button>
+                            <button onClick={() => handleResponse(req.id, ride.id, 'accept')} className="px-3 py-1.5 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">✅ Aceptar</button>
+                            <button onClick={() => handleResponse(req.id, ride.id, 'reject')} className="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors">❌ Rechazar</button>
                           </div>
                         )}
                       </div>

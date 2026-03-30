@@ -22,23 +22,23 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="mb-4">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor={id} className="block text-sm font-medium text-navy-700 mb-1">
           {label}
         </label>
       )}
       <input
         id={id}
         className={`
-          w-full px-3 py-2 border border-gray-300 rounded-md
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-          transition-all text-gray-900
-          ${error ? 'border-red-500 focus:ring-red-500' : ''}
+          w-full px-3 py-2 border border-primary-200 rounded-xl
+          focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500
+          transition-all text-navy-900 bg-white
+          ${error ? 'border-red-400 focus:ring-red-500/40' : ''}
           ${className}
         `}
         {...props}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-      {helper && <p className="mt-1 text-sm text-gray-500">{helper}</p>}
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+      {helper && <p className="mt-1 text-sm text-dark-400">{helper}</p>}
     </div>
   );
 };
