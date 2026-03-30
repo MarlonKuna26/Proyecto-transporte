@@ -7,7 +7,17 @@ dotenv.config();
 import { App } from './app';
 import { DatabaseConnection } from './config/database';
 import { Logger } from './config/logger';
+
+// === Importar todas las rutas ===
 import { createAuthRoutes } from './modules/auth/auth.routes';
+import { createUserRoutes } from './modules/users/user.routes';
+import { createRideRoutes } from './modules/rides/ride.routes';
+import { createRideRequestRoutes } from './modules/ride-requests/ride-request.routes';
+import { createRatingRoutes } from './modules/ratings/rating.routes';
+import { createReportRoutes } from './modules/reports/report.routes';
+import { createAdminRoutes } from './modules/admin/admin.routes';
+import { createSecurityRulesRoutes } from './modules/security-rules/security-rules.routes';
+import { createPaymentRoutes } from './modules/payments/payment.routes';
 
 const logger = new Logger();
 const PORT = process.env.PORT || 3002;
@@ -23,10 +33,16 @@ async function bootstrap() {
     // 2. Crear instancia de Express
     const app = new App();
 
-    // 3. Registrar rutas ANTES de error handlers
+    // 3. Registrar TODAS las rutas
     app.express.use('/api/v1/auth', createAuthRoutes());
-    // TODO: app.express.use('/api/v1/rides', createRideRoutes());
-    // TODO: app.express.use('/api/v1/users', createUserRoutes());
+    app.express.use('/api/v1/users', createUserRoutes());
+    app.express.use('/api/v1/rides', createRideRoutes());
+    app.express.use('/api/v1/ride-requests', createRideRequestRoutes());
+    app.express.use('/api/v1/ratings', createRatingRoutes());
+    app.express.use('/api/v1/reports', createReportRoutes());
+    app.express.use('/api/v1/admin', createAdminRoutes());
+    app.express.use('/api/v1/security-rules', createSecurityRulesRoutes());
+    app.express.use('/api/v1/payments', createPaymentRoutes());
 
     // 4. Registrar error handlers (DESPUÉS de todas las rutas)
     app.setupErrorHandlers();
@@ -37,6 +53,24 @@ async function bootstrap() {
       logger.info(`📍 API: http://localhost:${PORT}/api/v1`, 'SERVER');
       logger.info(`Health check: http://localhost:${PORT}/health`, 'SERVER');
       logger.info(`Env: ${process.env.NODE_ENV}`, 'SERVER');
+      logger.info('', 'SERVER');
+      logger.info('📌 Available Routes:', 'SERVER');
+      logger.info('  POST   /api/v1/auth/register', 'SERVER');
+      logger.info('  POST   /api/v1/auth/verify-email', 'SERVER');
+      logger.info('  POST   /api/v1/auth/login', 'SERVER');
+      logger.info('  POST   /api/v1/auth/refresh', 'SERVER');
+      logger.info('  GET    /api/v1/auth/me', 'SERVER');
+      logger.info('  GET    /api/v1/users/profile', 'SERVER');
+      logger.info('  PUT    /api/v1/users/profile', 'SERVER');
+      logger.info('  POST   /api/v1/users/vehicles', 'SERVER');
+      logger.info('  GET    /api/v1/rides', 'SERVER');
+      logger.info('  POST   /api/v1/rides', 'SERVER');
+      logger.info('  POST   /api/v1/ride-requests', 'SERVER');
+      logger.info('  POST   /api/v1/ratings', 'SERVER');
+      logger.info('  POST   /api/v1/reports', 'SERVER');
+      logger.info('  GET    /api/v1/admin/stats', 'SERVER');
+      logger.info('  GET    /api/v1/security-rules', 'SERVER');
+      logger.info('  POST   /api/v1/payments', 'SERVER');
     });
 
     // Manejo de errores del servidor
@@ -63,7 +97,6 @@ async function bootstrap() {
         });
       }
 
-      // Forzar salida después de 10 segundos
       setTimeout(() => {
         logger.error('Forced shutdown after 10s', 'SHUTDOWN');
         process.exit(1);
@@ -85,7 +118,3 @@ async function bootstrap() {
 bootstrap();
 
 export default {};
-
-
-
-

@@ -1,24 +1,25 @@
 /**
  * PasswordService
  * Centraliza lógica de hash y validación de contraseñas
- * Usa bcrypt en producción, simulado en desarrollo
+ * Usa bcryptjs para hashing seguro
  */
+
+import bcrypt from 'bcryptjs';
+
+const SALT_ROUNDS = 10;
 
 export class PasswordService {
   /**
-   * Hashear contraseña
-   * TODO: Implementar bcrypt.hash(password, 10) en producción
+   * Hashear contraseña con bcrypt
    */
-  static hash(password: string): string {
-    return `hashed_${password}`;
+  static async hash(password: string): Promise<string> {
+    return bcrypt.hash(password, SALT_ROUNDS);
   }
 
   /**
-   * Comparar contraseña plana con hash
-   * TODO: Implementar bcrypt.compare() en producción
+   * Comparar contraseña plana con hash bcrypt
    */
   static async compare(plainPassword: string, hashedPassword: string): Promise<boolean> {
-    return `hashed_${plainPassword}` === hashedPassword;
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
 }
-
