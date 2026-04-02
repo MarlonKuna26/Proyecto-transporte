@@ -41,7 +41,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.auth.login({ email, password });
-    const { accessToken, refreshToken, user: userData } = res.data;
+    const accessToken = res.data?.accessToken || res.data?.token;
+    const refreshToken = res.data?.refreshToken;
+    const userData = res.data?.user;
+
+    if (!accessToken || !refreshToken || !userData) {
+      throw new Error('Respuesta de login incompleta');
+    }
+
     localStorage.setItem('token', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));
