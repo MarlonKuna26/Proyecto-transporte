@@ -9,6 +9,7 @@
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
 - [Cómo Ejecutar](#cómo-ejecutar)
+- [Carga de Datos y Pruebas de API](#-carga-de-datos-y-pruebas-de-api)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Arquitectura](#arquitectura)
 - [Guía de Desarrollo](#guía-de-desarrollo)
@@ -29,7 +30,9 @@
 - ✅ Filtrado de viajes disponibles
 - ✅ Gestión de solicitudes (aceptar/rechazar pasajeros)
 - ✅ Confirmación de viajes
-- 🔄 Procesamiento de pagos (futuro)
+- ✅ Registro y resumen de pagos
+- ✅ Seguimiento GPS para viajes en progreso
+- ✅ Reportes y reglas de seguridad
 
 ### Seguridad
 - ✅ Autenticación JWT
@@ -60,11 +63,10 @@
 - **Docker Compose** - Orquestación
 - **pnpm** - Package manager (monorepo)
 
-### Testing (Preparado)
+### Testing
 - **Jest** - Unit tests
 - **Supertest** - API tests
-- **Cypress** - E2E tests
-- **Apache JMeter** - Performance tests
+- **Script de smoke test API** - Validación end-to-end de módulos
 
 ---
 
@@ -117,17 +119,18 @@ cd Proyecto-transporte
 pnpm install
 ```
 
-#### 3. Crear la base de datos
+#### 3. Crear y cargar la base de datos
 
 ```bash
-PGPASSWORD=182004 psql -U postgres -f init.sql
+createdb -U postgres u_ride_esp
+psql -U postgres -d u_ride_esp -f base_completa.sql
 ```
 
 ---
 
 ## ⚡ Cómo Ejecutar
 
-Después de ejecutar `bash setup.sh`, abre **dos terminales separadas**:
+Abre **dos terminales separadas**:
 
 ### Terminal 1: Backend
 
@@ -165,13 +168,67 @@ http://localhost:5173
 
 ---
 
+## 🧪 Carga de Datos y Pruebas de API
+
+Este flujo es el recomendado para validar que el sistema quedó funcionando de extremo a extremo.
+
+### 1. Levantar backend
+
+```bash
+pnpm -F @u-ride/backend dev
+```
+
+### 2. Cargar datos de prueba (seed)
+
+Desde la raíz del proyecto:
+
+```bash
+pnpm -F @u-ride/backend seed:data
+```
+
+Este script:
+- Limpia tablas principales.
+- Inserta usuarios, perfiles, vehículos, viajes, solicitudes, pagos, calificaciones, reportes, reglas y tracking.
+- Deja cuentas listas para login.
+
+### 3. Probar APIs del backend
+
+Con el backend encendido en `http://localhost:3002`:
+
+```bash
+pnpm -F @u-ride/backend test:apis
+```
+
+El script prueba módulos de:
+- Auth
+- Users
+- Rides
+- Ride Requests
+- Ratings
+- Payments
+- Tracking
+- Security Rules
+- Admin
+- Reports
+- Register + Verify Email
+
+### 4. Reset de admin (opcional)
+
+```bash
+ADMIN_EMAIL=admin@institucion.edu ADMIN_PASSWORD=NuevaClave123 DB_PASSWORD=tu_password pnpm -F @u-ride/backend admin:reset
+```
+
+Nota: en PowerShell usa `$env:ADMIN_PASSWORD='NuevaClave123'` y luego ejecuta el comando.
+
+---
+
 ## 🔐 Inicia Sesión
 
 ### Credenciales de prueba
 
 ```
-Email: test@institucion.edu
-Contraseña: password123
+Email: admin@uride.edu.ec
+Contraseña: Test1234!
 ```
 
 **Después de iniciar sesión:**
@@ -203,6 +260,7 @@ u-ride/
 │   │   │       ├── services/           # JWT, Password, etc
 │   │   │       ├── middlewares/        # Auth, CORS, etc
 │   │   │       └── types/              # Interfaces globales
+│   │   ├── scripts/                    # Seed, pruebas de API y utilitarios
 │   │   └── .env                        # Variables de entorno
 │   │
 │   ├── frontend/
@@ -223,7 +281,7 @@ u-ride/
 │       │   └── utils/                  # Utilidades
 │       └── package.json
 │
-├── init.sql                            # Script inicialización BD
+├── base_completa.sql                   # Dump SQL para levantar datos base
 ├── .env                                # Variables de entorno
 ├── package.json                        # Root workspace
 ├── pnpm-workspace.yaml                 # Configuración monorepo
@@ -322,18 +380,15 @@ router.post('/my-endpoint', (req, res) =>
 
 ## 🧪 Credenciales de Prueba
 
-### Usuario por defecto (Automáticamente creado después de `bash setup.sh`)
+### Usuarios de seed (después de ejecutar `seed:data`)
 
 ```
-Email: test@institucion.edu
-Contraseña: password123
-Rol: STUDENT (Estudiante)
-Verificado: ✅ Sí
+Admin: admin@uride.edu.ec / Test1234!
+Conductor: carlos.martinez@uride.edu.ec / Test1234!
+Pasajera: laura.gonzalez@uride.edu.ec / Test1234!
 ```
 
-**Este usuario ya está en la BD gracias al script `setup.sh`.**
-
-Para crear más usuarios en el futuro, usaremos el endpoint de registro (proximamente).
+También puedes crear usuarios nuevos con el flujo `register + verify-email`.
 
 ---
 
@@ -345,8 +400,8 @@ POST http://localhost:3002/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "test@institucion.edu",
-  "password": "password123"
+  "email": "admin@uride.edu.ec",
+  "password": "Test1234!"
 }
 
 # Response
@@ -355,9 +410,9 @@ Content-Type: application/json
   "refreshToken": "eyJhbGc...",
   "user": {
     "id": "550e8400...",
-    "email": "test@institucion.edu",
-    "name": "Usuario Test",
-    "role": "STUDENT"
+    "email": "admin@uride.edu.ec",
+    "name": "Admin Sistema",
+    "role": "ADMIN"
   }
 }
 ```
@@ -402,6 +457,20 @@ Content-Type: application/json
 |--------|----------|-------------|
 | GET | `/health` | Verificar estado del servidor |
 
+### Otros módulos activos
+
+| Módulo | Endpoint base |
+|--------|---------------|
+| Usuarios | `/api/v1/users` |
+| Viajes | `/api/v1/rides` |
+| Solicitudes | `/api/v1/ride-requests` |
+| Pagos | `/api/v1/payments` |
+| Calificaciones | `/api/v1/ratings` |
+| Tracking | `/api/v1/tracking` |
+| Seguridad | `/api/v1/security-rules` |
+| Administración | `/api/v1/admin` |
+| Reportes | `/api/v1/reports` |
+
 ---
 
 ## 🚀 Próximos Pasos
@@ -430,10 +499,10 @@ Content-Type: application/json
 - [ ] Historial de calificaciones
 - [ ] Banear usuarios con baja reputación
 
-### PASO 6: Pagos (Futuro)
-- [ ] Integrar Stripe/PayPal
-- [ ] Procesamiento de transacciones
-- [ ] Historial de pagos
+### PASO 6: Mejoras futuras
+- [ ] Integrar pasarela externa (Stripe/PayPhone/PayPal)
+- [ ] Notificaciones push/email en eventos clave
+- [ ] Observabilidad (métricas y trazas)
 
 ---
 
@@ -454,10 +523,18 @@ pnpm -F @u-ride/backend dev
 psql -U postgres -c "SELECT 1"
 
 # Verificar credenciales en .env
-PGPASSWORD=182004 psql -U postgres -d u_ride_dev
+PGPASSWORD=182004 psql -U postgres -d u_ride_esp
 
 # Si no existe la BD, crear:
-PGPASSWORD=182004 psql -U postgres -f init.sql
+createdb -U postgres u_ride_esp
+psql -U postgres -d u_ride_esp -f base_completa.sql
+```
+
+### "Quiero cargar datos y validar APIs rápido"
+
+```bash
+pnpm -F @u-ride/backend seed:data
+pnpm -F @u-ride/backend test:apis
 ```
 
 ### "Module not found" en imports
