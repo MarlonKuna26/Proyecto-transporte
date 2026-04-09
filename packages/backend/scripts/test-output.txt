@@ -1,0 +1,60 @@
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  ­ƒº¬ TEST SUITE ÔÇö U-Ride API (u_ride_esp)
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+­ƒöÉ AUTH MODULE
+  ÔØî ­ƒÜ½ Login NO verificado [401] Email not verified. Please check your inbox.
+  Ô£à ­ƒöæ Login Carlos [200] Carlos Mart├¡nez
+     ÔåÆ Token: eyJhbGciOiJIUzI1NiIs...
+     ÔåÆ UserId: ef035e20-c1b6-4b2f-b772-79e1d8318ce2
+  Ô£à ­ƒæñ GET /auth/me [200] carlos.martinez@uride.edu.co
+  Ô£à ­ƒææ Login Admin [200] Admin Sistema
+
+­ƒæÑ USERS MODULE
+  Ô£à ­ƒôØ GET /users/profile [200] Ingenier├¡a de Sistemas
+  Ô£à ­ƒÜù GET /users/vehicles [200] 1 veh├¡culos
+
+­ƒøú´©Å  RIDES MODULE
+  Ô£à ­ƒôï GET /rides (PUBLISHED) [200] 5 viajes
+     ÔåÆ Primer viaje: ├ülamos ÔåÆ Universidad
+  Ô£à ­ƒöì GET /rides/0a2c0770... [200] ├ülamos
+  Ô£à ­ƒôï GET /rides/my-rides [200] 7 viajes m├¡os
+
+­ƒô¿ RIDE REQUESTS MODULE
+  Ô£à ­ƒô¿ GET my-requests [200] 1 solicitudes
+  Ô£à ­ƒôï GET ride requests [200] 1 solicitudes del viaje
+
+Ô¡É RATINGS MODULE
+  Ô£à Ô¡É GET ratings/user [200] avg=4.5, count=2
+
+­ƒÆ░ PAYMENTS MODULE
+  Ô£à ­ƒôñ GET my-payments [200] 1 pagos enviados
+  Ô£à ­ƒôÑ GET payments/received [200] 3 pagos recibidos
+  Ô£à ­ƒôè GET payments/summary [200] Sent: $3500.00, Received: $15000.00
+
+­ƒôí TRACKING MODULE
+  Ô£à ­ƒôì GET tracking/current [200] lat=4.66000000
+  Ô£à ­ƒô£ GET tracking/history [200] 6 puntos
+  Ô£à ­ƒôï GET tracking/events [200] 3 eventos
+
+­ƒöÆ SECURITY RULES MODULE
+  Ô£à ­ƒöÆ GET security-rules [200] 6 reglas
+
+ÔÜÖ´©Å  ADMIN MODULE
+  Ô£à ­ƒôè GET admin/stats [200] users=8, rides=7
+  Ô£à ­ƒæÑ GET admin/users [200] 8 usuarios
+
+­ƒÜ® REPORTS MODULE
+  Ô£à ­ƒÜ® GET reports [200] 2 reportes
+
+­ƒåò REGISTER + VERIFY FLOW
+  Ô£à ­ƒôØ POST register [201] code=600813
+  Ô£à Ô£à POST verify-email [200] Email verified successfully
+  Ô£à ­ƒöæ Login new user [200] Test User
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  ­ƒôè RESULTADOS: 25 passed, 0 failed, 25 total
+  ­ƒÄë ALL TESTS PASSED!
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+

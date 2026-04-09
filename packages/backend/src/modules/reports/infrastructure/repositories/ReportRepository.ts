@@ -4,11 +4,11 @@ import { IReportRepository } from '../../domain/interfaces/IReportRepository';
 import { NotFoundError } from '@shared/errors/AppError';
 
 interface ReportRow {
-  id: string; reporter_id: string; reported_id: string; ride_id: string | null;
-  reason: string; description: string; evidence_url: string | null;
-  status: ReportStatus; admin_notes: string | null;
-  resolved_by: string | null; resolved_at: Date | null;
-  created_at: Date; updated_at: Date;
+  id: string; reportante_id: string; reportado_id: string; viaje_id: string | null;
+  motivo: string; descripcion: string; url_evidencia: string | null;
+  estado: ReportStatus; notas_admin: string | null;
+  resuelto_por: string | null; resuelto_en: Date | null;
+  creado_en: Date; actualizado_en: Date;
 }
 
 export class ReportRepository implements IReportRepository {
@@ -16,7 +16,7 @@ export class ReportRepository implements IReportRepository {
 
   async create(report: Report): Promise<Report> {
     const query = `
-      INSERT INTO reports (id, reporter_id, reported_id, ride_id, reason, description, evidence_url, status)
+      INSERT INTO reportes (id, reportante_id, reportado_id, viaje_id, motivo, descripcion, url_evidencia, estado)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
     `;
     const result = await this.pool.query(query, [
@@ -27,26 +27,26 @@ export class ReportRepository implements IReportRepository {
   }
 
   async findById(id: string): Promise<Report | null> {
-    const result = await this.pool.query('SELECT * FROM reports WHERE id = $1', [id]);
+    const result = await this.pool.query('SELECT * FROM reportes WHERE id = $1', [id]);
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
   }
 
   async findAll(status?: ReportStatus): Promise<Report[]> {
-    let query = 'SELECT * FROM reports';
+    let query = 'SELECT * FROM reportes';
     const values: any[] = [];
-    if (status) { query += ' WHERE status = $1'; values.push(status); }
-    query += ' ORDER BY created_at DESC';
+    if (status) { query += ' WHERE estado = $1'; values.push(status); }
+    query += ' ORDER BY creado_en DESC';
     const result = await this.pool.query(query, values);
     return result.rows.map((r: ReportRow) => this.mapRow(r));
   }
 
   async findByReporterId(reporterId: string): Promise<Report[]> {
-    const result = await this.pool.query('SELECT * FROM reports WHERE reporter_id = $1 ORDER BY created_at DESC', [reporterId]);
+    const result = await this.pool.query('SELECT * FROM reportes WHERE reportante_id = $1 ORDER BY creado_en DESC', [reporterId]);
     return result.rows.map((r: ReportRow) => this.mapRow(r));
   }
 
   async findByReportedId(reportedId: string): Promise<Report[]> {
-    const result = await this.pool.query('SELECT * FROM reports WHERE reported_id = $1 ORDER BY created_at DESC', [reportedId]);
+    const result = await this.pool.query('SELECT * FROM reportes WHERE reportado_id = $1 ORDER BY creado_en DESC', [reportedId]);
     return result.rows.map((r: ReportRow) => this.mapRow(r));
   }
 
@@ -56,15 +56,15 @@ export class ReportRepository implements IReportRepository {
     let idx = 1;
 
     const fieldMap: Record<string, string> = {
-      status: 'status', adminNotes: 'admin_notes', resolvedBy: 'resolved_by', resolvedAt: 'resolved_at',
+      status: 'estado', adminNotes: 'notas_admin', resolvedBy: 'resuelto_por', resolvedAt: 'resuelto_en',
     };
     for (const [key, col] of Object.entries(fieldMap)) {
       if ((data as any)[key] !== undefined) { updates.push(`${col} = $${idx++}`); values.push((data as any)[key]); }
     }
-    updates.push(`updated_at = $${idx++}`); values.push(new Date());
+    updates.push(`actualizado_en = $${idx++}`); values.push(new Date());
     values.push(id);
 
-    const query = `UPDATE reports SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
+    const query = `UPDATE reportes SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
     if (!result.rows[0]) throw new NotFoundError('Report not found');
     return this.mapRow(result.rows[0]);
@@ -72,10 +72,10 @@ export class ReportRepository implements IReportRepository {
 
   private mapRow(row: ReportRow): Report {
     return new Report(
-      row.reporter_id, row.reported_id, row.reason, row.description,
-      row.ride_id, row.evidence_url, row.status, row.admin_notes,
-      row.resolved_by, row.resolved_at ? new Date(row.resolved_at) : null,
-      row.id, new Date(row.created_at), new Date(row.updated_at),
+      row.reportante_id, row.reportado_id, row.motivo, row.descripcion,
+      row.viaje_id, row.url_evidencia, row.estado, row.notas_admin,
+      row.resuelto_por, row.resuelto_en ? new Date(row.resuelto_en) : null,
+      row.id, new Date(row.creado_en), new Date(row.actualizado_en),
     );
   }
 }

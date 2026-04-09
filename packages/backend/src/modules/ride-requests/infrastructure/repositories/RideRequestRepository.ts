@@ -5,14 +5,14 @@ import { NotFoundError } from '@shared/errors/AppError';
 
 interface RequestRow {
   id: string;
-  ride_id: string;
-  passenger_id: string;
-  status: RequestStatus;
-  message: string | null;
-  seats_requested: number;
-  responded_at: Date | null;
-  created_at: Date;
-  updated_at: Date;
+  viaje_id: string;
+  pasajero_id: string;
+  estado: RequestStatus;
+  mensaje: string | null;
+  asientos_solicitados: number;
+  respondido_en: Date | null;
+  creado_en: Date;
+  actualizado_en: Date;
 }
 
 export class RideRequestRepository implements IRideRequestRepository {
@@ -20,7 +20,7 @@ export class RideRequestRepository implements IRideRequestRepository {
 
   async create(request: RideRequest): Promise<RideRequest> {
     const query = `
-      INSERT INTO ride_requests (id, ride_id, passenger_id, status, message, seats_requested)
+      INSERT INTO solicitudes_viaje (id, viaje_id, pasajero_id, estado, mensaje, asientos_solicitados)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
@@ -30,23 +30,23 @@ export class RideRequestRepository implements IRideRequestRepository {
   }
 
   async findById(id: string): Promise<RideRequest | null> {
-    const result = await this.pool.query('SELECT * FROM ride_requests WHERE id = $1', [id]);
+    const result = await this.pool.query('SELECT * FROM solicitudes_viaje WHERE id = $1', [id]);
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
   }
 
   async findByRideId(rideId: string): Promise<RideRequest[]> {
-    const result = await this.pool.query('SELECT * FROM ride_requests WHERE ride_id = $1 ORDER BY created_at DESC', [rideId]);
+    const result = await this.pool.query('SELECT * FROM solicitudes_viaje WHERE viaje_id = $1 ORDER BY creado_en DESC', [rideId]);
     return result.rows.map((row: RequestRow) => this.mapRow(row));
   }
 
   async findByPassengerId(passengerId: string): Promise<RideRequest[]> {
-    const result = await this.pool.query('SELECT * FROM ride_requests WHERE passenger_id = $1 ORDER BY created_at DESC', [passengerId]);
+    const result = await this.pool.query('SELECT * FROM solicitudes_viaje WHERE pasajero_id = $1 ORDER BY creado_en DESC', [passengerId]);
     return result.rows.map((row: RequestRow) => this.mapRow(row));
   }
 
   async findByRideAndPassenger(rideId: string, passengerId: string): Promise<RideRequest | null> {
     const result = await this.pool.query(
-      'SELECT * FROM ride_requests WHERE ride_id = $1 AND passenger_id = $2 ORDER BY created_at DESC LIMIT 1',
+      'SELECT * FROM solicitudes_viaje WHERE viaje_id = $1 AND pasajero_id = $2 ORDER BY creado_en DESC LIMIT 1',
       [rideId, passengerId],
     );
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
@@ -57,14 +57,14 @@ export class RideRequestRepository implements IRideRequestRepository {
     const values: any[] = [];
     let idx = 1;
 
-    if ((data as any).status) { updates.push(`status = $${idx++}`); values.push((data as any).status); }
-    if ((data as any).respondedAt) { updates.push(`responded_at = $${idx++}`); values.push((data as any).respondedAt); }
+    if ((data as any).status) { updates.push(`estado = $${idx++}`); values.push((data as any).status); }
+    if ((data as any).respondedAt) { updates.push(`respondido_en = $${idx++}`); values.push((data as any).respondedAt); }
 
-    updates.push(`updated_at = $${idx++}`);
+    updates.push(`actualizado_en = $${idx++}`);
     values.push(new Date());
     values.push(id);
 
-    const query = `UPDATE ride_requests SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
+    const query = `UPDATE solicitudes_viaje SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
     if (!result.rows[0]) throw new NotFoundError('Request not found');
     return this.mapRow(result.rows[0]);
@@ -72,7 +72,7 @@ export class RideRequestRepository implements IRideRequestRepository {
 
   async countAcceptedByRide(rideId: string): Promise<number> {
     const result = await this.pool.query(
-      "SELECT COALESCE(SUM(seats_requested), 0) as total FROM ride_requests WHERE ride_id = $1 AND status = 'ACCEPTED'",
+      "SELECT COALESCE(SUM(asientos_solicitados), 0) as total FROM solicitudes_viaje WHERE viaje_id = $1 AND estado = 'ACCEPTED'",
       [rideId],
     );
     return parseInt(result.rows[0].total);
@@ -80,9 +80,9 @@ export class RideRequestRepository implements IRideRequestRepository {
 
   private mapRow(row: RequestRow): RideRequest {
     return new RideRequest(
-      row.ride_id, row.passenger_id, row.seats_requested, row.message,
-      row.status, row.responded_at ? new Date(row.responded_at) : null,
-      row.id, new Date(row.created_at), new Date(row.updated_at),
+      row.viaje_id, row.pasajero_id, row.asientos_solicitados, row.mensaje,
+      row.estado, row.respondido_en ? new Date(row.respondido_en) : null,
+      row.id, new Date(row.creado_en), new Date(row.actualizado_en),
     );
   }
 }

@@ -7,6 +7,7 @@ const navItems = [
   { path: '/rides', label: 'Viajes', icon: '🚗' },
   { path: '/my-rides', label: 'Mis Viajes', icon: '📋' },
   { path: '/my-requests', label: 'Solicitudes', icon: '📨' },
+  { path: '/payments', label: 'Pagos', icon: '💰' },
   { path: '/profile', label: 'Perfil', icon: '👤' },
 ];
 

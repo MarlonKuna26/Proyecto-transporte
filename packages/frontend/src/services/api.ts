@@ -1,5 +1,5 @@
 /**
- * API Service — cliente HTTP centralizado
+ * API Service — cliente HTTP centralizado (conectado a u_ride_esp)
  */
 
 const API_URL = 'http://localhost:3002/api/v1';
@@ -119,12 +119,31 @@ export const api = {
 
   // =================== PAYMENTS ===================
   payments: {
-    create: (data: any) =>
+    create: (data: { rideRequestId: string; amount: number; paymentMethod?: string; reference?: string }) =>
       request<any>('/payments', { method: 'POST', body: JSON.stringify(data) }),
     myPayments: () => request<any>('/payments/my-payments'),
     received: () => request<any>('/payments/received'),
     byRide: (rideId: string) => request<any>(`/payments/ride/${rideId}`),
     confirm: (id: string) =>
       request<any>(`/payments/${id}/confirm`, { method: 'PUT' }),
+    refund: (id: string) =>
+      request<any>(`/payments/${id}/refund`, { method: 'PUT' }),
+    summary: () => request<any>('/payments/summary'),
+  },
+
+  // =================== TRACKING ===================
+  tracking: {
+    updateLocation: (rideId: string, data: { latitude: number; longitude: number; heading?: number; speed?: number }) =>
+      request<any>(`/tracking/${rideId}/update`, { method: 'POST', body: JSON.stringify(data) }),
+    getCurrent: (rideId: string) =>
+      request<any>(`/tracking/${rideId}/current`),
+    getHistory: (rideId: string) =>
+      request<any>(`/tracking/${rideId}/history`),
+    startRide: (rideId: string) =>
+      request<any>(`/tracking/rides/${rideId}/start`, { method: 'PUT' }),
+    completeRide: (rideId: string) =>
+      request<any>(`/tracking/rides/${rideId}/complete`, { method: 'PUT' }),
+    getEvents: (rideId: string) =>
+      request<any>(`/tracking/${rideId}/events`),
   },
 };

@@ -18,6 +18,7 @@ import { createReportRoutes } from './modules/reports/report.routes';
 import { createAdminRoutes } from './modules/admin/admin.routes';
 import { createSecurityRulesRoutes } from './modules/security-rules/security-rules.routes';
 import { createPaymentRoutes } from './modules/payments/payment.routes';
+import { createTrackingRoutes } from './modules/tracking/tracking.routes';
 
 const logger = new Logger();
 const PORT = process.env.PORT || 3002;
@@ -43,6 +44,7 @@ async function bootstrap() {
     app.express.use('/api/v1/admin', createAdminRoutes());
     app.express.use('/api/v1/security-rules', createSecurityRulesRoutes());
     app.express.use('/api/v1/payments', createPaymentRoutes());
+    app.express.use('/api/v1/tracking', createTrackingRoutes());
 
     // 4. Registrar error handlers (DESPUÉS de todas las rutas)
     app.setupErrorHandlers();
@@ -71,6 +73,10 @@ async function bootstrap() {
       logger.info('  GET    /api/v1/admin/stats', 'SERVER');
       logger.info('  GET    /api/v1/security-rules', 'SERVER');
       logger.info('  POST   /api/v1/payments', 'SERVER');
+      logger.info('  POST   /api/v1/tracking/:rideId/update', 'SERVER');
+      logger.info('  GET    /api/v1/tracking/:rideId/current', 'SERVER');
+      logger.info('  PUT    /api/v1/tracking/rides/:rideId/start', 'SERVER');
+      logger.info('  PUT    /api/v1/tracking/rides/:rideId/complete', 'SERVER');
     });
 
     // Manejo de errores del servidor

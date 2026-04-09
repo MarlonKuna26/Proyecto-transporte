@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '@/services/api';
 import type { Ride, RideRequest } from '@/types';
 
@@ -50,8 +51,30 @@ export const MyRidesPage: React.FC = () => {
     }
   };
 
+  const startRide = async (rideId: string) => {
+    try {
+      await api.tracking.startRide(rideId);
+      setRides(prev => prev.map(r => r.id === rideId ? { ...r, status: 'IN_PROGRESS' as const } : r));
+      setFeedback('¡Viaje iniciado! Redirigiendo al seguimiento...');
+      setTimeout(() => setFeedback(''), 3000);
+    } catch (err: any) {
+      setFeedback(err.message);
+    }
+  };
+
+  const completeRide = async (rideId: string) => {
+    try {
+      await api.tracking.completeRide(rideId);
+      setRides(prev => prev.map(r => r.id === rideId ? { ...r, status: 'COMPLETED' as const } : r));
+      setFeedback('¡Viaje completado!');
+      setTimeout(() => setFeedback(''), 3000);
+    } catch (err: any) {
+      setFeedback(err.message);
+    }
+  };
+
   const statusColor: Record<string, string> = { PUBLISHED: 'badge-success', FULL: 'badge-warning', IN_PROGRESS: 'badge-info', COMPLETED: 'badge-info', CANCELLED: 'badge-danger' };
-  const statusLabel: Record<string, string> = { PUBLISHED: 'Activo', FULL: 'Lleno', IN_PROGRESS: 'En curso', COMPLETED: 'Completado', CANCELLED: 'Cancelado' };
+  const statusLabel: Record<string, string> = { PUBLISHED: 'Activo', FULL: 'Lleno', IN_PROGRESS: '🟢 En curso', COMPLETED: 'Completado', CANCELLED: 'Cancelado' };
   const reqStatusColor: Record<string, string> = { PENDING: 'badge-warning', ACCEPTED: 'badge-success', REJECTED: 'badge-danger', CANCELLED: 'badge-danger' };
 
   return (
@@ -72,9 +95,20 @@ export const MyRidesPage: React.FC = () => {
                 <div className="flex items-center gap-2 text-navy-900 font-medium">
                   <span>📍</span> {ride.originZone} <span className="text-dark-400">→</span> {ride.destinationZone}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className={statusColor[ride.status]}>{statusLabel[ride.status]}</span>
-                  {ride.status === 'PUBLISHED' && <button onClick={() => cancelRide(ride.id)} className="text-red-500 hover:text-red-600 text-xs font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Cancelar</button>}
+                  {(ride.status === 'PUBLISHED' || ride.status === 'FULL') && (
+                    <>
+                      <button onClick={() => startRide(ride.id)} className="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-medium hover:bg-green-100 transition-colors">▶ Iniciar</button>
+                      <button onClick={() => cancelRide(ride.id)} className="text-red-500 hover:text-red-600 text-xs font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Cancelar</button>
+                    </>
+                  )}
+                  {ride.status === 'IN_PROGRESS' && (
+                    <>
+                      <Link to={`/tracking/${ride.id}`} className="px-3 py-1.5 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">📍 Seguimiento</Link>
+                      <button onClick={() => completeRide(ride.id)} className="px-3 py-1.5 rounded-lg bg-navy-50 text-navy-700 text-xs font-medium hover:bg-navy-100 transition-colors">⏹ Completar</button>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap gap-3 text-dark-500 text-xs mb-3">

@@ -4,17 +4,17 @@ import { IUserProfileRepository } from '../../domain/interfaces/IUserProfileRepo
 
 interface ProfileRow {
   id: string;
-  user_id: string;
-  career: string | null;
-  photo_url: string | null;
-  phone: string | null;
-  zone: string | null;
-  neighborhood: string | null;
-  bio: string | null;
-  emergency_contact: string | null;
-  emergency_phone: string | null;
-  created_at: Date;
-  updated_at: Date;
+  usuario_id: string;
+  carrera: string | null;
+  url_foto: string | null;
+  telefono: string | null;
+  zona: string | null;
+  barrio: string | null;
+  biografia: string | null;
+  contacto_emergencia: string | null;
+  telefono_emergencia: string | null;
+  creado_en: Date;
+  actualizado_en: Date;
 }
 
 export class UserProfileRepository implements IUserProfileRepository {
@@ -22,7 +22,7 @@ export class UserProfileRepository implements IUserProfileRepository {
 
   async findByUserId(userId: string): Promise<UserProfile | null> {
     const result = await this.pool.query(
-      'SELECT * FROM user_profiles WHERE user_id = $1',
+      'SELECT * FROM perfiles_usuario WHERE usuario_id = $1',
       [userId],
     );
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
@@ -30,7 +30,7 @@ export class UserProfileRepository implements IUserProfileRepository {
 
   async create(profile: UserProfile): Promise<UserProfile> {
     const query = `
-      INSERT INTO user_profiles (id, user_id, career, photo_url, phone, zone, neighborhood, bio, emergency_contact, emergency_phone)
+      INSERT INTO perfiles_usuario (id, usuario_id, carrera, url_foto, telefono, zona, barrio, biografia, contacto_emergencia, telefono_emergencia)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
@@ -49,14 +49,14 @@ export class UserProfileRepository implements IUserProfileRepository {
     let idx = 1;
 
     const fieldMap: Record<string, string> = {
-      career: 'career',
-      photoUrl: 'photo_url',
-      phone: 'phone',
-      zone: 'zone',
-      neighborhood: 'neighborhood',
-      bio: 'bio',
-      emergencyContact: 'emergency_contact',
-      emergencyPhone: 'emergency_phone',
+      career: 'carrera',
+      photoUrl: 'url_foto',
+      phone: 'telefono',
+      zone: 'zona',
+      neighborhood: 'barrio',
+      bio: 'biografia',
+      emergencyContact: 'contacto_emergencia',
+      emergencyPhone: 'telefono_emergencia',
     };
 
     for (const [key, col] of Object.entries(fieldMap)) {
@@ -71,29 +71,29 @@ export class UserProfileRepository implements IUserProfileRepository {
       return existing!;
     }
 
-    updates.push(`updated_at = $${idx++}`);
+    updates.push(`actualizado_en = $${idx++}`);
     values.push(new Date());
     values.push(userId);
 
-    const query = `UPDATE user_profiles SET ${updates.join(', ')} WHERE user_id = $${idx} RETURNING *`;
+    const query = `UPDATE perfiles_usuario SET ${updates.join(', ')} WHERE usuario_id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
     return this.mapRow(result.rows[0]);
   }
 
   private mapRow(row: ProfileRow): UserProfile {
     return new UserProfile(
-      row.user_id,
-      row.career,
-      row.photo_url,
-      row.phone,
-      row.zone,
-      row.neighborhood,
-      row.bio,
-      row.emergency_contact,
-      row.emergency_phone,
+      row.usuario_id,
+      row.carrera,
+      row.url_foto,
+      row.telefono,
+      row.zona,
+      row.barrio,
+      row.biografia,
+      row.contacto_emergencia,
+      row.telefono_emergencia,
       row.id,
-      new Date(row.created_at),
-      new Date(row.updated_at),
+      new Date(row.creado_en),
+      new Date(row.actualizado_en),
     );
   }
 }

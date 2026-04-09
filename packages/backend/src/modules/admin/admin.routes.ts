@@ -14,11 +14,11 @@ export function createAdminRoutes(): Router {
   router.get('/stats', authenticateToken, authorizeRole('ADMIN'), async (req: Request, res: Response) => {
     try {
       const [users, rides, requests, reports, ratings] = await Promise.all([
-        pool.query('SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_verified = true) as verified, COUNT(*) FILTER (WHERE is_suspended = true) as suspended FROM users'),
-        pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'PUBLISHED') as active, COUNT(*) FILTER (WHERE status = 'COMPLETED') as completed FROM rides"),
-        pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'PENDING') as pending, COUNT(*) FILTER (WHERE status = 'ACCEPTED') as accepted FROM ride_requests"),
-        pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'PENDING') as pending FROM reports"),
-        pool.query('SELECT COUNT(*) as total, COALESCE(AVG(score), 0) as avg_score FROM ratings'),
+        pool.query('SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE esta_verificado = true) as verified, COUNT(*) FILTER (WHERE esta_suspendido = true) as suspended FROM usuarios'),
+        pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE estado = 'PUBLISHED') as active, COUNT(*) FILTER (WHERE estado = 'COMPLETED') as completed FROM viajes"),
+        pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE estado = 'PENDING') as pending, COUNT(*) FILTER (WHERE estado = 'ACCEPTED') as accepted FROM solicitudes_viaje"),
+        pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE estado = 'PENDING') as pending FROM reportes"),
+        pool.query('SELECT COUNT(*) as total, COALESCE(AVG(puntuacion), 0) as avg_score FROM calificaciones'),
       ]);
 
       res.json({
@@ -40,7 +40,7 @@ export function createAdminRoutes(): Router {
   // Listar usuarios
   router.get('/users', authenticateToken, authorizeRole('ADMIN'), async (req: Request, res: Response) => {
     try {
-      const result = await pool.query('SELECT id, email, name, role, is_verified, is_suspended, reputation, created_at FROM users ORDER BY created_at DESC');
+      const result = await pool.query('SELECT id, correo as email, nombre as name, rol as role, esta_verificado as is_verified, esta_suspendido as is_suspended, reputacion as reputation, creado_en as created_at FROM usuarios ORDER BY creado_en DESC');
       res.json({ success: true, data: result.rows });
     } catch (error: unknown) {
       res.status(500).json({ success: false, error: 'Failed to fetch users' });
@@ -57,7 +57,7 @@ export function createAdminRoutes(): Router {
       suspendedUntil.setDate(suspendedUntil.getDate() + (days || 7));
 
       await pool.query(
-        'UPDATE users SET is_suspended = true, suspension_reason = $1, suspended_until = $2, updated_at = NOW() WHERE id = $3',
+        'UPDATE usuarios SET esta_suspendido = true, motivo_suspension = $1, suspendido_hasta = $2, actualizado_en = NOW() WHERE id = $3',
         [reason, suspendedUntil, req.params.id],
       );
 
@@ -72,7 +72,7 @@ export function createAdminRoutes(): Router {
   router.put('/users/:id/unsuspend', authenticateToken, authorizeRole('ADMIN'), async (req: Request, res: Response) => {
     try {
       await pool.query(
-        'UPDATE users SET is_suspended = false, suspension_reason = NULL, suspended_until = NULL, updated_at = NOW() WHERE id = $1',
+        'UPDATE usuarios SET esta_suspendido = false, motivo_suspension = NULL, suspendido_hasta = NULL, actualizado_en = NOW() WHERE id = $1',
         [req.params.id],
       );
       logger.info(`User ${req.params.id} unsuspended by admin`, 'ADMIN');
@@ -82,14 +82,14 @@ export function createAdminRoutes(): Router {
     }
   });
 
-  // Advertir usuario (registra en audit_logs)
+  // Advertir usuario
   router.post('/users/:id/warn', authenticateToken, authorizeRole('ADMIN'), async (req: Request, res: Response) => {
     try {
       const { message } = req.body;
       if (!message) { res.status(400).json({ success: false, error: 'Warning message is required' }); return; }
 
       await pool.query(
-        `INSERT INTO audit_logs (entity_type, entity_id, action, changes, performed_by) VALUES ('USER', $1, 'WARNING', $2, $3)`,
+        `INSERT INTO registros_auditoria (tipo_entidad, id_entidad, accion, cambios, realizado_por) VALUES ('USER', $1, 'WARNING', $2, $3)`,
         [req.params.id, JSON.stringify({ message }), req.user!.userId],
       );
 

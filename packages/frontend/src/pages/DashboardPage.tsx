@@ -24,7 +24,7 @@ export const DashboardPage: React.FC = () => {
     { icon: '🔍', title: 'Buscar viajes', desc: 'Encuentra viajes disponibles', path: '/rides', color: 'bg-primary-500' },
     { icon: '📍', title: 'Publicar viaje', desc: 'Ofrece asientos', path: '/rides?create=true', color: 'bg-navy-500' },
     { icon: '📋', title: 'Mis viajes', desc: 'Gestiona como conductor', path: '/my-rides', color: 'bg-primary-700' },
-    { icon: '📨', title: 'Solicitudes', desc: 'Revisa tus solicitudes', path: '/my-requests', color: 'bg-navy-700' },
+    { icon: '💰', title: 'Pagos', desc: 'Gestiona tus pagos', path: '/payments', color: 'bg-navy-700' },
   ];
 
   const statusColor: Record<string, string> = {

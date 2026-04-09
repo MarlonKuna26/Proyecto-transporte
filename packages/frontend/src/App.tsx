@@ -4,6 +4,7 @@ import { Layout } from '@/components/Layout';
 import {
   LoginPage, RegisterPage, DashboardPage, RidesPage,
   MyRidesPage, MyRequestsPage, ProfilePage, AdminPage,
+  TrackingPage, PaymentsPage,
 } from '@/pages';
 
 /** Ruta protegida: redirige a /login si no hay sesión */
@@ -49,6 +50,8 @@ function App() {
             <Route path="/rides" element={<RidesPage />} />
             <Route path="/my-rides" element={<MyRidesPage />} />
             <Route path="/my-requests" element={<MyRequestsPage />} />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/tracking/:rideId" element={<TrackingPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
           </Route>

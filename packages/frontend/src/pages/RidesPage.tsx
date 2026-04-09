@@ -2,6 +2,7 @@ import React, { useEffect, useState, FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { LiveMap } from '@/components/LiveMap';
 import type { Ride } from '@/types';
 
 export const RidesPage: React.FC = () => {
@@ -14,10 +15,13 @@ export const RidesPage: React.FC = () => {
   const [requestMsg, setRequestMsg] = useState('');
   const [filters, setFilters] = useState({ originZone: '', destinationZone: '', departureDate: '' });
   const [feedback, setFeedback] = useState({ msg: '', type: '' });
+  const [selectMode, setSelectMode] = useState<'origin' | 'destination' | null>(null);
   const [formData, setFormData] = useState({
     originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
     departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
     notes: '', rules: '',
+    originLat: null as number | null, originLng: null as number | null,
+    destinationLat: null as number | null, destinationLng: null as number | null,
   });
 
   const loadRides = async () => {
@@ -42,6 +46,16 @@ export const RidesPage: React.FC = () => {
     }
   }, [params]);
 
+  const handleMapClick = (lat: number, lng: number) => {
+    if (selectMode === 'origin') {
+      setFormData(prev => ({ ...prev, originLat: lat, originLng: lng }));
+      setSelectMode(null);
+    } else if (selectMode === 'destination') {
+      setFormData(prev => ({ ...prev, destinationLat: lat, destinationLng: lng }));
+      setSelectMode(null);
+    }
+  };
+
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -56,6 +70,7 @@ export const RidesPage: React.FC = () => {
         originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
         departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
         notes: '', rules: '',
+        originLat: null, originLng: null, destinationLat: null, destinationLng: null,
       });
       loadRides();
     } catch (err: any) {
@@ -108,6 +123,30 @@ export const RidesPage: React.FC = () => {
             <div><label className="block text-sm text-dark-500 mb-1">Precio/persona ($)</label><input type="number" min="0" step="100" className="input-field" value={formData.pricePerSeat} onChange={e => setFormData({ ...formData, pricePerSeat: e.target.value })} /></div>
           </div>
           <div><label className="block text-sm text-dark-500 mb-1">Notas</label><input className="input-field" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} placeholder="Info adicional..." /></div>
+          <div><label className="block text-sm text-dark-500 mb-1">Reglas del viaje</label><input className="input-field" value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} placeholder="Ej: Puntualidad, no fumar..." /></div>
+
+          {/* Map for coordinates */}
+          <div>
+            <label className="block text-sm text-dark-500 mb-2">📍 Ubicación en el mapa (opcional)</label>
+            <div className="flex gap-2 mb-3">
+              <button type="button" onClick={() => setSelectMode(selectMode === 'origin' ? null : 'origin')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectMode === 'origin' ? 'bg-green-500 text-white' : 'bg-dark-100 text-dark-600 hover:bg-dark-200'}`}>
+                {formData.originLat ? `✅ Origen: ${formData.originLat.toFixed(4)}, ${formData.originLng?.toFixed(4)}` : '📍 Marcar origen'}
+              </button>
+              <button type="button" onClick={() => setSelectMode(selectMode === 'destination' ? null : 'destination')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectMode === 'destination' ? 'bg-blue-500 text-white' : 'bg-dark-100 text-dark-600 hover:bg-dark-200'}`}>
+                {formData.destinationLat ? `✅ Destino: ${formData.destinationLat.toFixed(4)}, ${formData.destinationLng?.toFixed(4)}` : '🏁 Marcar destino'}
+              </button>
+            </div>
+            <LiveMap
+              origin={formData.originLat ? { lat: formData.originLat, lng: formData.originLng!, label: formData.originZone } : null}
+              destination={formData.destinationLat ? { lat: formData.destinationLat, lng: formData.destinationLng!, label: formData.destinationZone } : null}
+              onMapClick={handleMapClick}
+              selectMode={selectMode}
+              height="300px"
+            />
+          </div>
+
           <button type="submit" className="btn-accent w-full md:w-auto">🚀 Publicar viaje</button>
         </form>
       )}
@@ -145,6 +184,7 @@ export const RidesPage: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 text-dark-500 text-xs">
                 <span>📅 {ride.departureDate}</span><span>🕐 {ride.departureTime}</span><span>💺 {ride.availableSeats} asientos</span>
                 {ride.pricePerSeat > 0 && <span className="text-primary-600 font-semibold">${ride.pricePerSeat.toLocaleString()}</span>}
+                {ride.originLat && <span className="text-green-600">📡 GPS</span>}
               </div>
             </div>
           ))}
@@ -154,7 +194,7 @@ export const RidesPage: React.FC = () => {
       {/* View ride modal */}
       {viewRide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/60 backdrop-blur-sm" onClick={() => setViewRide(null)}>
-          <div className="w-full max-w-lg bg-white rounded-2xl shadow-card-hover p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-card-hover p-6 animate-slide-up max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-navy-900">Detalle del viaje</h2>
               <button onClick={() => setViewRide(null)} className="text-dark-400 hover:text-navy-900 text-2xl">✕</button>
@@ -169,6 +209,15 @@ export const RidesPage: React.FC = () => {
               </div>
               {viewRide.notes && <div className="p-3 rounded-xl bg-primary-50"><span className="text-dark-500">📝 </span><span className="text-dark-600">{viewRide.notes}</span></div>}
               {viewRide.rules && <div className="p-3 rounded-xl bg-primary-50"><span className="text-dark-500">📋 </span><span className="text-dark-600">{viewRide.rules}</span></div>}
+
+              {/* Mini-map if coordinates available */}
+              {viewRide.originLat && viewRide.originLng && (
+                <LiveMap
+                  origin={{ lat: viewRide.originLat, lng: viewRide.originLng, label: viewRide.originZone }}
+                  destination={viewRide.destinationLat && viewRide.destinationLng ? { lat: viewRide.destinationLat, lng: viewRide.destinationLng, label: viewRide.destinationZone } : null}
+                  height="200px"
+                />
+              )}
             </div>
 
             {viewRide.driverId !== user?.id && viewRide.status === 'PUBLISHED' && (

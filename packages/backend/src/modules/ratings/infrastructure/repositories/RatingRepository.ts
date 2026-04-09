@@ -4,13 +4,13 @@ import { IRatingRepository } from '../../domain/interfaces/IRatingRepository';
 
 interface RatingRow {
   id: string;
-  ride_id: string;
-  rater_id: string;
-  rated_id: string;
-  score: number;
-  comment: string | null;
-  role_in_ride: 'DRIVER' | 'PASSENGER';
-  created_at: Date;
+  viaje_id: string;
+  calificador_id: string;
+  calificado_id: string;
+  puntuacion: number;
+  comentario: string | null;
+  rol_en_viaje: 'DRIVER' | 'PASSENGER';
+  creado_en: Date;
 }
 
 export class RatingRepository implements IRatingRepository {
@@ -18,7 +18,7 @@ export class RatingRepository implements IRatingRepository {
 
   async create(rating: Rating): Promise<Rating> {
     const query = `
-      INSERT INTO ratings (id, ride_id, rater_id, rated_id, score, comment, role_in_ride)
+      INSERT INTO calificaciones (id, viaje_id, calificador_id, calificado_id, puntuacion, comentario, rol_en_viaje)
       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
     `;
     const result = await this.pool.query(query, [
@@ -30,21 +30,21 @@ export class RatingRepository implements IRatingRepository {
 
   async findByRatedId(ratedId: string): Promise<Rating[]> {
     const result = await this.pool.query(
-      'SELECT * FROM ratings WHERE rated_id = $1 ORDER BY created_at DESC', [ratedId],
+      'SELECT * FROM calificaciones WHERE calificado_id = $1 ORDER BY creado_en DESC', [ratedId],
     );
     return result.rows.map((r: RatingRow) => this.mapRow(r));
   }
 
   async findByRideId(rideId: string): Promise<Rating[]> {
     const result = await this.pool.query(
-      'SELECT * FROM ratings WHERE ride_id = $1 ORDER BY created_at DESC', [rideId],
+      'SELECT * FROM calificaciones WHERE viaje_id = $1 ORDER BY creado_en DESC', [rideId],
     );
     return result.rows.map((r: RatingRow) => this.mapRow(r));
   }
 
   async findByRaterAndRide(raterId: string, rideId: string, ratedId: string): Promise<Rating | null> {
     const result = await this.pool.query(
-      'SELECT * FROM ratings WHERE rater_id = $1 AND ride_id = $2 AND rated_id = $3',
+      'SELECT * FROM calificaciones WHERE calificador_id = $1 AND viaje_id = $2 AND calificado_id = $3',
       [raterId, rideId, ratedId],
     );
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
@@ -52,7 +52,7 @@ export class RatingRepository implements IRatingRepository {
 
   async getAverageAndCount(userId: string): Promise<{ average: number; count: number }> {
     const result = await this.pool.query(
-      'SELECT COALESCE(AVG(score), 5.0) as average, COUNT(*) as count FROM ratings WHERE rated_id = $1',
+      'SELECT COALESCE(AVG(puntuacion), 5.0) as average, COUNT(*) as count FROM calificaciones WHERE calificado_id = $1',
       [userId],
     );
     return {
@@ -63,8 +63,8 @@ export class RatingRepository implements IRatingRepository {
 
   private mapRow(row: RatingRow): Rating {
     return new Rating(
-      row.ride_id, row.rater_id, row.rated_id, row.score,
-      row.role_in_ride, row.comment, row.id, new Date(row.created_at),
+      row.viaje_id, row.calificador_id, row.calificado_id, row.puntuacion,
+      row.rol_en_viaje, row.comentario, row.id, new Date(row.creado_en),
     );
   }
 }

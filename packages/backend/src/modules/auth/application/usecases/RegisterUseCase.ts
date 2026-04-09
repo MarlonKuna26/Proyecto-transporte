@@ -1,11 +1,6 @@
 /**
  * RegisterUseCase
  * Capa de aplicación - Registrar nuevo estudiante
- * 1. Verificar que el email no exista
- * 2. Hashear contraseña con bcrypt
- * 3. Crear usuario
- * 4. Generar código de verificación
- * 5. Retornar respuesta
  */
 
 import { IUseCase } from '@shared/types';
@@ -35,7 +30,7 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
       input.name,
       hashedPassword,
       'STUDENT',
-      false, // no verificado inicialmente
+      false,
       5.0,
     );
 
@@ -47,7 +42,7 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
 
     const pool = DatabaseConnection.getInstance();
     await pool.query(
-      `INSERT INTO verification_codes (user_id, code, type, expires_at) VALUES ($1, $2, 'EMAIL', $3)`,
+      `INSERT INTO codigos_verificacion (usuario_id, codigo, tipo, expira_en) VALUES ($1, $2, 'EMAIL', $3)`,
       [createdUser.id, verificationCode, expiresAt],
     );
 

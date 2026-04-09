@@ -36,9 +36,9 @@ export class VerifyEmailUseCase implements IUseCase<VerifyEmailInput, VerifyEmai
 
     // 2. Verificar código
     const result = await pool.query(
-      `SELECT * FROM verification_codes 
-       WHERE user_id = $1 AND code = $2 AND type = 'EMAIL' AND used = false AND expires_at > NOW()
-       ORDER BY created_at DESC LIMIT 1`,
+      `SELECT * FROM codigos_verificacion 
+       WHERE usuario_id = $1 AND codigo = $2 AND tipo = 'EMAIL' AND usado = false AND expira_en > NOW()
+       ORDER BY creado_en DESC LIMIT 1`,
       [user.id, input.code],
     );
 
@@ -48,7 +48,7 @@ export class VerifyEmailUseCase implements IUseCase<VerifyEmailInput, VerifyEmai
 
     // 3. Marcar código como usado
     await pool.query(
-      `UPDATE verification_codes SET used = true WHERE id = $1`,
+      `UPDATE codigos_verificacion SET usado = true WHERE id = $1`,
       [result.rows[0].id],
     );
 
@@ -57,7 +57,7 @@ export class VerifyEmailUseCase implements IUseCase<VerifyEmailInput, VerifyEmai
 
     // 5. Crear perfil vacío para el usuario
     await pool.query(
-      `INSERT INTO user_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
+      `INSERT INTO perfiles_usuario (usuario_id) VALUES ($1) ON CONFLICT (usuario_id) DO NOTHING`,
       [user.id],
     );
 

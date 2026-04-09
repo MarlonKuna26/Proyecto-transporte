@@ -9,11 +9,11 @@ export function createSecurityRulesRoutes(): Router {
   const router = Router();
   const pool = DatabaseConnection.getInstance();
 
-  // Listar reglas activas (público para usuarios auth)
+  // Listar reglas activas
   router.get('/', authenticateToken, async (req: Request, res: Response) => {
     try {
       const result = await pool.query(
-        'SELECT id, title, description, icon, display_order FROM security_rules WHERE is_active = true ORDER BY display_order ASC',
+        'SELECT id, titulo, descripcion, icono, orden_mostrado FROM reglas_seguridad WHERE esta_activa = true ORDER BY orden_mostrado ASC',
       );
       res.json({ success: true, data: result.rows });
     } catch (error: unknown) {

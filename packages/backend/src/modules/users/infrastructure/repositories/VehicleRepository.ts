@@ -5,17 +5,17 @@ import { NotFoundError } from '@shared/errors/AppError';
 
 interface VehicleRow {
   id: string;
-  owner_id: string;
-  plate: string;
-  brand: string;
-  model: string;
+  propietario_id: string;
+  placa: string;
+  marca: string;
+  modelo: string;
   color: string;
-  year: number | null;
-  capacity: number;
-  photo_url: string | null;
-  is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
+  anio: number | null;
+  capacidad: number;
+  url_foto: string | null;
+  esta_activo: boolean;
+  creado_en: Date;
+  actualizado_en: Date;
 }
 
 export class VehicleRepository implements IVehicleRepository {
@@ -23,7 +23,7 @@ export class VehicleRepository implements IVehicleRepository {
 
   async create(vehicle: Vehicle): Promise<Vehicle> {
     const query = `
-      INSERT INTO vehicles (id, owner_id, plate, brand, model, color, year, capacity, photo_url, is_active)
+      INSERT INTO vehiculos (id, propietario_id, placa, marca, modelo, color, anio, capacidad, url_foto, esta_activo)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
@@ -37,13 +37,13 @@ export class VehicleRepository implements IVehicleRepository {
   }
 
   async findById(id: string): Promise<Vehicle | null> {
-    const result = await this.pool.query('SELECT * FROM vehicles WHERE id = $1', [id]);
+    const result = await this.pool.query('SELECT * FROM vehiculos WHERE id = $1', [id]);
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
   }
 
   async findByOwnerId(ownerId: string): Promise<Vehicle[]> {
     const result = await this.pool.query(
-      'SELECT * FROM vehicles WHERE owner_id = $1 AND is_active = true ORDER BY created_at DESC',
+      'SELECT * FROM vehiculos WHERE propietario_id = $1 AND esta_activo = true ORDER BY creado_en DESC',
       [ownerId],
     );
     return result.rows.map((row: VehicleRow) => this.mapRow(row));
@@ -58,8 +58,8 @@ export class VehicleRepository implements IVehicleRepository {
     let idx = 1;
 
     const fieldMap: Record<string, string> = {
-      plate: 'plate', brand: 'brand', model: 'model', color: 'color',
-      year: 'year', capacity: 'capacity', photoUrl: 'photo_url', isActive: 'is_active',
+      plate: 'placa', brand: 'marca', model: 'modelo', color: 'color',
+      year: 'anio', capacity: 'capacidad', photoUrl: 'url_foto', isActive: 'esta_activo',
     };
 
     for (const [key, col] of Object.entries(fieldMap)) {
@@ -69,24 +69,24 @@ export class VehicleRepository implements IVehicleRepository {
       }
     }
 
-    updates.push(`updated_at = $${idx++}`);
+    updates.push(`actualizado_en = $${idx++}`);
     values.push(new Date());
     values.push(id);
 
-    const query = `UPDATE vehicles SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
+    const query = `UPDATE vehiculos SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
     return this.mapRow(result.rows[0]);
   }
 
   async delete(id: string): Promise<void> {
-    await this.pool.query('UPDATE vehicles SET is_active = false, updated_at = NOW() WHERE id = $1', [id]);
+    await this.pool.query('UPDATE vehiculos SET esta_activo = false, actualizado_en = NOW() WHERE id = $1', [id]);
   }
 
   private mapRow(row: VehicleRow): Vehicle {
     return new Vehicle(
-      row.owner_id, row.plate, row.brand, row.model, row.color,
-      row.capacity, row.year, row.photo_url, row.is_active,
-      row.id, new Date(row.created_at), new Date(row.updated_at),
+      row.propietario_id, row.placa, row.marca, row.modelo, row.color,
+      row.capacidad, row.anio, row.url_foto, row.esta_activo,
+      row.id, new Date(row.creado_en), new Date(row.actualizado_en),
     );
   }
 }

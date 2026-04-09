@@ -1,6 +1,6 @@
 /**
  * Servicio: RideService
- * Comunicación con el backend para viajes
+ * Comunicación con el backend para viajes (u_ride_esp)
  */
 
 const API_URL = 'http://localhost:3002/api/v1';
@@ -8,11 +8,12 @@ const API_URL = 'http://localhost:3002/api/v1';
 interface Ride {
   id: string;
   driverId: string;
-  departureLocation: string;
-  destinationLocation: string;
+  originZone: string;
+  destinationZone: string;
+  departureDate: string;
   departureTime: string;
   availableSeats: number;
-  fare: number;
+  pricePerSeat: number;
   status: string;
 }
 
