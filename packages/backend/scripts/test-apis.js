@@ -57,12 +57,12 @@ async function runTests() {
   console.log('\n🔐 AUTH MODULE');
   
   // Login con usuario NO verificado (debe fallar)
-  let r = await request('POST', '/auth/login', { email: 'sofia.ramirez@uride.edu.co', password: 'Test1234!' });
+  let r = await request('POST', '/auth/login', { email: 'sofia.ramirez@uride.edu.ec', password: 'Test1234!' });
   log('🚫', 'Login NO verificado', r);
   test(r.status === 401);
 
   // Login con Carlos (verificado)
-  r = await request('POST', '/auth/login', { email: 'carlos.martinez@uride.edu.co', password: 'Test1234!' });
+  r = await request('POST', '/auth/login', { email: 'carlos.martinez@uride.edu.ec', password: 'Test1234!' });
   log('🔑', 'Login Carlos', r, r.body?.data?.user?.name || '');
   test(r.status === 200 && r.body?.success);
   TOKEN = r.body?.data?.accessToken || r.body?.data?.token || '';
@@ -76,7 +76,7 @@ async function runTests() {
   test(r.status === 200);
 
   // Login Admin
-  r = await request('POST', '/auth/login', { email: 'admin@uride.edu.co', password: 'Test1234!' });
+  r = await request('POST', '/auth/login', { email: 'admin@uride.edu.ec', password: 'Test1234!' });
   log('👑', 'Login Admin', r, r.body?.data?.user?.name || '');
   test(r.status === 200);
   const ADMIN_TOKEN = r.body?.data?.accessToken || r.body?.data?.token || '';
@@ -219,7 +219,7 @@ async function runTests() {
   console.log('\n🆕 REGISTER + VERIFY FLOW');
   
   TOKEN = '';
-  const testEmail = `test.${Date.now()}@uride.edu.co`;
+  const testEmail = `test.${Date.now()}@uride.edu.ec`;
   r = await request('POST', '/auth/register', { email: testEmail, name: 'Test User', password: 'Test1234!' });
   log('📝', 'POST register', r, r.body?.data?.verificationCode ? `code=${r.body.data.verificationCode}` : '');
   test(r.status === 201 && r.body?.success);

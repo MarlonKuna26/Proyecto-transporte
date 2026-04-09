@@ -30,13 +30,13 @@ async function seed() {
     const hashedPass = await bcrypt.hash('Test1234!', 10);
     
     const users = [
-      { id: uuidv4(), correo: 'admin@uride.edu.co', nombre: 'Admin Sistema', rol: 'ADMIN', verificado: true },
-      { id: uuidv4(), correo: 'carlos.martinez@uride.edu.co', nombre: 'Carlos Martínez', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'laura.gonzalez@uride.edu.co', nombre: 'Laura González', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'andres.lopez@uride.edu.co', nombre: 'Andrés López', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'maria.rodriguez@uride.edu.co', nombre: 'María Rodríguez', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'diego.herrera@uride.edu.co', nombre: 'Diego Herrera', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'sofia.ramirez@uride.edu.co', nombre: 'Sofía Ramírez', rol: 'STUDENT', verificado: false },
+      { id: uuidv4(), correo: 'admin@uride.edu.ec', nombre: 'Admin Sistema', rol: 'ADMIN', verificado: true },
+      { id: uuidv4(), correo: 'carlos.martinez@uride.edu.ec', nombre: 'Carlos Martínez', rol: 'STUDENT', verificado: true },
+      { id: uuidv4(), correo: 'laura.gonzalez@uride.edu.ec', nombre: 'Laura González', rol: 'STUDENT', verificado: true },
+      { id: uuidv4(), correo: 'andres.lopez@uride.edu.ec', nombre: 'Andrés López', rol: 'STUDENT', verificado: true },
+      { id: uuidv4(), correo: 'maria.rodriguez@uride.edu.ec', nombre: 'María Rodríguez', rol: 'STUDENT', verificado: true },
+      { id: uuidv4(), correo: 'diego.herrera@uride.edu.ec', nombre: 'Diego Herrera', rol: 'STUDENT', verificado: true },
+      { id: uuidv4(), correo: 'sofia.ramirez@uride.edu.ec', nombre: 'Sofía Ramírez', rol: 'STUDENT', verificado: false },
     ];
 
     for (const u of users) {
@@ -51,11 +51,11 @@ async function seed() {
     // ============ PERFILES ============
     console.log('📝 Creando perfiles...');
     const profiles = [
-      { userId: users[1].id, carrera: 'Ingeniería de Sistemas', telefono: '+57 310 123 4567', zona: 'Norte', barrio: 'Usaquén', bio: 'Estudiante de 8vo semestre, conduzco un Mazda 3', contacto_emergencia: 'Padre - Pedro Martínez', telefono_emergencia: '+57 300 111 2222' },
-      { userId: users[2].id, carrera: 'Derecho', telefono: '+57 311 234 5678', zona: 'Suba', barrio: 'Spring', bio: 'Busco viajes compartidos para la universidad', contacto_emergencia: 'Madre - Ana González', telefono_emergencia: '+57 301 222 3333' },
-      { userId: users[3].id, carrera: 'Medicina', telefono: '+57 312 345 6789', zona: 'Chapinero', barrio: 'Chicó', bio: 'Conductor responsable, viajo todos los días', contacto_emergencia: 'Hermana - Paula López', telefono_emergencia: '+57 302 333 4444' },
-      { userId: users[4].id, carrera: 'Administración', telefono: '+57 313 456 7890', zona: 'Kennedy', barrio: 'Ciudad Roma', bio: 'Me gusta viajar acompañada, más seguro así!', contacto_emergencia: 'Esposo - Juan Carlos', telefono_emergencia: '+57 303 444 5555' },
-      { userId: users[5].id, carrera: 'Ingeniería Civil', telefono: '+57 314 567 8901', zona: 'Engativá', barrio: 'Álamos', bio: 'Puntualidad ante todo', contacto_emergencia: 'Madre - Carmen Herrera', telefono_emergencia: '+57 304 555 6666' },
+      { userId: users[1].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 98 765 4321', zona: 'Norte', barrio: 'La Carolina', bio: 'Estudiante de 8vo semestre, conduzco un Mazda 3', contacto_emergencia: 'Padre - Pedro Martínez', telefono_emergencia: '+593 99 111 2222' },
+      { userId: users[2].id, carrera: 'Derecho', telefono: '+593 99 234 5678', zona: 'Cumbayá', barrio: 'San Juan', bio: 'Busco viajes compartidos para la universidad', contacto_emergencia: 'Madre - Ana González', telefono_emergencia: '+593 98 222 3333' },
+      { userId: users[3].id, carrera: 'Medicina', telefono: '+593 96 345 6789', zona: 'La Mariscal', barrio: 'Foch', bio: 'Conductor responsable, viajo todos los días', contacto_emergencia: 'Hermana - Paula López', telefono_emergencia: '+593 97 333 4444' },
+      { userId: users[4].id, carrera: 'Administración', telefono: '+593 95 456 7890', zona: 'Chillogallo', barrio: 'La Ecuatoriana', bio: 'Me gusta viajar acompañada, más seguro así!', contacto_emergencia: 'Esposo - Juan Carlos', telefono_emergencia: '+593 96 444 5555' },
+      { userId: users[5].id, carrera: 'Ingeniería Civil', telefono: '+593 97 567 8901', zona: 'Conocoto', barrio: 'San Rafael', bio: 'Puntualidad ante todo', contacto_emergencia: 'Madre - Carmen Herrera', telefono_emergencia: '+593 95 555 6666' },
     ];
 
     for (const p of profiles) {
@@ -70,9 +70,9 @@ async function seed() {
     // ============ VEHÍCULOS ============
     console.log('🚗 Creando vehículos...');
     const vehicles = [
-      { id: uuidv4(), owner: users[1].id, placa: 'ABC-123', marca: 'Mazda', modelo: '3 Grand Touring', color: 'Rojo', anio: 2022, capacidad: 4 },
-      { id: uuidv4(), owner: users[3].id, placa: 'DEF-456', marca: 'Renault', modelo: 'Stepway', color: 'Blanco', anio: 2023, capacidad: 4 },
-      { id: uuidv4(), owner: users[5].id, placa: 'GHI-789', marca: 'Chevrolet', modelo: 'Spark GT', color: 'Gris', anio: 2021, capacidad: 3 },
+      { id: uuidv4(), owner: users[1].id, placa: 'PBA-1234', marca: 'Chevrolet', modelo: 'Aveo Family', color: 'Rojo', anio: 2022, capacidad: 4 },
+      { id: uuidv4(), owner: users[3].id, placa: 'PCM-5678', marca: 'Kia', modelo: 'Rio', color: 'Blanco', anio: 2023, capacidad: 4 },
+      { id: uuidv4(), owner: users[5].id, placa: 'PQR-9012', marca: 'Hyundai', modelo: 'Accent', color: 'Gris', anio: 2021, capacidad: 3 },
     ];
 
     for (const v of vehicles) {
@@ -93,15 +93,15 @@ async function seed() {
     const fmt = d => d.toISOString().split('T')[0];
 
     const rides = [
-      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Usaquén', detalle_origen: 'Calle 127 con Av. 19', zona_destino: 'Universidad', detalle_destino: 'Campus principal', fecha: fmt(tomorrow), hora: '06:30', asientos: 3, precio: 5000, estado: 'PUBLISHED', notas: 'Salgo puntual, hay parqueadero', reglas: 'No fumar, puntualidad', lat_o: 4.7110, lng_o: -74.0300, lat_d: 4.6280, lng_d: -74.0645 },
-      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'Chicó', detalle_origen: 'Calle 92 con Carrera 15', zona_destino: 'Universidad', detalle_destino: 'Edificio de Medicina', fecha: fmt(tomorrow), hora: '07:00', asientos: 3, precio: 4500, estado: 'PUBLISHED', notas: 'Acepto pasajeros en la ruta', reglas: 'Usar cinturón', lat_o: 4.6780, lng_o: -74.0430, lat_d: 4.6280, lng_d: -74.0645 },
-      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Álamos', detalle_origen: 'Av. Calle 68 con Boyacá', zona_destino: 'Universidad', detalle_destino: 'Parqueadero norte', fecha: fmt(tomorrow), hora: '06:00', asientos: 2, precio: 3500, estado: 'PUBLISHED', notas: 'Viaje temprano, ideal para clase de 7am', reglas: 'Puntualidad estricta', lat_o: 4.6630, lng_o: -74.1115, lat_d: 4.6280, lng_d: -74.0645 },
-      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Universidad', detalle_origen: 'Campus principal', zona_destino: 'Usaquén', detalle_destino: 'Calle 127', fecha: fmt(tomorrow), hora: '18:00', asientos: 3, precio: 5000, estado: 'PUBLISHED', notas: 'Regreso en la tarde', reglas: 'No fumar', lat_o: 4.6280, lng_o: -74.0645, lat_d: 4.7110, lng_d: -74.0300 },
-      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'Chapinero', detalle_origen: 'Calle 53 con Carrera 13', zona_destino: 'Kennedy', detalle_destino: 'Centro comercial', fecha: fmt(dayAfter), hora: '14:00', asientos: 4, precio: 6000, estado: 'PUBLISHED', notas: 'Viaje de fin de semana', reglas: null, lat_o: 4.6510, lng_o: -74.0620, lat_d: 4.6120, lng_d: -74.1520 },
+      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'La Carolina', detalle_origen: 'Av. Amazonas y Naciones Unidas', zona_destino: 'Universidad', detalle_destino: 'Campus principal', fecha: fmt(tomorrow), hora: '06:30', asientos: 3, precio: 2.00, estado: 'PUBLISHED', notas: 'Salgo puntual, hay parqueadero', reglas: 'No fumar, puntualidad', lat_o: -0.1807, lng_o: -78.4848, lat_d: -0.2105, lng_d: -78.4916 },
+      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'La Mariscal', detalle_origen: 'Av. 6 de Diciembre y Colón', zona_destino: 'Universidad', detalle_destino: 'Facultad de Medicina', fecha: fmt(tomorrow), hora: '07:00', asientos: 3, precio: 1.50, estado: 'PUBLISHED', notas: 'Acepto pasajeros en la ruta', reglas: 'Usar cinturón', lat_o: -0.2050, lng_o: -78.4891, lat_d: -0.2105, lng_d: -78.4916 },
+      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Conocoto', detalle_origen: 'Av. Ilaló y General Enríquez', zona_destino: 'Universidad', detalle_destino: 'Parqueadero norte', fecha: fmt(tomorrow), hora: '06:00', asientos: 2, precio: 2.50, estado: 'PUBLISHED', notas: 'Viaje temprano, ideal para clase de 7am', reglas: 'Puntualidad estricta', lat_o: -0.3050, lng_o: -78.4580, lat_d: -0.2105, lng_d: -78.4916 },
+      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Universidad', detalle_origen: 'Campus principal', zona_destino: 'La Carolina', detalle_destino: 'Parque La Carolina', fecha: fmt(tomorrow), hora: '18:00', asientos: 3, precio: 2.00, estado: 'PUBLISHED', notas: 'Regreso en la tarde', reglas: 'No fumar', lat_o: -0.2105, lng_o: -78.4916, lat_d: -0.1807, lng_d: -78.4848 },
+      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'Cumbayá', detalle_origen: 'Av. Interoceánica y Pampite', zona_destino: 'Chillogallo', detalle_destino: 'Terminal sur', fecha: fmt(dayAfter), hora: '14:00', asientos: 4, precio: 3.00, estado: 'PUBLISHED', notas: 'Viaje de fin de semana', reglas: null, lat_o: -0.1940, lng_o: -78.4380, lat_d: -0.2720, lng_d: -78.5480 },
       // Viaje completado
-      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Norte', detalle_origen: 'Calle 170', zona_destino: 'Universidad', detalle_destino: 'Campus', fecha: fmt(yesterday), hora: '07:00', asientos: 1, precio: 5000, estado: 'COMPLETED', notas: null, reglas: null, lat_o: 4.7400, lng_o: -74.0340, lat_d: 4.6280, lng_d: -74.0645 },
+      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Norte de Quito', detalle_origen: 'Av. Eloy Alfaro', zona_destino: 'Universidad', detalle_destino: 'Campus', fecha: fmt(yesterday), hora: '07:00', asientos: 1, precio: 2.00, estado: 'COMPLETED', notas: null, reglas: null, lat_o: -0.1500, lng_o: -78.4800, lat_d: -0.2105, lng_d: -78.4916 },
       // Viaje en progreso
-      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Engativá', detalle_origen: 'Av. El Dorado', zona_destino: 'Universidad', detalle_destino: 'Edificio principal', fecha: fmt(today), hora: '07:30', asientos: 1, precio: 4000, estado: 'IN_PROGRESS', notas: 'En camino', reglas: null, lat_o: 4.6830, lng_o: -74.1300, lat_d: 4.6280, lng_d: -74.0645 },
+      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Valle de los Chillos', detalle_origen: 'Av. General Rumiñahui', zona_destino: 'Universidad', detalle_destino: 'Edificio principal', fecha: fmt(today), hora: '07:30', asientos: 1, precio: 1.75, estado: 'IN_PROGRESS', notas: 'En camino', reglas: null, lat_o: -0.3100, lng_o: -78.4500, lat_d: -0.2105, lng_d: -78.4916 },
     ];
 
     for (const r of rides) {
@@ -117,7 +117,7 @@ async function seed() {
     console.log('📨 Creando solicitudes de viaje...');
     const requests = [
       { id: uuidv4(), viaje: rides[0].id, pasajero: users[2].id, estado: 'ACCEPTED', mensaje: 'Hola, viajo al campus, ¿me llevas?', asientos: 1 },
-      { id: uuidv4(), viaje: rides[0].id, pasajero: users[4].id, estado: 'PENDING', mensaje: '¿Puedes recogerme cerca de la 127?', asientos: 1 },
+      { id: uuidv4(), viaje: rides[0].id, pasajero: users[4].id, estado: 'PENDING', mensaje: '¿Puedes recogerme cerca de la Carolina?', asientos: 1 },
       { id: uuidv4(), viaje: rides[1].id, pasajero: users[2].id, estado: 'ACCEPTED', mensaje: 'También voy a la universidad', asientos: 1 },
       { id: uuidv4(), viaje: rides[1].id, pasajero: users[4].id, estado: 'REJECTED', mensaje: 'Necesito 3 puestos, ¿será posible?', asientos: 3 },
       { id: uuidv4(), viaje: rides[2].id, pasajero: users[1].id, estado: 'ACCEPTED', mensaje: 'Perfecto para mi clase de 7am', asientos: 1 },
@@ -138,12 +138,12 @@ async function seed() {
     // ============ PAGOS ============
     console.log('💰 Creando pagos...');
     const payments = [
-      { solicitud: requests[0].id, monto: 5000, metodo: 'CASH', estado: 'COMPLETED' },
-      { solicitud: requests[2].id, monto: 4500, metodo: 'TRANSFER', estado: 'COMPLETED', referencia: 'TRF-2026-001' },
-      { solicitud: requests[4].id, monto: 3500, metodo: 'CASH', estado: 'PENDING' },
-      { solicitud: requests[5].id, monto: 5000, metodo: 'WALLET', estado: 'COMPLETED' },
-      { solicitud: requests[6].id, monto: 5000, metodo: 'CASH', estado: 'COMPLETED' },
-      { solicitud: requests[7].id, monto: 4000, metodo: 'TRANSFER', estado: 'PENDING', referencia: 'TRF-2026-002' },
+      { solicitud: requests[0].id, monto: 2.00, metodo: 'CASH', estado: 'COMPLETED' },
+      { solicitud: requests[2].id, monto: 1.50, metodo: 'TRANSFER', estado: 'COMPLETED', referencia: 'TRF-2026-001' },
+      { solicitud: requests[4].id, monto: 2.50, metodo: 'CASH', estado: 'PENDING' },
+      { solicitud: requests[5].id, monto: 2.00, metodo: 'WALLET', estado: 'COMPLETED' },
+      { solicitud: requests[6].id, monto: 2.00, metodo: 'CASH', estado: 'COMPLETED' },
+      { solicitud: requests[7].id, monto: 1.75, metodo: 'TRANSFER', estado: 'PENDING', referencia: 'TRF-2026-002' },
     ];
 
     for (const p of payments) {
@@ -218,14 +218,14 @@ async function seed() {
 
     // ============ SEGUIMIENTO DE VIAJE (GPS) ============
     console.log('📡 Creando datos de seguimiento GPS...');
-    // Simular tracking para el viaje en progreso (rides[6])
+    // Simular tracking para el viaje en progreso (rides[6]) — Valle de los Chillos → Universidad en Quito
     const trackingPoints = [
-      { lat: 4.6830, lng: -74.1300 },  // Inicio
-      { lat: 4.6800, lng: -74.1200 },
-      { lat: 4.6750, lng: -74.1100 },
-      { lat: 4.6700, lng: -74.1000 },
-      { lat: 4.6650, lng: -74.0900 },
-      { lat: 4.6600, lng: -74.0800 },  // Posición actual
+      { lat: -0.3100, lng: -78.4500 },  // Inicio — Valle de los Chillos
+      { lat: -0.2950, lng: -78.4550 },
+      { lat: -0.2800, lng: -78.4620 },
+      { lat: -0.2650, lng: -78.4700 },
+      { lat: -0.2450, lng: -78.4780 },
+      { lat: -0.2280, lng: -78.4850 },  // Posición actual — acercándose a la universidad
     ];
 
     for (let i = 0; i < trackingPoints.length; i++) {
@@ -233,7 +233,7 @@ async function seed() {
       await client.query(
         `INSERT INTO seguimiento_viaje (viaje_id, latitud_actual, longitud_actual, rumbo, velocidad, ultima_actualizacion) 
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [rides[6].id, trackingPoints[i].lat, trackingPoints[i].lng, 90 + i * 5, 30 + Math.random() * 20, timestamp]
+        [rides[6].id, trackingPoints[i].lat, trackingPoints[i].lng, 350 + i * 5, 30 + Math.random() * 20, timestamp]
       );
     }
     console.log(`  ✅ ${trackingPoints.length} puntos de tracking GPS creados`);
@@ -288,13 +288,13 @@ async function seed() {
   📜 ${events.length} eventos de viaje
 
 🔑 Cuentas de prueba:
-  Admin:   admin@uride.edu.co / Test1234!
-  Carlos:  carlos.martinez@uride.edu.co / Test1234!  (conductor)
-  Laura:   laura.gonzalez@uride.edu.co / Test1234!   (pasajera)
-  Andrés:  andres.lopez@uride.edu.co / Test1234!     (conductor)
-  María:   maria.rodriguez@uride.edu.co / Test1234!  (pasajera)
-  Diego:   diego.herrera@uride.edu.co / Test1234!    (conductor)
-  Sofía:   sofia.ramirez@uride.edu.co / Test1234!    (NO verificada)
+  Admin:   admin@uride.edu.ec / Test1234!
+  Carlos:  carlos.martinez@uride.edu.ec / Test1234!  (conductor)
+  Laura:   laura.gonzalez@uride.edu.ec / Test1234!   (pasajera)
+  Andrés:  andres.lopez@uride.edu.ec / Test1234!     (conductor)
+  María:   maria.rodriguez@uride.edu.ec / Test1234!  (pasajera)
+  Diego:   diego.herrera@uride.edu.ec / Test1234!    (conductor)
+  Sofía:   sofia.ramirez@uride.edu.ec / Test1234!    (NO verificada)
     `);
 
   } catch (error) {

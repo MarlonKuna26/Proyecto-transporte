@@ -64,7 +64,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
     if (!containerRef.current || mapRef.current) return;
 
     mapRef.current = L.map(containerRef.current, {
-      center: [4.711, -74.0721], // Bogotá default
+      center: [-0.1807, -78.4678], // Quito, Ecuador default
       zoom: 13,
       zoomControl: true,
       attributionControl: true,

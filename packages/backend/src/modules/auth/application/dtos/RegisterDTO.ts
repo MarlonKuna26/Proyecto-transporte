@@ -28,7 +28,7 @@ export class RegisterDTO {
     }
 
     if (!this.isValidInstitutionalEmail(this.email)) {
-      throw new Error('Must use an institutional email (.edu, .edu.co, etc.)');
+      throw new Error('Must use an institutional email (.edu, .edu.ec, etc.)');
     }
   }
 
