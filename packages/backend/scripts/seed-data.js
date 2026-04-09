@@ -51,11 +51,11 @@ async function seed() {
     // ============ PERFILES ============
     console.log('📝 Creando perfiles...');
     const profiles = [
-      { userId: users[1].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 98 765 4321', zona: 'Norte', barrio: 'La Carolina', bio: 'Estudiante de 8vo semestre, conduzco un Mazda 3', contacto_emergencia: 'Padre - Pedro Martínez', telefono_emergencia: '+593 99 111 2222' },
-      { userId: users[2].id, carrera: 'Derecho', telefono: '+593 99 234 5678', zona: 'Cumbayá', barrio: 'San Juan', bio: 'Busco viajes compartidos para la universidad', contacto_emergencia: 'Madre - Ana González', telefono_emergencia: '+593 98 222 3333' },
-      { userId: users[3].id, carrera: 'Medicina', telefono: '+593 96 345 6789', zona: 'La Mariscal', barrio: 'Foch', bio: 'Conductor responsable, viajo todos los días', contacto_emergencia: 'Hermana - Paula López', telefono_emergencia: '+593 97 333 4444' },
-      { userId: users[4].id, carrera: 'Administración', telefono: '+593 95 456 7890', zona: 'Chillogallo', barrio: 'La Ecuatoriana', bio: 'Me gusta viajar acompañada, más seguro así!', contacto_emergencia: 'Esposo - Juan Carlos', telefono_emergencia: '+593 96 444 5555' },
-      { userId: users[5].id, carrera: 'Ingeniería Civil', telefono: '+593 97 567 8901', zona: 'Conocoto', barrio: 'San Rafael', bio: 'Puntualidad ante todo', contacto_emergencia: 'Madre - Carmen Herrera', telefono_emergencia: '+593 95 555 6666' },
+      { userId: users[1].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 98 765 4321', zona: 'Ficoa', barrio: 'Las Palmas', bio: 'Estudiante de 8vo semestre, conduzco un Chevrolet Aveo', contacto_emergencia: 'Padre - Pedro Martínez', telefono_emergencia: '+593 99 111 2222' },
+      { userId: users[2].id, carrera: 'Derecho', telefono: '+593 99 234 5678', zona: 'Miraflores', barrio: 'Cdla. España', bio: 'Busco viajes compartidos para la universidad', contacto_emergencia: 'Madre - Ana González', telefono_emergencia: '+593 98 222 3333' },
+      { userId: users[3].id, carrera: 'Medicina', telefono: '+593 96 345 6789', zona: 'Centro', barrio: 'La Merced', bio: 'Conductor responsable, viajo todos los días', contacto_emergencia: 'Hermana - Paula López', telefono_emergencia: '+593 97 333 4444' },
+      { userId: users[4].id, carrera: 'Administración', telefono: '+593 95 456 7890', zona: 'Huachi Chico', barrio: 'Cdla. Presidencial', bio: 'Me gusta viajar acompañada, más seguro así!', contacto_emergencia: 'Esposo - Juan Carlos', telefono_emergencia: '+593 96 444 5555' },
+      { userId: users[5].id, carrera: 'Ingeniería Civil', telefono: '+593 97 567 8901', zona: 'Izamba', barrio: 'San José', bio: 'Puntualidad ante todo', contacto_emergencia: 'Madre - Carmen Herrera', telefono_emergencia: '+593 95 555 6666' },
     ];
 
     for (const p of profiles) {
@@ -70,9 +70,9 @@ async function seed() {
     // ============ VEHÍCULOS ============
     console.log('🚗 Creando vehículos...');
     const vehicles = [
-      { id: uuidv4(), owner: users[1].id, placa: 'PBA-1234', marca: 'Chevrolet', modelo: 'Aveo Family', color: 'Rojo', anio: 2022, capacidad: 4 },
-      { id: uuidv4(), owner: users[3].id, placa: 'PCM-5678', marca: 'Kia', modelo: 'Rio', color: 'Blanco', anio: 2023, capacidad: 4 },
-      { id: uuidv4(), owner: users[5].id, placa: 'PQR-9012', marca: 'Hyundai', modelo: 'Accent', color: 'Gris', anio: 2021, capacidad: 3 },
+      { id: uuidv4(), owner: users[1].id, placa: 'TBA-1234', marca: 'Chevrolet', modelo: 'Aveo Family', color: 'Rojo', anio: 2022, capacidad: 4 },
+      { id: uuidv4(), owner: users[3].id, placa: 'TBA-5678', marca: 'Kia', modelo: 'Rio', color: 'Blanco', anio: 2023, capacidad: 4 },
+      { id: uuidv4(), owner: users[5].id, placa: 'TBA-9012', marca: 'Hyundai', modelo: 'Accent', color: 'Gris', anio: 2021, capacidad: 3 },
     ];
 
     for (const v of vehicles) {
@@ -92,16 +92,25 @@ async function seed() {
     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
     const fmt = d => d.toISOString().split('T')[0];
 
+    // Coordenadas de Ambato:
+    // Centro: -1.2491, -78.6167
+    // Ficoa: -1.2350, -78.6280
+    // Miraflores: -1.2580, -78.6250
+    // Huachi Chico: -1.2650, -78.6100
+    // Izamba: -1.2200, -78.5900
+    // Universidad (UTA campus Huachi): -1.2630, -78.6200
+    // Terminal Terrestre: -1.2580, -78.6050
+
     const rides = [
-      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'La Carolina', detalle_origen: 'Av. Amazonas y Naciones Unidas', zona_destino: 'Universidad', detalle_destino: 'Campus principal', fecha: fmt(tomorrow), hora: '06:30', asientos: 3, precio: 2.00, estado: 'PUBLISHED', notas: 'Salgo puntual, hay parqueadero', reglas: 'No fumar, puntualidad', lat_o: -0.1807, lng_o: -78.4848, lat_d: -0.2105, lng_d: -78.4916 },
-      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'La Mariscal', detalle_origen: 'Av. 6 de Diciembre y Colón', zona_destino: 'Universidad', detalle_destino: 'Facultad de Medicina', fecha: fmt(tomorrow), hora: '07:00', asientos: 3, precio: 1.50, estado: 'PUBLISHED', notas: 'Acepto pasajeros en la ruta', reglas: 'Usar cinturón', lat_o: -0.2050, lng_o: -78.4891, lat_d: -0.2105, lng_d: -78.4916 },
-      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Conocoto', detalle_origen: 'Av. Ilaló y General Enríquez', zona_destino: 'Universidad', detalle_destino: 'Parqueadero norte', fecha: fmt(tomorrow), hora: '06:00', asientos: 2, precio: 2.50, estado: 'PUBLISHED', notas: 'Viaje temprano, ideal para clase de 7am', reglas: 'Puntualidad estricta', lat_o: -0.3050, lng_o: -78.4580, lat_d: -0.2105, lng_d: -78.4916 },
-      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Universidad', detalle_origen: 'Campus principal', zona_destino: 'La Carolina', detalle_destino: 'Parque La Carolina', fecha: fmt(tomorrow), hora: '18:00', asientos: 3, precio: 2.00, estado: 'PUBLISHED', notas: 'Regreso en la tarde', reglas: 'No fumar', lat_o: -0.2105, lng_o: -78.4916, lat_d: -0.1807, lng_d: -78.4848 },
-      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'Cumbayá', detalle_origen: 'Av. Interoceánica y Pampite', zona_destino: 'Chillogallo', detalle_destino: 'Terminal sur', fecha: fmt(dayAfter), hora: '14:00', asientos: 4, precio: 3.00, estado: 'PUBLISHED', notas: 'Viaje de fin de semana', reglas: null, lat_o: -0.1940, lng_o: -78.4380, lat_d: -0.2720, lng_d: -78.5480 },
+      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Ficoa', detalle_origen: 'Av. Los Guaytambos y Montalvo', zona_destino: 'Universidad', detalle_destino: 'Campus Huachi — UTA', fecha: fmt(tomorrow), hora: '06:30', asientos: 3, precio: 0.75, estado: 'PUBLISHED', notas: 'Salgo puntual, paso por Miraflores', reglas: 'No fumar, puntualidad', lat_o: -1.2350, lng_o: -78.6280, lat_d: -1.2630, lng_d: -78.6200 },
+      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'Centro', detalle_origen: 'Parque Cevallos y Bolívar', zona_destino: 'Universidad', detalle_destino: 'Facultad de Medicina — UTA', fecha: fmt(tomorrow), hora: '07:00', asientos: 3, precio: 0.50, estado: 'PUBLISHED', notas: 'Acepto pasajeros en la ruta', reglas: 'Usar cinturón', lat_o: -1.2491, lng_o: -78.6167, lat_d: -1.2630, lng_d: -78.6200 },
+      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Izamba', detalle_origen: 'Panamericana Norte y entrada a Izamba', zona_destino: 'Universidad', detalle_destino: 'Parqueadero UTA', fecha: fmt(tomorrow), hora: '06:00', asientos: 2, precio: 1.00, estado: 'PUBLISHED', notas: 'Viaje temprano, ideal para clase de 7am', reglas: 'Puntualidad estricta', lat_o: -1.2200, lng_o: -78.5900, lat_d: -1.2630, lng_d: -78.6200 },
+      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Universidad', detalle_origen: 'Campus Huachi — UTA', zona_destino: 'Ficoa', detalle_destino: 'Av. Los Guaytambos', fecha: fmt(tomorrow), hora: '18:00', asientos: 3, precio: 0.75, estado: 'PUBLISHED', notas: 'Regreso en la tarde', reglas: 'No fumar', lat_o: -1.2630, lng_o: -78.6200, lat_d: -1.2350, lng_d: -78.6280 },
+      { id: uuidv4(), conductor: users[3].id, vehiculo: vehicles[1].id, zona_origen: 'Miraflores', detalle_origen: 'Av. Miraflores y Atahualpa', zona_destino: 'Huachi Chico', detalle_destino: 'Terminal Terrestre', fecha: fmt(dayAfter), hora: '14:00', asientos: 4, precio: 1.00, estado: 'PUBLISHED', notas: 'Viaje de fin de semana', reglas: null, lat_o: -1.2580, lng_o: -78.6250, lat_d: -1.2650, lng_d: -78.6100 },
       // Viaje completado
-      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Norte de Quito', detalle_origen: 'Av. Eloy Alfaro', zona_destino: 'Universidad', detalle_destino: 'Campus', fecha: fmt(yesterday), hora: '07:00', asientos: 1, precio: 2.00, estado: 'COMPLETED', notas: null, reglas: null, lat_o: -0.1500, lng_o: -78.4800, lat_d: -0.2105, lng_d: -78.4916 },
+      { id: uuidv4(), conductor: users[1].id, vehiculo: vehicles[0].id, zona_origen: 'Ficoa', detalle_origen: 'Av. Los Guaytambos', zona_destino: 'Universidad', detalle_destino: 'Campus UTA', fecha: fmt(yesterday), hora: '07:00', asientos: 1, precio: 0.75, estado: 'COMPLETED', notas: null, reglas: null, lat_o: -1.2350, lng_o: -78.6280, lat_d: -1.2630, lng_d: -78.6200 },
       // Viaje en progreso
-      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Valle de los Chillos', detalle_origen: 'Av. General Rumiñahui', zona_destino: 'Universidad', detalle_destino: 'Edificio principal', fecha: fmt(today), hora: '07:30', asientos: 1, precio: 1.75, estado: 'IN_PROGRESS', notas: 'En camino', reglas: null, lat_o: -0.3100, lng_o: -78.4500, lat_d: -0.2105, lng_d: -78.4916 },
+      { id: uuidv4(), conductor: users[5].id, vehiculo: vehicles[2].id, zona_origen: 'Izamba', detalle_origen: 'Panamericana Norte', zona_destino: 'Universidad', detalle_destino: 'Campus Huachi', fecha: fmt(today), hora: '07:30', asientos: 1, precio: 1.00, estado: 'IN_PROGRESS', notas: 'En camino', reglas: null, lat_o: -1.2200, lng_o: -78.5900, lat_d: -1.2630, lng_d: -78.6200 },
     ];
 
     for (const r of rides) {
@@ -117,7 +126,7 @@ async function seed() {
     console.log('📨 Creando solicitudes de viaje...');
     const requests = [
       { id: uuidv4(), viaje: rides[0].id, pasajero: users[2].id, estado: 'ACCEPTED', mensaje: 'Hola, viajo al campus, ¿me llevas?', asientos: 1 },
-      { id: uuidv4(), viaje: rides[0].id, pasajero: users[4].id, estado: 'PENDING', mensaje: '¿Puedes recogerme cerca de la Carolina?', asientos: 1 },
+      { id: uuidv4(), viaje: rides[0].id, pasajero: users[4].id, estado: 'PENDING', mensaje: '¿Puedes recogerme cerca de Ficoa?', asientos: 1 },
       { id: uuidv4(), viaje: rides[1].id, pasajero: users[2].id, estado: 'ACCEPTED', mensaje: 'También voy a la universidad', asientos: 1 },
       { id: uuidv4(), viaje: rides[1].id, pasajero: users[4].id, estado: 'REJECTED', mensaje: 'Necesito 3 puestos, ¿será posible?', asientos: 3 },
       { id: uuidv4(), viaje: rides[2].id, pasajero: users[1].id, estado: 'ACCEPTED', mensaje: 'Perfecto para mi clase de 7am', asientos: 1 },
@@ -138,12 +147,12 @@ async function seed() {
     // ============ PAGOS ============
     console.log('💰 Creando pagos...');
     const payments = [
-      { solicitud: requests[0].id, monto: 2.00, metodo: 'CASH', estado: 'COMPLETED' },
-      { solicitud: requests[2].id, monto: 1.50, metodo: 'TRANSFER', estado: 'COMPLETED', referencia: 'TRF-2026-001' },
-      { solicitud: requests[4].id, monto: 2.50, metodo: 'CASH', estado: 'PENDING' },
-      { solicitud: requests[5].id, monto: 2.00, metodo: 'WALLET', estado: 'COMPLETED' },
-      { solicitud: requests[6].id, monto: 2.00, metodo: 'CASH', estado: 'COMPLETED' },
-      { solicitud: requests[7].id, monto: 1.75, metodo: 'TRANSFER', estado: 'PENDING', referencia: 'TRF-2026-002' },
+      { solicitud: requests[0].id, monto: 0.75, metodo: 'CASH', estado: 'COMPLETED' },
+      { solicitud: requests[2].id, monto: 0.50, metodo: 'TRANSFER', estado: 'COMPLETED', referencia: 'TRF-2026-001' },
+      { solicitud: requests[4].id, monto: 1.00, metodo: 'CASH', estado: 'PENDING' },
+      { solicitud: requests[5].id, monto: 0.75, metodo: 'WALLET', estado: 'COMPLETED' },
+      { solicitud: requests[6].id, monto: 0.75, metodo: 'CASH', estado: 'COMPLETED' },
+      { solicitud: requests[7].id, monto: 1.00, metodo: 'TRANSFER', estado: 'PENDING', referencia: 'TRF-2026-002' },
     ];
 
     for (const p of payments) {
@@ -218,14 +227,14 @@ async function seed() {
 
     // ============ SEGUIMIENTO DE VIAJE (GPS) ============
     console.log('📡 Creando datos de seguimiento GPS...');
-    // Simular tracking para el viaje en progreso (rides[6]) — Valle de los Chillos → Universidad en Quito
+    // Simular tracking para el viaje en progreso (rides[6]) — Izamba → Universidad (UTA) en Ambato
     const trackingPoints = [
-      { lat: -0.3100, lng: -78.4500 },  // Inicio — Valle de los Chillos
-      { lat: -0.2950, lng: -78.4550 },
-      { lat: -0.2800, lng: -78.4620 },
-      { lat: -0.2650, lng: -78.4700 },
-      { lat: -0.2450, lng: -78.4780 },
-      { lat: -0.2280, lng: -78.4850 },  // Posición actual — acercándose a la universidad
+      { lat: -1.2200, lng: -78.5900 },  // Inicio — Izamba
+      { lat: -1.2250, lng: -78.5950 },
+      { lat: -1.2320, lng: -78.6010 },
+      { lat: -1.2400, lng: -78.6060 },
+      { lat: -1.2500, lng: -78.6120 },
+      { lat: -1.2560, lng: -78.6170 },  // Posición actual — acercándose a la UTA
     ];
 
     for (let i = 0; i < trackingPoints.length; i++) {
@@ -233,7 +242,7 @@ async function seed() {
       await client.query(
         `INSERT INTO seguimiento_viaje (viaje_id, latitud_actual, longitud_actual, rumbo, velocidad, ultima_actualizacion) 
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [rides[6].id, trackingPoints[i].lat, trackingPoints[i].lng, 350 + i * 5, 30 + Math.random() * 20, timestamp]
+        [rides[6].id, trackingPoints[i].lat, trackingPoints[i].lng, 220 + i * 5, 25 + Math.random() * 15, timestamp]
       );
     }
     console.log(`  ✅ ${trackingPoints.length} puntos de tracking GPS creados`);
@@ -271,7 +280,7 @@ async function seed() {
 
     // ============ RESUMEN ============
     console.log('\n' + '='.repeat(50));
-    console.log('🎉 SEED COMPLETADO EXITOSAMENTE');
+    console.log('🎉 SEED COMPLETADO EXITOSAMENTE — AMBATO, ECUADOR');
     console.log('='.repeat(50));
     console.log(`
 📊 Resumen:
@@ -295,6 +304,9 @@ async function seed() {
   María:   maria.rodriguez@uride.edu.ec / Test1234!  (pasajera)
   Diego:   diego.herrera@uride.edu.ec / Test1234!    (conductor)
   Sofía:   sofia.ramirez@uride.edu.ec / Test1234!    (NO verificada)
+
+📍 Zonas de Ambato: Ficoa, Centro, Miraflores, Huachi Chico, Izamba
+🎓 Universidad: UTA — Campus Huachi
     `);
 
   } catch (error) {
