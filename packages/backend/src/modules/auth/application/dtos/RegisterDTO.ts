@@ -16,27 +16,25 @@ export class RegisterDTO {
 
   private validate(): void {
     if (!this.email || typeof this.email !== 'string') {
-      throw new Error('Email is required and must be a string');
-    }
-
-    if (!this.name || typeof this.name !== 'string' || this.name.trim().length < 2) {
-      throw new Error('Name is required and must be at least 2 characters');
-    }
-
-    if (!this.password || this.password.length < 8) {
-      throw new Error('Password is required and must be at least 8 characters');
+      throw new Error('El correo electrónico es obligatorio');
     }
 
     if (!this.isValidInstitutionalEmail(this.email)) {
-      throw new Error('Must use an institutional email (.edu, .edu.ec, etc.)');
+      throw new Error('Solo se permiten correos institucionales @uta.edu.ec');
+    }
+
+    if (!this.name || this.name.trim().length < 2) {
+      throw new Error('El nombre debe tener al menos 2 caracteres');
+    }
+
+    if (!this.password || this.password.length < 8) {
+      throw new Error('La contraseña debe tener al menos 8 caracteres');
     }
   }
 
   private isValidInstitutionalEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return false;
-    // Acepta cualquier email para desarrollo, en producción filtrar por dominio
-    return true;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@uta\.edu\.ec$/;
+    return emailRegex.test(email);
   }
 }
 
@@ -44,7 +42,7 @@ export class RegisterResponseDTO {
   userId: string;
   email: string;
   name: string;
-  verificationCode?: string; // Solo en desarrollo
+  verificationCode?: string;
 
   constructor(userId: string, email: string, name: string, verificationCode?: string) {
     this.userId = userId;
