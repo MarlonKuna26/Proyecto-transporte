@@ -14,6 +14,7 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hint, setHint] = useState('');
+  const [expiresInMinutes, setExpiresInMinutes] = useState<number | null>(null);
   const institutionalEmailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
 
   const handleRegister = async (e: FormEvent) => {
@@ -27,12 +28,13 @@ export const RegisterPage: React.FC = () => {
     }
 
     if (password !== confirmPassword) { setError('Las contraseñas no coinciden'); return; }
-    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return; }
+    if (password.length < 8) { setError('La contraseña debe tener al menos 8 caracteres'); return; }
 
     setLoading(true);
     try {
       const result = await register(normalizedEmail, name, password);
       setEmail(normalizedEmail);
+      setExpiresInMinutes(result?.expiresInMinutes ?? 30);
       if (result?.verificationCode) {
         setHint(`Código de verificación (dev): ${result.verificationCode}`);
       }
@@ -103,7 +105,7 @@ export const RegisterPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-200 mb-2">Contraseña</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-200 mb-2">Confirmar contraseña</label>
@@ -118,6 +120,11 @@ export const RegisterPage: React.FC = () => {
               <p className="text-navy-300 text-sm mb-4">
                 Hemos enviado un código de verificación a <span className="text-primary-300 font-medium">{email}</span>
               </p>
+              {expiresInMinutes && (
+                <p className="text-navy-300 text-xs mb-2">
+                  El código expira en {expiresInMinutes} minutos.
+                </p>
+              )}
               <div>
                 <label className="block text-sm font-medium text-navy-200 mb-2">Código de verificación</label>
                 <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" maxLength={6} required className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-center text-2xl tracking-[0.5em] font-mono" />

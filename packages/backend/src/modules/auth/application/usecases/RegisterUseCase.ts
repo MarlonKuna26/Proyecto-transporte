@@ -6,7 +6,6 @@
 import { IUseCase } from '@shared/types';
 import { RegisterDTO, RegisterResponseDTO } from '../dtos/RegisterDTO';
 import { IUserRepository } from '../../domain/interfaces/IUserRepository';
-import { User } from '../../domain/entities/User';
 import { ConflictError } from '@shared/errors/AppError';
 import { PasswordService } from '@shared/services';
 import { DatabaseConnection } from '@config/database';
@@ -15,7 +14,24 @@ import { EmailService } from '@shared/services/EmailService';
 export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDTO> {
   constructor(private userRepository: IUserRepository) {}
 
+  private async ensurePendingRegistrationsTable(): Promise<void> {
+    const pool = DatabaseConnection.getInstance();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS registros_pendientes_verificacion (
+        correo character varying(255) PRIMARY KEY,
+        nombre character varying(255) NOT NULL,
+        contrasena_hash character varying(255) NOT NULL,
+        codigo character varying(6) NOT NULL,
+        expira_en timestamp without time zone NOT NULL,
+        creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+        actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  }
+
   async execute(input: RegisterDTO): Promise<RegisterResponseDTO> {
+    await this.ensurePendingRegistrationsTable();
+
     // 1. Validar correo institucional
     const normalizedEmail = input.email.trim().toLowerCase();
     const emailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
@@ -32,38 +48,36 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
     // 3. Hashear contraseña
     const hashedPassword = await PasswordService.hash(input.password);
 
-    // 4. Crear usuario
-    const user = new User(
-      normalizedEmail,
-      input.name,
-      hashedPassword,
-      'STUDENT',
-      false,
-      5.0,
-    );
-
-    const createdUser = await this.userRepository.create(user);
-
-    // 5. Generar código
+    // 4. Generar código
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-    // 6. Guardar en BD
+    // 5. Guardar pre-registro (sin crear usuario aún)
     const pool = DatabaseConnection.getInstance();
     await pool.query(
-      `INSERT INTO codigos_verificacion (usuario_id, codigo, tipo, expira_en)
-       VALUES ($1, $2, 'EMAIL', $3)`,
-      [createdUser.id, verificationCode, expiresAt],
+      `INSERT INTO registros_pendientes_verificacion (
+         correo, nombre, contrasena_hash, codigo, expira_en, actualizado_en
+       )
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       ON CONFLICT (correo)
+       DO UPDATE SET
+         nombre = EXCLUDED.nombre,
+         contrasena_hash = EXCLUDED.contrasena_hash,
+         codigo = EXCLUDED.codigo,
+         expira_en = EXCLUDED.expira_en,
+         actualizado_en = NOW()`,
+      [normalizedEmail, input.name, hashedPassword, verificationCode, expiresAt],
     );
 
-    // 7. ENVIAR CORREO
+    // 6. ENVIAR CORREO
     await EmailService.sendVerificationEmail(normalizedEmail, verificationCode);
 
-    // 8. Retornar
+    // 7. Retornar
     return new RegisterResponseDTO(
-      createdUser.id,
-      createdUser.email,
-      createdUser.name,
+      normalizedEmail,
+      input.name,
+      30,
+      true,
       //process.env.NODE_ENV === 'development' ? verificationCode : undefined,
     );
   }

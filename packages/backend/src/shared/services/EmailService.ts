@@ -2,8 +2,8 @@ import nodemailer from 'nodemailer';
 
 export class EmailService {
   private static createTransporter() {
-    const emailUser = process.env.EMAIL_USER;
-    const emailPass = process.env.EMAIL_PASS;
+    const emailUser = process.env.EMAIL_USER?.trim();
+    const emailPass = process.env.EMAIL_PASS?.replace(/\s+/g, '');
 
     if (!emailUser || !emailPass) {
       throw new Error(

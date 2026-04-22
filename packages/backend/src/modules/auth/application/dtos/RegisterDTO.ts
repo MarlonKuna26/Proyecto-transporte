@@ -8,7 +8,7 @@ export class RegisterDTO {
   password: string;
 
   constructor(email: string, name: string, password: string) {
-    this.email = email;
+    this.email = email.trim().toLowerCase();
     this.name = name;
     this.password = password;
     this.validate();
@@ -33,21 +33,32 @@ export class RegisterDTO {
   }
 
   private isValidInstitutionalEmail(email: string): boolean {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@uta\.edu\.ec$/;
+    const emailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
     return emailRegex.test(email);
   }
 }
 
 export class RegisterResponseDTO {
-  userId: string;
+  userId?: string;
   email: string;
   name: string;
+  expiresInMinutes: number;
+  pendingVerification: boolean;
   verificationCode?: string;
 
-  constructor(userId: string, email: string, name: string, verificationCode?: string) {
+  constructor(
+    email: string,
+    name: string,
+    expiresInMinutes: number,
+    pendingVerification: boolean,
+    verificationCode?: string,
+    userId?: string,
+  ) {
     this.userId = userId;
     this.email = email;
     this.name = name;
+    this.expiresInMinutes = expiresInMinutes;
+    this.pendingVerification = pendingVerification;
     this.verificationCode = verificationCode;
   }
 }
