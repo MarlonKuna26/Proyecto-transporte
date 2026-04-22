@@ -17,13 +17,14 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
 
   async execute(input: RegisterDTO): Promise<RegisterResponseDTO> {
     // 1. Validar correo institucional
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@uta\.edu\.ec$/;
-    if (!emailRegex.test(input.email)) {
+    const normalizedEmail = input.email.trim().toLowerCase();
+    const emailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
+    if (!emailRegex.test(normalizedEmail)) {
       throw new ConflictError('Solo se permiten correos institucionales @uta.edu.ec');
     }
 
     // 2. Verificar que no exista
-    const existingUser = await this.userRepository.findByEmail(input.email);
+    const existingUser = await this.userRepository.findByEmail(normalizedEmail);
     if (existingUser) {
       throw new ConflictError('A user with this email already exists');
     }
@@ -33,7 +34,7 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
 
     // 4. Crear usuario
     const user = new User(
-      input.email,
+      normalizedEmail,
       input.name,
       hashedPassword,
       'STUDENT',
@@ -56,7 +57,7 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
     );
 
     // 7. ENVIAR CORREO
-    await EmailService.sendVerificationEmail(input.email, verificationCode);
+    await EmailService.sendVerificationEmail(normalizedEmail, verificationCode);
 
     // 8. Retornar
     return new RegisterResponseDTO(
