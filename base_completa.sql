@@ -10,7 +10,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
+--SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -762,7 +762,7 @@ ALTER TABLE ONLY public.viajes
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
 --
 
-GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO u_ride_user;
 
 
 --
@@ -770,7 +770,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: -
 --
 
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE u_ride_user IN SCHEMA public GRANT ALL ON SEQUENCES TO u_ride_user;
 
 
 --
@@ -778,7 +778,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENC
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: -
 --
 
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE u_ride_user IN SCHEMA public GRANT ALL ON FUNCTIONS TO u_ride_user;
 
 
 --
@@ -786,7 +786,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIO
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: -
 --
 
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE u_ride_user IN SCHEMA public GRANT ALL ON TABLES TO u_ride_user;
 
 
 -- Completed on 2026-04-08 21:15:27
