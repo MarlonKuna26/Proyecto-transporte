@@ -14,16 +14,25 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hint, setHint] = useState('');
+  const institutionalEmailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
 
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!institutionalEmailRegex.test(normalizedEmail)) {
+      setError('Solo se permiten correos institucionales @uta.edu.ec');
+      return;
+    }
+
     if (password !== confirmPassword) { setError('Las contraseñas no coinciden'); return; }
     if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return; }
 
     setLoading(true);
     try {
-      const result = await register(email, name, password);
+      const result = await register(normalizedEmail, name, password);
+      setEmail(normalizedEmail);
       if (result?.verificationCode) {
         setHint(`Código de verificación (dev): ${result.verificationCode}`);
       }
@@ -90,7 +99,7 @@ export const RegisterPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-200 mb-2">Email institucional</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu.email@institucion.edu" required className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu.email@uta.edu.ec" pattern="^[a-z0-9._%+-]+@uta\.edu\.ec$" title="Ingresa un correo institucional @uta.edu.ec" required className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-200 mb-2">Contraseña</label>
