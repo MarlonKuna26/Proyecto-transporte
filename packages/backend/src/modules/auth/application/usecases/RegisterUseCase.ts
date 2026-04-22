@@ -38,13 +38,14 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
 
     // 4. Generar código de verificación (6 dígitos)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+   const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 min
 
     const pool = DatabaseConnection.getInstance();
     await pool.query(
-      `INSERT INTO codigos_verificacion (usuario_id, codigo, tipo, expira_en) VALUES ($1, $2, 'EMAIL', $3)`,
-      [createdUser.id, verificationCode, expiresAt],
-    );
+  `INSERT INTO codigos_verificacion (usuario_id, codigo, tipo, expira_en) 
+   VALUES ($1, $2, 'EMAIL', $3)`,
+  [createdUser.id, verificationCode, expiresAt],
+);
 
     // 5. Retornar (en desarrollo se incluye el código)
     return new RegisterResponseDTO(

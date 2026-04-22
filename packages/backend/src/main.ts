@@ -119,6 +119,7 @@ async function bootstrap() {
     await DatabaseConnection.disconnect();
     process.exit(1);
   }
+ 
 }
 
 bootstrap();

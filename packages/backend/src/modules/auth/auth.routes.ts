@@ -29,7 +29,10 @@ export function createAuthRoutes(): Router {
   // === Rutas Protegidas ===
   router.get('/me', authenticateToken, (req, res) => authController.getCurrentUser(req, res));
   router.post('/logout', authenticateToken, (req, res) => authController.logout(req, res));
-
+router.get('/test', (req, res) => {
+  console.log('TEST ROUTE HIT 🔥');
+  res.send('AUTH OK 🔥');
+});
   return router;
 }
 

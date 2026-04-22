@@ -74,111 +74,235 @@ export const ProfilePage: React.FC = () => {
 
   const renderStars = (score: number) => '★'.repeat(Math.round(score)) + '☆'.repeat(5 - Math.round(score));
 
-  if (loading) return <div className="max-w-4xl mx-auto"><div className="glass-card p-12 animate-pulse text-center"><div className="h-16 w-16 bg-dark-200 rounded-full mx-auto mb-4" /><div className="h-4 bg-dark-200 rounded w-48 mx-auto" /></div></div>;
+  const inputClass = 'w-full px-3 py-2.5 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]';
+  const inputStyle = { borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" };
+
+  if (loading) return (
+    <div className="max-w-4xl mx-auto px-4 py-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');`}</style>
+      <div className="bg-white border border-[#d8d4cc] p-10 text-center" style={{ borderRadius: '4px' }}>
+        <div className="w-16 h-16 bg-[#e8e4dc] rounded-full mx-auto mb-4" style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div className="h-3 bg-[#e8e4dc] rounded w-48 mx-auto" style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      {feedback && <div className="p-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-700 text-sm">✅ {feedback}</div>}
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+        .pr-card { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; }
+        .section-label { font-size:11px; font-weight:500; color:#6b6b6b; letter-spacing:0.1em; text-transform:uppercase; }
+        .pr-btn { padding:10px 20px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+        .pr-btn-primary { background:#1a1a2e; color:#fff; }
+        .pr-btn-primary:hover { background:#2d2d4e; }
+        .pr-btn-secondary { background:#fafaf8; color:#1a1a2e; border:0.5px solid #d8d4cc !important; }
+        .pr-btn-secondary:hover { border-color:#1a1a2e !important; }
+        .pr-btn-gold { background:#c8a96e; color:#1a1a2e; }
+        .pr-btn-gold:hover { background:#d4b87a; }
+        .pr-btn-sm { padding:7px 14px; font-size:11px; }
+        .vehicle-item { background:#fafaf8; border:0.5px solid #e8e4dc; border-radius:2px; padding:1rem; transition:border-color 0.2s; }
+        .vehicle-item:hover { border-color:#1a1a2e; }
+        .rating-item { background:#fafaf8; border:0.5px solid #e8e4dc; border-radius:2px; padding:0.875rem; }
+        .info-field p:first-child { font-size:11px; color:#999; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:3px; }
+        .info-field p:last-child { font-size:14px; color:#1a1a2e; font-weight:500; }
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+      `}</style>
+
+      {/* Feedback */}
+      {feedback && (
+        <div
+          className="flex items-center gap-3 px-4 py-3 text-sm"
+          style={{ background: '#f0faf4', borderLeft: '3px solid #2d7a4f', color: '#2d7a4f', borderRadius: '0 2px 2px 0' }}
+        >
+          <span>{feedback}</span>
+        </div>
+      )}
 
       {/* Profile header */}
-      <div className="glass-card p-6 md:p-8">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-primary-500 flex items-center justify-center text-3xl font-bold text-white shadow-blue">
-            {profile?.name?.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl font-bold text-navy-900">{profile?.name}</h1>
-            <p className="text-dark-500">{profile?.email}</p>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2">
-              <span className="badge-info">{profile?.role === 'ADMIN' ? 'Administrador' : 'Estudiante'}</span>
-              {profile?.isVerified && <span className="badge-success">✓ Verificado</span>}
-              <span className="text-primary-600 text-sm" title={`Reputación: ${profile?.reputation}`}>
-                {renderStars(profile?.reputation || 5)} ({ratings?.count || 0})
-              </span>
+      <div className="pr-card overflow-hidden">
+        <div className="bg-[#1a1a2e] px-8 py-6">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            {/* Avatar */}
+            <div
+              className="w-16 h-16 bg-[#c8a96e] flex items-center justify-center text-2xl font-medium text-[#1a1a2e] shrink-0"
+              style={{ borderRadius: '2px', fontFamily: "'Playfair Display', serif" }}
+            >
+              {profile?.name?.charAt(0).toUpperCase()}
             </div>
+
+            {/* Info */}
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-2xl text-white tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
+                {profile?.name}
+              </h1>
+              <p className="text-[#8a8fa8] text-sm mt-0.5">{profile?.email}</p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2">
+                <span
+                  className="text-xs font-medium tracking-widest uppercase px-2.5 py-1"
+                  style={{ background: 'rgba(200,169,110,0.15)', color: '#c8a96e', borderRadius: '2px' }}
+                >
+                  {profile?.role === 'ADMIN' ? 'Administrador' : 'Estudiante'}
+                </span>
+                {profile?.isVerified && (
+                  <span
+                    className="text-xs font-medium tracking-widest uppercase px-2.5 py-1"
+                    style={{ background: 'rgba(45,122,79,0.2)', color: '#7dd5a4', borderRadius: '2px' }}
+                  >
+                    Verificado
+                  </span>
+                )}
+                <span className="text-[#c8a96e] text-sm">
+                  {renderStars(profile?.reputation || 5)} <span className="text-[#8a8fa8] text-xs">({ratings?.count || 0})</span>
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`pr-btn shrink-0 ${editMode ? 'pr-btn-secondary' : 'pr-btn-gold'}`}
+              style={editMode ? { border: '0.5px solid #d8d4cc' } : {}}
+            >
+              {editMode ? '✕ Cancelar' : 'Editar perfil'}
+            </button>
           </div>
-          <button onClick={() => setEditMode(!editMode)} className={editMode ? 'btn-secondary' : 'btn-primary'}>
-            {editMode ? '✖ Cancelar' : '✏️ Editar'}
-          </button>
         </div>
+        <div className="w-full h-px bg-[#c8a96e] opacity-40" />
       </div>
 
-      {/* Edit profile */}
+      {/* Edit profile form */}
       {editMode && (
-        <form onSubmit={handleSaveProfile} className="glass-card p-6 space-y-4">
-          <h2 className="text-lg font-bold text-navy-900 mb-2">Editar perfil</h2>
+        <form onSubmit={handleSaveProfile} className="pr-card p-6 space-y-5">
+          <p className="section-label pb-4 border-b border-[#e8e4dc]">Editar perfil</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block text-sm text-dark-500 mb-1">Nombre</label><input className="input-field" value={editData.name || ''} onChange={e => setEditData({ ...editData, name: e.target.value })} /></div>
-            <div><label className="block text-sm text-dark-500 mb-1">Carrera</label><input className="input-field" value={editData.career || ''} onChange={e => setEditData({ ...editData, career: e.target.value })} placeholder="Ingeniería de Sistemas" /></div>
-            <div><label className="block text-sm text-dark-500 mb-1">Teléfono</label><input className="input-field" value={editData.phone || ''} onChange={e => setEditData({ ...editData, phone: e.target.value })} placeholder="+593 99..." /></div>
-            <div><label className="block text-sm text-dark-500 mb-1">Zona</label><input className="input-field" value={editData.zone || ''} onChange={e => setEditData({ ...editData, zone: e.target.value })} placeholder="Norte" /></div>
-            <div><label className="block text-sm text-dark-500 mb-1">Barrio</label><input className="input-field" value={editData.neighborhood || ''} onChange={e => setEditData({ ...editData, neighborhood: e.target.value })} /></div>
-            <div><label className="block text-sm text-dark-500 mb-1">Contacto emergencia</label><input className="input-field" value={editData.emergencyContact || ''} onChange={e => setEditData({ ...editData, emergencyContact: e.target.value })} /></div>
-            <div><label className="block text-sm text-dark-500 mb-1">Tel. emergencia</label><input className="input-field" value={editData.emergencyPhone || ''} onChange={e => setEditData({ ...editData, emergencyPhone: e.target.value })} /></div>
+            {[
+              { label: 'Nombre',               key: 'name',             type: 'text', placeholder: '' },
+              { label: 'Carrera',              key: 'career',           type: 'text', placeholder: 'Ingeniería de Sistemas' },
+              { label: 'Teléfono',             key: 'phone',            type: 'text', placeholder: '+593 99...' },
+              { label: 'Zona',                 key: 'zone',             type: 'text', placeholder: 'Norte' },
+              { label: 'Barrio',               key: 'neighborhood',     type: 'text', placeholder: '' },
+              { label: 'Contacto emergencia',  key: 'emergencyContact', type: 'text', placeholder: '' },
+              { label: 'Tel. emergencia',      key: 'emergencyPhone',   type: 'text', placeholder: '' },
+            ].map(({ label, key, type, placeholder }) => (
+              <div key={key}>
+                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">{label}</label>
+                <input
+                  type={type}
+                  className={inputClass}
+                  style={inputStyle}
+                  placeholder={placeholder}
+                  value={editData[key] || ''}
+                  onChange={e => setEditData({ ...editData, [key]: e.target.value })}
+                />
+              </div>
+            ))}
           </div>
-          <div><label className="block text-sm text-dark-500 mb-1">Bio</label><textarea className="input-field min-h-[80px]" value={editData.bio || ''} onChange={e => setEditData({ ...editData, bio: e.target.value })} placeholder="Cuéntanos algo de ti..." /></div>
-          <button type="submit" className="btn-accent">💾 Guardar cambios</button>
+          <div>
+            <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Bio</label>
+            <textarea
+              className={inputClass}
+              style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+              placeholder="Cuéntanos algo de ti..."
+              value={editData.bio || ''}
+              onChange={e => setEditData({ ...editData, bio: e.target.value })}
+            />
+          </div>
+          <button type="submit" className="pr-btn pr-btn-primary">Guardar cambios</button>
         </form>
       )}
 
       {/* Profile info */}
       {!editMode && profile && (
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-bold text-navy-900 mb-4">Información personal</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div className="pr-card p-6">
+          <p className="section-label mb-5">Información personal</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {[
-              { label: 'Carrera', value: profile.career },
-              { label: 'Teléfono', value: profile.phone },
-              { label: 'Zona', value: profile.zone },
-              { label: 'Barrio', value: profile.neighborhood },
+              { label: 'Carrera',             value: profile.career },
+              { label: 'Teléfono',            value: profile.phone },
+              { label: 'Zona',                value: profile.zone },
+              { label: 'Barrio',              value: profile.neighborhood },
               { label: 'Contacto emergencia', value: profile.emergencyContact },
-              { label: 'Tel. emergencia', value: profile.emergencyPhone },
+              { label: 'Tel. emergencia',     value: profile.emergencyPhone },
             ].map(item => (
-              <div key={item.label}>
-                <p className="text-dark-400 text-xs">{item.label}</p>
-                <p className="text-navy-900 font-medium">{item.value || <span className="text-dark-300 italic">Sin completar</span>}</p>
+              <div key={item.label} className="info-field">
+                <p>{item.label}</p>
+                <p>{item.value || <span style={{ color: '#ccc', fontStyle: 'italic', fontWeight: 400 }}>Sin completar</span>}</p>
               </div>
             ))}
           </div>
-          {profile.bio && <div className="mt-4 p-3 rounded-xl bg-primary-50"><p className="text-dark-600 text-sm">{profile.bio}</p></div>}
+          {profile.bio && (
+            <div className="mt-5 px-4 py-3 bg-[#fafaf8] border-l-2 border-[#c8a96e]">
+              <p className="text-[#555] text-sm">{profile.bio}</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Vehicles */}
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-navy-900">🚗 Mis vehículos</h2>
-          <button onClick={() => setShowVehicleForm(!showVehicleForm)} className={showVehicleForm ? 'btn-secondary text-sm' : 'btn-primary text-sm'}>
-            {showVehicleForm ? '✖ Cancelar' : '➕ Agregar'}
+      <div className="pr-card p-6">
+        <div className="flex items-center justify-between mb-5">
+          <p className="section-label">Mis vehículos</p>
+          <button
+            onClick={() => setShowVehicleForm(!showVehicleForm)}
+            className={`pr-btn pr-btn-sm ${showVehicleForm ? 'pr-btn-secondary' : 'pr-btn-primary'}`}
+            style={showVehicleForm ? { border: '0.5px solid #d8d4cc' } : {}}
+          >
+            {showVehicleForm ? '✕ Cancelar' : '+ Agregar'}
           </button>
         </div>
 
         {showVehicleForm && (
-          <form onSubmit={handleAddVehicle} className="mb-4 p-4 rounded-xl bg-dark-50 space-y-3">
+          <form onSubmit={handleAddVehicle} className="mb-5 p-4 bg-[#fafaf8] border border-[#e8e4dc] space-y-3" style={{ borderRadius: '2px' }}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <input className="input-field" placeholder="Placa *" value={vehicleForm.plate} onChange={e => setVehicleForm({ ...vehicleForm, plate: e.target.value })} required />
-              <input className="input-field" placeholder="Marca *" value={vehicleForm.brand} onChange={e => setVehicleForm({ ...vehicleForm, brand: e.target.value })} required />
-              <input className="input-field" placeholder="Modelo *" value={vehicleForm.model} onChange={e => setVehicleForm({ ...vehicleForm, model: e.target.value })} required />
-              <input className="input-field" placeholder="Color *" value={vehicleForm.color} onChange={e => setVehicleForm({ ...vehicleForm, color: e.target.value })} required />
-              <input type="number" className="input-field" placeholder="Capacidad *" value={vehicleForm.capacity} onChange={e => setVehicleForm({ ...vehicleForm, capacity: e.target.value })} required />
-              <input type="number" className="input-field" placeholder="Año" value={vehicleForm.year} onChange={e => setVehicleForm({ ...vehicleForm, year: e.target.value })} />
+              {[
+                { placeholder: 'Placa *',     key: 'plate',    type: 'text',   required: true  },
+                { placeholder: 'Marca *',     key: 'brand',    type: 'text',   required: true  },
+                { placeholder: 'Modelo *',    key: 'model',    type: 'text',   required: true  },
+                { placeholder: 'Color *',     key: 'color',    type: 'text',   required: true  },
+                { placeholder: 'Capacidad *', key: 'capacity', type: 'number', required: true  },
+                { placeholder: 'Año',         key: 'year',     type: 'number', required: false },
+              ].map(({ placeholder, key, type, required }) => (
+                <input
+                  key={key}
+                  type={type}
+                  className={inputClass}
+                  style={inputStyle}
+                  placeholder={placeholder}
+                  required={required}
+                  value={(vehicleForm as any)[key]}
+                  onChange={e => setVehicleForm({ ...vehicleForm, [key]: e.target.value })}
+                />
+              ))}
             </div>
-            <button type="submit" className="btn-accent text-sm">Registrar vehículo</button>
+            <button type="submit" className="pr-btn pr-btn-gold pr-btn-sm">Registrar vehículo</button>
           </form>
         )}
 
         {vehicles.length === 0 ? (
-          <p className="text-dark-400 text-sm">No tienes vehículos registrados</p>
+          <p className="text-[#bbb] text-sm">No tienes vehículos registrados</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {vehicles.map(v => (
-              <div key={v.id} className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 rounded-xl bg-dark-50 border border-primary-100">
+              <div key={v.id} className="vehicle-item flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
-                  <p className="text-navy-900 font-medium">{v.brand} {v.model} <span className="text-dark-400">({v.year || '—'})</span></p>
-                  <p className="text-dark-500 text-xs mt-0.5">🔢 {v.plate} • 🎨 {v.color} • 💺 {v.capacity} asientos</p>
+                  <p className="text-[#1a1a2e] text-sm font-medium">
+                    {v.brand} {v.model}
+                    <span className="text-[#999] font-normal ml-1">({v.year || '—'})</span>
+                  </p>
+                  <p className="text-[#999] text-xs mt-0.5">
+                    {v.plate} · {v.color} · {v.capacity} asientos
+                  </p>
                 </div>
-                <button onClick={() => deleteVehicle(v.id)} className="text-red-500 hover:text-red-600 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
-                  🗑️ Eliminar
+                <button
+                  onClick={() => deleteVehicle(v.id)}
+                  className="text-xs font-medium px-3 py-1.5 transition-colors"
+                  style={{
+                    background: '#fdf2f2', color: '#c0392b',
+                    border: '0.5px solid #f0b8b8', borderRadius: '2px',
+                    cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  Eliminar
                 </button>
               </div>
             ))}
@@ -188,22 +312,37 @@ export const ProfilePage: React.FC = () => {
 
       {/* Ratings */}
       {ratings && ratings.ratings.length > 0 && (
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-bold text-navy-900 mb-4">⭐ Calificaciones recibidas</h2>
-          <div className="flex items-center gap-4 mb-4 p-4 rounded-xl bg-primary-50">
-            <div className="text-3xl font-bold text-primary-600">{ratings.average.toFixed(1)}</div>
+        <div className="pr-card p-6">
+          <p className="section-label mb-5">Calificaciones recibidas</p>
+
+          {/* Average */}
+          <div className="flex items-center gap-5 mb-5 px-5 py-4 bg-[#fafaf8] border border-[#e8e4dc]" style={{ borderRadius: '2px' }}>
+            <span
+              className="text-3xl font-medium text-[#c8a96e]"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              {ratings.average.toFixed(1)}
+            </span>
             <div>
-              <p className="text-primary-600">{renderStars(ratings.average)}</p>
-              <p className="text-dark-400 text-xs">{ratings.count} calificaciones</p>
+              <p className="text-[#c8a96e] text-base">{renderStars(ratings.average)}</p>
+              <p className="text-[#999] text-xs mt-0.5">{ratings.count} calificaciones</p>
             </div>
           </div>
+
           <div className="space-y-2">
             {ratings.ratings.slice(0, 5).map(r => (
-              <div key={r.id} className="p-3 rounded-xl bg-dark-50 flex items-start gap-3">
-                <span className="text-primary-600 text-sm font-bold">{r.score}/5</span>
+              <div key={r.id} className="rating-item flex items-start gap-4">
+                <span
+                  className="text-xs font-medium px-2 py-0.5 shrink-0"
+                  style={{ background: '#fdf8f0', color: '#8a6a2e', border: '0.5px solid #e8d5b0', borderRadius: '2px' }}
+                >
+                  {r.score}/5
+                </span>
                 <div>
-                  {r.comment && <p className="text-dark-600 text-sm">{r.comment}</p>}
-                  <p className="text-dark-400 text-xs mt-1">{new Date(r.createdAt).toLocaleDateString('es')}</p>
+                  {r.comment && <p className="text-[#555] text-sm">{r.comment}</p>}
+                  <p className="text-[#bbb] text-xs mt-0.5">
+                    {new Date(r.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
                 </div>
               </div>
             ))}
