@@ -18,6 +18,8 @@ interface AuthContextType {
     password: string,
   ) => Promise<{ verificationCode?: string; expiresInMinutes?: number }>;
   verifyEmail: (email: string, code: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<{ resetUrl?: string; resetToken?: string; expiresInMinutes?: number }>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -71,6 +73,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await api.auth.verifyEmail({ email, code });
   }, []);
 
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const res = await api.auth.forgotPassword(email);
+    return {
+      resetUrl: res.data?.resetUrl,
+      resetToken: res.data?.resetToken,
+      expiresInMinutes: res.data?.expiresInMinutes,
+    };
+  }, []);
+
+  const resetPassword = useCallback(async (token: string, newPassword: string) => {
+    await api.auth.resetPassword(token, newPassword);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
@@ -79,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, requestPasswordReset, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );

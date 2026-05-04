@@ -4,7 +4,7 @@ import { Layout } from '@/components/Layout';
 import {
   LoginPage, RegisterPage, DashboardPage, RidesPage,
   MyRidesPage, MyRequestsPage, ProfilePage, AdminPage,
-  TrackingPage, PaymentsPage,
+  TrackingPage, PaymentsPage, ForgotPasswordPage, ResetPasswordPage,
 } from '@/pages';
 
 /** Ruta protegida: redirige a /login si no hay sesión */
@@ -43,6 +43,8 @@ function App() {
           {/* Rutas públicas */}
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+          <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
 
           {/* Rutas protegidas con Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>

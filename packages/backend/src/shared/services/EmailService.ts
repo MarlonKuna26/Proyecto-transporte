@@ -1,11 +1,18 @@
 import nodemailer from 'nodemailer';
 
 export class EmailService {
+  private static isDevMode(): boolean {
+    return process.env.EMAIL_DEV_MODE === 'true';
+  }
+
   private static createTransporter() {
     const emailUser = process.env.EMAIL_USER?.trim();
     const emailPass = process.env.EMAIL_PASS?.replace(/\s+/g, '');
 
     if (!emailUser || !emailPass) {
+      if (this.isDevMode()) {
+        return null;
+      }
       throw new Error(
         'Falta configurar EMAIL_USER y EMAIL_PASS en packages/backend/.env',
       );
@@ -35,25 +42,48 @@ export class EmailService {
     });
   }
 
-  static async sendVerificationEmail(to: string, code: string) {
+  private static async sendMail(options: nodemailer.SendMailOptions): Promise<void> {
     const transporter = this.createTransporter();
 
+    if (!transporter) {
+      console.log('[EMAIL DEV MODE]', options);
+      return;
+    }
+
     try {
-      await transporter.sendMail({
-        from: `"U-Ride" <${process.env.EMAIL_USER}>`,
-        to,
-        subject: 'Código de verificación',
-        html: `
-          <h2>Verificación de cuenta</h2>
-          <p>Tu código es:</p>
-          <h1>${code}</h1>
-          <p>Expira en 30 minutos</p>
-        `,
-      });
+      await transporter.sendMail(options);
     } catch (error: any) {
       throw new Error(
-        `No se pudo enviar el correo de verificación: ${error?.message || 'SMTP error'}`,
+        `No se pudo enviar el correo: ${error?.message || 'SMTP error'}`,
       );
     }
+  }
+
+  static async sendVerificationEmail(to: string, code: string) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: 'Código de verificación',
+      html: `
+        <h2>Verificación de cuenta</h2>
+        <p>Tu código es:</p>
+        <h1>${code}</h1>
+        <p>Expira en 30 minutos</p>
+      `,
+    });
+  }
+
+  static async sendPasswordResetEmail(to: string, resetUrl: string) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: 'Recuperación de contraseña',
+      html: `
+        <h2>Recupera tu contraseña</h2>
+        <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+        <p><a href="${resetUrl}">Restablecer contraseña</a></p>
+        <p>Este enlace expira en 30 minutos.</p>
+      `,
+    });
   }
 }

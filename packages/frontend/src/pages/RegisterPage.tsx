@@ -16,6 +16,7 @@ export const RegisterPage: React.FC = () => {
   const [hint, setHint] = useState('');
   const [expiresInMinutes, setExpiresInMinutes] = useState<number | null>(null);
   const institutionalEmailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
+  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
@@ -32,8 +33,8 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
+    if (!strongPasswordRegex.test(password)) {
+      setError('La contraseña debe tener al menos 8 caracteres e incluir mayúscula, minúscula y número');
       return;
     }
 
@@ -179,6 +180,7 @@ export const RegisterPage: React.FC = () => {
                     className={inputClass}
                     style={inputStyle}
                   />
+                  <p className="text-[#888] text-xs mt-2">Mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">

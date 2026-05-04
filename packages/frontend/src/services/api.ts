@@ -35,6 +35,10 @@ export const api = {
     refresh: (refreshToken: string) =>
       request<any>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
     logout: () => request<any>('/auth/logout', { method: 'POST' }),
+    forgotPassword: (email: string) =>
+      request<any>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+    resetPassword: (token: string, newPassword: string) =>
+      request<any>('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
   },
 
   // =================== USERS ===================
