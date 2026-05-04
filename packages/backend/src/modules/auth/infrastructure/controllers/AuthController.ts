@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { LoginUseCase } from '../../application/usecases/LoginUseCase';
 import { RegisterUseCase } from '../../application/usecases/RegisterUseCase';
 import { VerifyEmailUseCase } from '../../application/usecases/VerifyEmailUseCase';
+import { RequestPasswordResetUseCase } from '../../application/usecases/RequestPasswordResetUseCase';
+import { ResetPasswordUseCase } from '../../application/usecases/ResetPasswordUseCase';
 import { LoginDTO } from '../../application/dtos/LoginDTO';
 import { RegisterDTO } from '../../application/dtos/RegisterDTO';
 import { AppError, ValidationError } from '@shared/errors/AppError';
@@ -19,6 +21,8 @@ export class AuthController {
     private loginUseCase: LoginUseCase,
     private registerUseCase: RegisterUseCase,
     private verifyEmailUseCase: VerifyEmailUseCase,
+    private requestPasswordResetUseCase: RequestPasswordResetUseCase,
+    private resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   async register(req: Request, res: Response): Promise<void> {
@@ -83,6 +87,48 @@ export class AuthController {
       });
     } catch (error: unknown) {
       this.handleError(error, res, 'login');
+    }
+  }
+
+  async requestPasswordReset(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw new ValidationError('Email is required');
+      }
+
+      const result = await this.requestPasswordResetUseCase.execute({ email });
+
+      this.logger.info(`Password reset requested: ${email}`, 'AUTH_CONTROLLER');
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: 'Si el correo existe, enviaremos un enlace de recuperación',
+      });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'request_password_reset');
+    }
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        throw new ValidationError('Token and new password are required');
+      }
+
+      const result = await this.resetPasswordUseCase.execute({ token, newPassword });
+
+      this.logger.info('Password reset completed', 'AUTH_CONTROLLER');
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: result.message,
+      });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'reset_password');
     }
   }
 

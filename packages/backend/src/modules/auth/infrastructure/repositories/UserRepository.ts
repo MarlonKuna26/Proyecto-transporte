@@ -93,6 +93,10 @@ export class UserRepository implements IUserRepository {
       updates.push(`esta_verificado = $${paramIndex++}`);
       values.push(userData.isVerified);
     }
+    if ((userData as any).hashedPassword) {
+      updates.push(`contrasena_hash = $${paramIndex++}`);
+      values.push((userData as any).hashedPassword);
+    }
 
     updates.push(`actualizado_en = $${paramIndex++}`);
     values.push(new Date());

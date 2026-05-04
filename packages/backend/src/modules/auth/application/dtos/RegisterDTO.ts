@@ -27,9 +27,13 @@ export class RegisterDTO {
       throw new Error('El nombre debe tener al menos 2 caracteres');
     }
 
-    if (!this.password || this.password.length < 8) {
-      throw new Error('La contraseña debe tener al menos 8 caracteres');
+    if (!this.password || !this.isStrongPassword(this.password)) {
+      throw new Error('La contraseña debe tener al menos 8 caracteres e incluir mayúscula, minúscula y número');
     }
+  }
+
+  private isStrongPassword(password: string): boolean {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
   }
 
   private isValidInstitutionalEmail(email: string): boolean {
