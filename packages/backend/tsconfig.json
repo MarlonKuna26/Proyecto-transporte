@@ -28,13 +28,6 @@
     "sourceMap": true,
     "types": ["jest", "node"]
   },
-  "include": [
-    "src",
-    "tests"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ]
+  "include": ["src","tests"],
+  "exclude": ["node_modules", "dist", "build"]
 }
