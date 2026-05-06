@@ -8,14 +8,13 @@ import { createAuthRoutes } from './modules/auth/auth.routes';
 
 const logger = new Logger();
 
-class App {
+export class App {
   public express: Express;
 
   constructor() {
     this.express = express();
     this.setupMiddlewares();
     this.setupRoutes();
-    this.setupErrorHandlers();
   }
 
   private setupMiddlewares(): void {
@@ -51,9 +50,11 @@ class App {
 
   private setupRoutes(): void {
     this.express.use('/auth', createAuthRoutes());
+    // Compatibilidad: exponer también el prefijo /api/v1/auth usado en tests y en main
+    this.express.use('/api/v1/auth', createAuthRoutes());
   }
 
-  private setupErrorHandlers(): void {
+  public setupErrorHandlers(): void {
     this.express.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
