@@ -18,5 +18,8 @@
     "docker:reset": "docker-compose down -v && docker-compose up -d",
     "install-global": "pnpm add -g pnpm"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
+  }
 }

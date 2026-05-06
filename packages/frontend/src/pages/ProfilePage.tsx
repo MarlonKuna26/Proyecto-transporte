@@ -78,7 +78,7 @@ export const ProfilePage: React.FC = () => {
   const inputStyle = { borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" };
 
   if (loading) return (
-    <div className="max-w-4xl mx-auto px-4 py-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-4xl mx-auto px-2 py-0" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');`}</style>
       <div className="bg-white border border-[#d8d4cc] p-10 text-center" style={{ borderRadius: '4px' }}>
         <div className="w-16 h-16 bg-[#e8e4dc] rounded-full mx-auto mb-4" style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
@@ -88,7 +88,7 @@ export const ProfilePage: React.FC = () => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-4xl mx-auto px-2 py-4 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
         .pr-card { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; }
