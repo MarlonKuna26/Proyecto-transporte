@@ -15,8 +15,8 @@ describe('RF-003: Gestión de Perfil de Usuario (Pruebas de Integración)', () =
         const loginRes = await request(API_URL)
             .post('/auth/login')
             .send({
-                email: 'mguevara4348@uta.edu.ec', // Cambia esto por un correo de tu BD
-                password: 'Marlon182004@'                  // Cambia esto por la contraseña
+                email: 'pruebatest4348@uta.edu.ec', // Cambia esto por un correo de tu BD
+                password: 'test1234'                  // Cambia esto por la contraseña
             });
 
         if (loginRes.status === 200 && loginRes.body.data?.token) {
