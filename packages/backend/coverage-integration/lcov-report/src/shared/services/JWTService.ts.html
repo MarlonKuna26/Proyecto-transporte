@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.57% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/21</span>
+                <span class='fraction'>12/21</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>2/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.57% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/21</span>
+                <span class='fraction'>12/21</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -163,7 +163,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -178,34 +178,34 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -278,25 +278,25 @@ export class JWTService {
   /**
    * Generar pair de tokens (access + refresh)
    */
-<span class="fstat-no" title="function not covered" >  static </span>generateTokenPair(payload: Omit&lt;JWTPayload, 'iat' | 'exp'&gt;): TokenPair {
-    const accessToken = <span class="cstat-no" title="statement not covered" >jwt.sign(payload, this.ACCESS_SECRET, {</span>
+  static generateTokenPair(payload: Omit&lt;JWTPayload, 'iat' | 'exp'&gt;): TokenPair {
+    const accessToken = jwt.sign(payload, this.ACCESS_SECRET, {
       expiresIn: this.ACCESS_EXPIRES,
     } as any);
 &nbsp;
-    const refreshToken = <span class="cstat-no" title="statement not covered" >jwt.sign(payload, this.REFRESH_SECRET, {</span>
+    const refreshToken = jwt.sign(payload, this.REFRESH_SECRET, {
       expiresIn: this.REFRESH_EXPIRES,
     } as any);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return { accessToken, refreshToken };</span>
+    return { accessToken, refreshToken };
   }
 &nbsp;
   /**
    * Validar access token
    */
-<span class="fstat-no" title="function not covered" >  static </span>validateAccessToken(token: string): JWTPayload {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const decoded = <span class="cstat-no" title="statement not covered" >jwt.verify(token, this.ACCESS_SECRET) as JWTPayload;</span>
-<span class="cstat-no" title="statement not covered" >      return decoded;</span>
+  static validateAccessToken(token: string): JWTPayload {
+    try {
+      const decoded = jwt.verify(token, this.ACCESS_SECRET) as JWTPayload;
+      return decoded;
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      throw new Error('Invalid or expired access token');</span>
     }
@@ -343,7 +343,7 @@ export class JWTService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-06T18:31:17.313Z
+                at 2026-05-06T18:53:44.110Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

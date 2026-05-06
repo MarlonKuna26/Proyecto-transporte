@@ -51,6 +51,8 @@ export class App {
 
   private setupRoutes(): void {
     this.express.use('/auth', createAuthRoutes());
+    // Compatibilidad: exponer también el prefijo /api/v1/auth usado en tests y en main
+    this.express.use('/api/v1/auth', createAuthRoutes());
   }
 
   public setupErrorHandlers(): void {
