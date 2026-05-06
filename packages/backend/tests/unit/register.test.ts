@@ -1,1 +1,2 @@
-// register.test.ts - Prueba: Registrarse (Unidad) - contenido pendiente
+// register.test.ts - contenido pendiente
+test.skip("pendiente", () => {});

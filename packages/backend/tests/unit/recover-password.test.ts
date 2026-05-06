@@ -1,1 +1,2 @@
-// recover-password.test.ts - Prueba: Recuperar contraseña (Unidad) - contenido pendiente
+// recover-password.test.ts - contenido pendiente
+test.skip("pendiente", () => {});
