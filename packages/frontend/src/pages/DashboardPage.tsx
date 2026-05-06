@@ -36,7 +36,7 @@ export const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pt-0 pb-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-6xl mx-auto px-6 pt-0 pb-8  space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
         .dash-card { background: #fff; border: 1px solid #eceae5; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
