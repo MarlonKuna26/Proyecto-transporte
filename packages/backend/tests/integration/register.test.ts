@@ -4,6 +4,7 @@ import request from 'supertest';
 import app from '../../src/app';
 import { DatabaseConnection } from '../../src/config/database';
 
+// Mock del servicio de email (para no enviar correos reales)
 jest.mock('../../src/shared/services/EmailService', () => ({
   EmailService: {
     sendVerificationEmail: jest.fn().mockResolvedValue(true)
@@ -12,16 +13,23 @@ jest.mock('../../src/shared/services/EmailService', () => ({
 
 describe('Register Integration (API)', () => {
 
-  beforeEach(async () => {
-    const db = DatabaseConnection.getInstance();
+  let db: any;
 
+  beforeAll(() => {
+    db = DatabaseConnection.getInstance();
+  });
+
+  beforeEach(async () => {
     await db.query('DELETE FROM registros_pendientes_verificacion');
     await db.query('DELETE FROM usuarios');
   });
 
   afterAll(async () => {
-    const db = DatabaseConnection.getInstance();
+    // ✅ cerrar conexión correctamente (evita open handles)
     await db.end();
+
+    // ✅ pequeña espera para cierre limpio en Jest
+    await new Promise(resolve => setTimeout(resolve, 100));
   });
 
   it('registra usuario correctamente', async () => {
@@ -34,8 +42,9 @@ describe('Register Integration (API)', () => {
       });
 
     expect(response.status).toBe(201);
-    expect(response.body.data.pendingVerification).toBe(true);
-    expect(response.body.data.expiresInMinutes).toBe(30);
+    expect(response.body).toHaveProperty('success', true);
+    expect(response.body.data).toHaveProperty('pendingVerification', true);
+    expect(response.body.data).toHaveProperty('expiresInMinutes', 30);
   });
 
   it('rechaza correo no institucional', async () => {
@@ -51,12 +60,10 @@ describe('Register Integration (API)', () => {
   });
 
   it('rechaza usuario ya existente', async () => {
-    const db = DatabaseConnection.getInstance();
-
     await db.query(
-      `INSERT INTO usuarios (correo, nombre, contrasena)
+      `INSERT INTO usuarios (correo, nombre, contrasena_hash)
        VALUES ($1, $2, $3)`,
-      ['test@uta.edu.ec', 'Viviana', 'hashed']
+      ['test@uta.edu.ec', 'Viviana', 'hashed_password']
     );
 
     const response = await request(app)
@@ -79,10 +86,10 @@ describe('Register Integration (API)', () => {
         password: 'Password1'
       });
 
-    const db = DatabaseConnection.getInstance();
-
     const result = await db.query(
-      'SELECT * FROM registros_pendientes_verificacion WHERE correo = $1',
+      `SELECT * 
+       FROM registros_pendientes_verificacion 
+       WHERE correo = $1`,
       ['test@uta.edu.ec']
     );
 
