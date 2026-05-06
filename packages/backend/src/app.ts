@@ -8,7 +8,7 @@ import { createAuthRoutes } from './modules/auth/auth.routes';
 
 const logger = new Logger();
 
-class App {
+export class App {
   public express: Express;
 
   constructor() {
@@ -53,7 +53,7 @@ class App {
     this.express.use('/auth', createAuthRoutes());
   }
 
-  private setupErrorHandlers(): void {
+  public setupErrorHandlers(): void {
     this.express.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
