@@ -1,3 +1,4 @@
+
 // Pruebas unitarias para `RequestPasswordResetUseCase`.
 // Objetivo: verificar el comportamiento de la generación de token y el manejo seguro.
 // Casos principales:
@@ -100,3 +101,4 @@ describe('RequestPasswordResetUseCase - generación de token', () => {
 		emailSpy.mockRestore();
 	});
 });
+

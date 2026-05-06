@@ -4,10 +4,8 @@ module.exports = {
   roots: ['<rootDir>/tests/integration'],
   testMatch: ['**/*.test.ts'],
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.spec.json'
-    }
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.spec.json' }]
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
