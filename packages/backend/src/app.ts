@@ -15,7 +15,6 @@ export class App {
     this.express = express();
     this.setupMiddlewares();
     this.setupRoutes();
-    this.setupErrorHandlers();
   }
 
   private setupMiddlewares(): void {
