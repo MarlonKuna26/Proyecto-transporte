@@ -4,6 +4,7 @@ import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
 import type { Ride } from '@/types';
+import { ZONAS_AMBATO, CAMPUS_UTA } from '@/constants';
 
 export const RidesPage: React.FC = () => {
   const { user } = useAuth();
@@ -42,7 +43,7 @@ export const RidesPage: React.FC = () => {
   useEffect(() => {
     const viewId = params.get('view');
     if (viewId) {
-      api.rides.getById(viewId).then(r => setViewRide(r.data)).catch(() => {});
+      api.rides.getById(viewId).then(r => setViewRide(r.data)).catch(() => { });
     }
   }, [params]);
 
@@ -90,11 +91,11 @@ export const RidesPage: React.FC = () => {
   };
 
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
-    PUBLISHED:   { label: 'Disponible',  bg: '#f0faf4', color: '#2d7a4f' },
-    FULL:        { label: 'Lleno',       bg: '#fdf8f0', color: '#8a6a2e' },
-    IN_PROGRESS: { label: 'En curso',    bg: '#f0f4fa', color: '#2d4f7a' },
-    COMPLETED:   { label: 'Completado',  bg: '#f0f4fa', color: '#2d4f7a' },
-    CANCELLED:   { label: 'Cancelado',   bg: '#fdf2f2', color: '#c0392b' },
+    PUBLISHED: { label: 'Disponible', bg: '#f0faf4', color: '#2d7a4f' },
+    FULL: { label: 'Lleno', bg: '#fdf8f0', color: '#8a6a2e' },
+    IN_PROGRESS: { label: 'En curso', bg: '#f0f4fa', color: '#2d4f7a' },
+    COMPLETED: { label: 'Completado', bg: '#f0f4fa', color: '#2d4f7a' },
+    CANCELLED: { label: 'Cancelado', bg: '#fdf2f2', color: '#c0392b' },
   };
 
   const inputClass = 'w-full px-3 py-2.5 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]';
@@ -169,40 +170,127 @@ export const RidesPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { label: 'Zona origen *',    field: 'originZone',        type: 'text',   placeholder: 'Ej: Norte',             required: true  },
-              { label: 'Detalle origen',   field: 'originDetail',      type: 'text',   placeholder: 'Dirección específica',  required: false },
-              { label: 'Zona destino *',   field: 'destinationZone',   type: 'text',   placeholder: 'Ej: Universidad',       required: true  },
-              { label: 'Detalle destino',  field: 'destinationDetail', type: 'text',   placeholder: 'Edificio, piso...',     required: false },
-              { label: 'Fecha *',          field: 'departureDate',     type: 'date',   placeholder: '',                      required: true  },
-              { label: 'Hora *',           field: 'departureTime',     type: 'time',   placeholder: '',                      required: true  },
-              { label: 'Asientos *',       field: 'availableSeats',    type: 'number', placeholder: '3',                     required: true  },
-              { label: 'Precio / persona', field: 'pricePerSeat',      type: 'number', placeholder: '0',                     required: false },
-            ].map(({ label, field, type, placeholder, required }) => (
-              <div key={field}>
-                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">{label}</label>
-                <input
-                  type={type}
-                  className={inputClass}
-                  style={inputStyle}
-                  placeholder={placeholder}
-                  required={required}
-                  min={type === 'number' ? 0 : undefined}
-                  value={(formData as any)[field]}
-                  onChange={e => setFormData({ ...formData, [field]: e.target.value })}
-                />
-              </div>
-            ))}
+            {/* Zona Origen */}
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona origen *</label>
+              <select
+                className={inputClass}
+                style={inputStyle}
+                required
+                value={formData.originZone}
+                onChange={e => setFormData({ ...formData, originZone: e.target.value })}
+              >
+                <option value="">Selecciona zona origen</option>
+                <optgroup label="Sedes UTA">
+                  {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Zonas / Sectores">
+                  {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
+                </optgroup>
+              </select>
+            </div>
+
+            {/* Detalle Origen */}
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Detalle origen</label>
+              <input
+                type="text" className={inputClass} style={inputStyle} placeholder="Ej: Puerta principal Huachi"
+                value={formData.originDetail} onChange={e => setFormData({ ...formData, originDetail: e.target.value })}
+              />
+            </div>
+
+            {/* Zona Destino */}
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona destino *</label>
+              <select
+                className={inputClass}
+                style={inputStyle}
+                required
+                value={formData.destinationZone}
+                onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}
+              >
+                <option value="">Selecciona zona destino</option>
+                <optgroup label="Sedes UTA">
+                  {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Zonas / Sectores">
+                  {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
+                </optgroup>
+              </select>
+            </div>
+
+            {/* Detalle Destino */}
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Detalle destino</label>
+              <input
+                type="text" className={inputClass} style={inputStyle} placeholder="Ej: Campus Ingahurco"
+                value={formData.destinationDetail} onChange={e => setFormData({ ...formData, destinationDetail: e.target.value })}
+              />
+            </div>
+
+            {/* Fecha y Hora */}
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Fecha *</label>
+              <input type="date" className={inputClass} style={inputStyle} required value={formData.departureDate} onChange={e => setFormData({ ...formData, departureDate: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Hora *</label>
+              <input type="time" className={inputClass} style={inputStyle} required value={formData.departureTime} onChange={e => setFormData({ ...formData, departureTime: e.target.value })} />
+            </div>
+
+            {/* Asientos y Precio */}
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
+                Asientos disponibles *
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="45"
+                className={inputClass}
+                style={inputStyle}
+                required
+                value={formData.availableSeats}
+                onChange={e => {
+                  // Solo permitimos números enteros para los asientos
+                  let value = e.target.value.replace(/[^0-9]/g, '');
+                  if (parseInt(value) > 45) value = '45';
+                  setFormData({ ...formData, availableSeats: value });
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
+                Precio por persona ($)
+              </label>
+              <input
+                type="number"
+                step="0.25" // Cambiamos a 0.1 para permitir un solo decimal
+                min="0"
+                className={inputClass}
+                style={inputStyle}
+                placeholder="0.00"
+                value={formData.pricePerSeat}
+                onChange={e => {
+                  const val = e.target.value;
+                  // Validamos mediante expresión regular para permitir solo 2 decimales (ej: 1.5 o 2.0)
+                  if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
+                    setFormData({ ...formData, pricePerSeat: val });
+                  }
+                }}
+              />
+            </div>
           </div>
 
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Notas</label>
-            <input className={inputClass} style={inputStyle} placeholder="Info adicional..." value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
+            <input className={inputClass} style={inputStyle} placeholder="Info adicional (ej: color del auto)..." value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
           </div>
 
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Reglas del viaje</label>
-            <input className={inputClass} style={inputStyle} placeholder="Ej: Puntualidad, no fumar..." value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} />
+            <input className={inputClass} style={inputStyle} placeholder="Ej: Puntualidad, no comer en el auto..." value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} />
           </div>
 
           {/* Map */}
@@ -219,7 +307,7 @@ export const RidesPage: React.FC = () => {
                   borderColor: selectMode === 'origin' ? '#a8d5bc' : '#d8d4cc',
                 }}
               >
-                {formData.originLat ? `Origen: ${formData.originLat.toFixed(4)}, ${formData.originLng?.toFixed(4)}` : 'Marcar origen'}
+                {formData.originLat ? `Origen fijado` : 'Marcar origen en mapa'}
               </button>
               <button
                 type="button"
@@ -231,7 +319,7 @@ export const RidesPage: React.FC = () => {
                   borderColor: selectMode === 'destination' ? '#a8bcd5' : '#d8d4cc',
                 }}
               >
-                {formData.destinationLat ? `Destino: ${formData.destinationLat.toFixed(4)}, ${formData.destinationLng?.toFixed(4)}` : 'Marcar destino'}
+                {formData.destinationLat ? `Destino fijado` : 'Marcar destino en mapa'}
               </button>
             </div>
             <LiveMap
@@ -251,8 +339,24 @@ export const RidesPage: React.FC = () => {
       <div className="r-card p-5">
         <p className="section-label mb-4">Filtrar viajes</p>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <input className={inputClass} style={inputStyle} placeholder="Zona origen" value={filters.originZone} onChange={e => setFilters({ ...filters, originZone: e.target.value })} />
-          <input className={inputClass} style={inputStyle} placeholder="Zona destino" value={filters.destinationZone} onChange={e => setFilters({ ...filters, destinationZone: e.target.value })} />
+          <select className={inputClass} style={inputStyle} value={filters.originZone} onChange={e => setFilters({ ...filters, originZone: e.target.value })}>
+            <option value="">Cualquier origen</option>
+            <optgroup label="Sedes UTA">
+              {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
+            </optgroup>
+            <optgroup label="Zonas / Sectores">
+              {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
+            </optgroup>
+          </select>
+          <select className={inputClass} style={inputStyle} value={filters.destinationZone} onChange={e => setFilters({ ...filters, destinationZone: e.target.value })}>
+            <option value="">Cualquier destino</option>
+            <optgroup label="Sedes UTA">
+              {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
+            </optgroup>
+            <optgroup label="Zonas / Sectores">
+              {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
+            </optgroup>
+          </select>
           <input type="date" className={inputClass} style={inputStyle} value={filters.departureDate} onChange={e => setFilters({ ...filters, departureDate: e.target.value })} />
           <button onClick={loadRides} className="r-btn r-btn-primary">Buscar</button>
         </div>
@@ -407,6 +511,6 @@ export const RidesPage: React.FC = () => {
 /* ── Inline SVG icon ── */
 const RoadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8a96e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6"/>
+    <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6" />
   </svg>
 );
