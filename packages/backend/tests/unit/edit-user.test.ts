@@ -1,1 +1,2 @@
-// edit-user.test.ts - Prueba: Editar usuario (Unidad) - contenido pendiente
+// edit-user.test.ts - contenido pendiente
+test.skip("pendiente", () => {});

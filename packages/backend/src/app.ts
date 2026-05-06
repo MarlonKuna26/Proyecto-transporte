@@ -30,8 +30,10 @@ class App {
       }),
     );
 
-    this.express.use(express.json());
-    this.express.use(express.urlencoded({ extended: true }));
+    
+    // Body parser con límite aumentado para fotos de perfil (base64)
+    this.express.use(express.json({ limit: '5mb' }));
+    this.express.use(express.urlencoded({ limit: '5mb', extended: true }));
 
     this.express.use((req: Request, res: Response, next: NextFunction) => {
       logger.info(`${req.method} ${req.path}`, 'HTTP');
