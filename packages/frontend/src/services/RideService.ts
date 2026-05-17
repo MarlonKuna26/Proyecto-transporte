@@ -78,4 +78,21 @@ export class RideService {
       throw new Error('Failed to cancel ride');
     }
   }
+  
+  static async updateRide(id: string, rideData: Partial<Ride>): Promise<Ride> {
+    const response = await fetch(`${API_URL}/rides/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(rideData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update ride');
+    }
+
+    return response.json();
+  }
 }

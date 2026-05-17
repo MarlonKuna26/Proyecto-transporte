@@ -40,82 +40,86 @@ export class VerifyEmailUseCase implements IUseCase<VerifyEmailInput, VerifyEmai
   async execute(input: VerifyEmailInput): Promise<VerifyEmailOutput> {
     const pool = DatabaseConnection.getInstance();
     await this.ensurePendingRegistrationsTable();
+
     const normalizedEmail = input.email.trim().toLowerCase();
     const normalizedCode = input.code.trim();
 
-    // 1. Si ya existe y está verificado, retornar
+    // 1. Verificar si ya existe usuario y está verificado
     const existingUser = await this.userRepository.findByEmail(normalizedEmail);
     if (existingUser?.isVerified) {
       return { message: 'Email is already verified', verified: true };
     }
 
-    // 2. Buscar pre-registro pendiente por email + código válido
-    const result = await pool.query(
+    // 2. Buscar registro pendiente SOLO por email
+    const pendingResult = await pool.query(
       `SELECT correo, nombre, contrasena_hash, codigo, expira_en
        FROM registros_pendientes_verificacion
-       WHERE correo = $1 AND codigo = $2 AND expira_en > NOW()
+       WHERE correo = $1
        LIMIT 1`,
-      [normalizedEmail, normalizedCode],
+      [normalizedEmail],
     );
 
-    if (result.rows.length === 0) {
-      const pending = await pool.query(
-        `SELECT expira_en
-         FROM registros_pendientes_verificacion
-         WHERE correo = $1
-         LIMIT 1`,
-        [normalizedEmail],
-      );
-
-      if (pending.rows.length === 0) {
-        if (existingUser) {
-          throw new ValidationError('Invalid or expired verification code');
-        }
-        throw new NotFoundError('No pending registration found for this email');
+    if (pendingResult.rows.length === 0) {
+      if (existingUser) {
+        throw new ValidationError('Invalid or expired verification code');
       }
-
-      const expired = new Date(pending.rows[0].expira_en) <= new Date();
-      if (expired) {
-        await pool.query(
-          `DELETE FROM registros_pendientes_verificacion WHERE correo = $1`,
-          [normalizedEmail],
-        );
-        throw new ValidationError('Verification code expired. Please register again');
-      }
-
-      throw new ValidationError('Invalid or expired verification code');
+      throw new NotFoundError('No pending registration found for this email');
     }
 
-    const pendingRegistration = result.rows[0];
+    const pending = pendingResult.rows[0];
 
-    // 3. Crear usuario ahora que el código fue validado
+    // 3. Validar código (separado)
+    if (pending.codigo.trim() !== normalizedCode) {
+      throw new ValidationError('Invalid verification code');
+    }
+
+    // 4. Validar expiración (separado)
+    const now = new Date();
+    const expiration = new Date(pending.expira_en);
+
+    if (expiration <= now) {
+      await pool.query(
+        `DELETE FROM registros_pendientes_verificacion WHERE correo = $1`,
+        [normalizedEmail],
+      );
+      throw new ValidationError('Verification code expired. Please register again');
+    }
+
+    // 5. Crear o actualizar usuario
     let user = existingUser;
+
     if (!user) {
       const newUser = new User(
-        pendingRegistration.correo,
-        pendingRegistration.nombre,
-        pendingRegistration.contrasena_hash,
+        pending.correo,
+        pending.nombre,
+        pending.contrasena_hash,
         'STUDENT',
         true,
         5.0,
       );
+
       user = await this.userRepository.create(newUser);
     } else if (!user.isVerified) {
       user = await this.userRepository.update(user.id, { isVerified: true } as any);
     }
 
-    // 4. Crear perfil vacío para el usuario
+    // 6. Crear perfil si no existe
     await pool.query(
-      `INSERT INTO perfiles_usuario (usuario_id) VALUES ($1) ON CONFLICT (usuario_id) DO NOTHING`,
+      `INSERT INTO perfiles_usuario (usuario_id) 
+       VALUES ($1) 
+       ON CONFLICT (usuario_id) DO NOTHING`,
       [user.id],
     );
 
-    // 5. Limpiar pre-registro pendiente
+    // 7. Eliminar registro pendiente
     await pool.query(
       `DELETE FROM registros_pendientes_verificacion WHERE correo = $1`,
       [normalizedEmail],
     );
 
-    return { message: 'Email verified successfully', verified: true };
+    return {
+      message: 'Email verified successfully',
+      verified: true,
+    };
   }
 }

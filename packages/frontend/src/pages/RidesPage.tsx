@@ -9,14 +9,20 @@ import { ZONAS_AMBATO, CAMPUS_UTA } from '@/constants';
 export const RidesPage: React.FC = () => {
   const { user } = useAuth();
   const [params] = useSearchParams();
+
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(params.get('create') === 'true');
   const [viewRide, setViewRide] = useState<Ride | null>(null);
+
+  const [editRideId, setEditRideId] = useState<string | null>(null);
+  const isEditing = !!editRideId;
+
   const [requestMsg, setRequestMsg] = useState('');
   const [filters, setFilters] = useState({ originZone: '', destinationZone: '', departureDate: '' });
   const [feedback, setFeedback] = useState({ msg: '', type: '' });
   const [selectMode, setSelectMode] = useState<'origin' | 'destination' | null>(null);
+
   const [formData, setFormData] = useState({
     originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
     departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
@@ -25,14 +31,11 @@ export const RidesPage: React.FC = () => {
     destinationLat: null as number | null, destinationLng: null as number | null,
   });
 
+  /* ===== LOAD ===== */
   const loadRides = async () => {
     setLoading(true);
     try {
-      const p: Record<string, string> = { status: 'PUBLISHED' };
-      if (filters.originZone) p.originZone = filters.originZone;
-      if (filters.destinationZone) p.destinationZone = filters.destinationZone;
-      if (filters.departureDate) p.departureDate = filters.departureDate;
-      const res = await api.rides.list(p);
+      const res = await api.rides.list({ status: 'PUBLISHED' });
       setRides(res.data || []);
     } catch { }
     setLoading(false);
@@ -40,23 +43,7 @@ export const RidesPage: React.FC = () => {
 
   useEffect(() => { loadRides(); }, []);
 
-  useEffect(() => {
-    const viewId = params.get('view');
-    if (viewId) {
-      api.rides.getById(viewId).then(r => setViewRide(r.data)).catch(() => { });
-    }
-  }, [params]);
-
-  const handleMapClick = (lat: number, lng: number) => {
-    if (selectMode === 'origin') {
-      setFormData(prev => ({ ...prev, originLat: lat, originLng: lng }));
-      setSelectMode(null);
-    } else if (selectMode === 'destination') {
-      setFormData(prev => ({ ...prev, destinationLat: lat, destinationLng: lng }));
-      setSelectMode(null);
-    }
-  };
-
+  /* ===== CREATE ===== */
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -65,18 +52,65 @@ export const RidesPage: React.FC = () => {
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
-      setFeedback({ msg: '¡Viaje publicado correctamente!', type: 'success' });
-      setShowCreate(false);
-      setFormData({
-        originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
-        departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
-        notes: '', rules: '',
-        originLat: null, originLng: null, destinationLat: null, destinationLng: null,
-      });
+      setFeedback({ msg: '¡Viaje publicado!', type: 'success' });
+      resetForm();
       loadRides();
     } catch (err: any) {
       setFeedback({ msg: err.message, type: 'error' });
     }
+  };
+
+  /* ===== UPDATE ===== */
+  const handleUpdate = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editRideId) return;
+    try {
+      await api.rides.update(editRideId, {
+        ...formData,
+        availableSeats: parseInt(formData.availableSeats),
+        pricePerSeat: parseFloat(formData.pricePerSeat),
+      });
+      setFeedback({ msg: '¡Viaje actualizado!', type: 'success' });
+      resetForm();
+      loadRides();
+    } catch (err: any) {
+      setFeedback({ msg: err.message, type: 'error' });
+    }
+  };
+
+  /* ===== EDIT ===== */
+  const handleEdit = (ride: Ride) => {
+    setEditRideId(ride.id);
+    setShowCreate(true);
+    setFormData({
+      originZone: ride.originZone,
+      originDetail: ride.originDetail || '',
+      destinationZone: ride.destinationZone,
+      destinationDetail: ride.destinationDetail || '',
+      departureDate: ride.departureDate,
+      departureTime: ride.departureTime,
+      availableSeats: ride.availableSeats.toString(),
+      pricePerSeat: ride.pricePerSeat.toString(),
+      notes: ride.notes || '',
+      rules: ride.rules || '',
+      originLat: ride.originLat ?? null,
+      originLng: ride.originLng ?? null,
+      destinationLat: ride.destinationLat ?? null,
+      destinationLng: ride.destinationLng ?? null,
+    });
+  };
+
+  /* ===== RESET ===== */
+  const resetForm = () => {
+    setEditRideId(null);
+    setShowCreate(false);
+    setFormData({
+      originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
+      departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
+      notes: '', rules: '',
+      originLat: null, originLng: null,
+      destinationLat: null, destinationLng: null,
+    });
   };
 
   const handleRequestJoin = async (rideId: string) => {
@@ -91,18 +125,25 @@ export const RidesPage: React.FC = () => {
   };
 
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
-    PUBLISHED: { label: 'Disponible', bg: '#f0faf4', color: '#2d7a4f' },
-    FULL: { label: 'Lleno', bg: '#fdf8f0', color: '#8a6a2e' },
-    IN_PROGRESS: { label: 'En curso', bg: '#f0f4fa', color: '#2d4f7a' },
-    COMPLETED: { label: 'Completado', bg: '#f0f4fa', color: '#2d4f7a' },
-    CANCELLED: { label: 'Cancelado', bg: '#fdf2f2', color: '#c0392b' },
+    PUBLISHED:   { label: 'Disponible', bg: '#f0faf4', color: '#2d7a4f' },
+    FULL:        { label: 'Lleno',      bg: '#fdf8f0', color: '#8a6a2e' },
+    IN_PROGRESS: { label: 'En curso',   bg: '#f0f4fa', color: '#2d4f7a' },
+    COMPLETED:   { label: 'Completado', bg: '#f0f4fa', color: '#2d4f7a' },
+    CANCELLED:   { label: 'Cancelado',  bg: '#fdf2f2', color: '#c0392b' },
   };
 
   const inputClass = 'w-full px-3 py-2.5 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]';
   const inputStyle = { borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" };
+  const selectStyle = {
+    ...inputStyle,
+    appearance: 'none' as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+  };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
         .r-card { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; }
@@ -113,13 +154,15 @@ export const RidesPage: React.FC = () => {
         .r-btn { padding:11px 22px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:background 0.2s; font-family:'DM Sans',sans-serif; }
         .r-btn-primary { background:#1a1a2e; color:#fff; }
         .r-btn-primary:hover { background:#2d2d4e; }
-        .r-btn-secondary { background:#fafaf8; color:#1a1a2e; border:0.5px solid #d8d4cc; }
-        .r-btn-secondary:hover { border-color:#1a1a2e; }
+        .r-btn-secondary { background:#fafaf8; color:#1a1a2e; }
+        .r-btn-secondary:hover { border-color:#1a1a2e !important; }
         .r-btn-gold { background:#c8a96e; color:#1a1a2e; }
         .r-btn-gold:hover { background:#d4b87a; }
-        .r-btn-sm { padding:7px 14px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; border:0.5px solid; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; background:transparent; }
+        .r-btn-edit { background:#fafaf8; color:#6b6b6b; border:0.5px solid #d8d4cc; padding:5px 12px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+        .r-btn-edit:hover { border-color:#c8a96e; color:#c8a96e; }
         .pulse-line { background:#e8e4dc; border-radius:2px; animation:pulse 1.5s ease-in-out infinite; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        optgroup { font-size:11px; color:#999; letter-spacing:0.06em; text-transform:uppercase; }
       `}</style>
 
       {/* Page header */}
@@ -134,10 +177,11 @@ export const RidesPage: React.FC = () => {
             </p>
           </div>
           <button
-            onClick={() => setShowCreate(!showCreate)}
+            onClick={() => { if (showCreate) resetForm(); else setShowCreate(true); }}
             className={`r-btn shrink-0 ${showCreate ? 'r-btn-secondary' : 'r-btn-gold'}`}
+            style={showCreate ? { border: '0.5px solid #d8d4cc' } : {}}
           >
-            {showCreate ? '✕ Cancelar' : '+ Publicar viaje'}
+            {showCreate ? '✕ Cancelar' : '+ Nuevo viaje'}
           </button>
         </div>
         <div className="w-full h-px bg-[#c8a96e] opacity-40" />
@@ -155,212 +199,97 @@ export const RidesPage: React.FC = () => {
           }}
         >
           <span>{feedback.msg}</span>
-          <button
-            onClick={() => setFeedback({ msg: '', type: '' })}
-            className="ml-auto bg-transparent border-none cursor-pointer text-current opacity-50 hover:opacity-100 text-base"
-          >✕</button>
+          <button onClick={() => setFeedback({ msg: '', type: '' })} className="ml-auto bg-transparent border-none cursor-pointer text-current opacity-50 hover:opacity-100 text-base">✕</button>
         </div>
       )}
 
-      {/* Crear viaje */}
+      {/* Form: crear / editar */}
       {showCreate && (
-        <form onSubmit={handleCreate} className="r-card p-6 space-y-5">
-          <div className="pb-4 border-b border-[#e8e4dc]">
-            <p className="section-label">Nuevo viaje</p>
+        <form onSubmit={isEditing ? handleUpdate : handleCreate} className="r-card p-6 space-y-5">
+          <div className="pb-4 border-b border-[#e8e4dc] flex items-center justify-between">
+            <p className="section-label">{isEditing ? 'Editar viaje' : 'Nuevo viaje'}</p>
+            {isEditing && (
+              <span className="text-xs px-2.5 py-1 font-medium" style={{ background: '#fdf8f0', color: '#8a6a2e', border: '0.5px solid #e8d5b0', borderRadius: '2px' }}>
+                Modo edición
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Zona Origen */}
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona origen *</label>
-              <select
-                className={inputClass}
-                style={inputStyle}
-                required
-                value={formData.originZone}
-                onChange={e => setFormData({ ...formData, originZone: e.target.value })}
-              >
-                <option value="">Selecciona zona origen</option>
-                <optgroup label="Sedes UTA">
+              <select className={inputClass} style={selectStyle} required value={formData.originZone}
+                onChange={e => setFormData({ ...formData, originZone: e.target.value })}>
+                <option value="">Seleccionar zona</option>
+                <optgroup label="Campus UTA">
                   {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
                 </optgroup>
-                <optgroup label="Zonas / Sectores">
+                <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
               </select>
             </div>
 
-            {/* Detalle Origen */}
-            <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Detalle origen</label>
-              <input
-                type="text" className={inputClass} style={inputStyle} placeholder="Ej: Puerta principal Huachi"
-                value={formData.originDetail} onChange={e => setFormData({ ...formData, originDetail: e.target.value })}
-              />
-            </div>
-
-            {/* Zona Destino */}
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona destino *</label>
-              <select
-                className={inputClass}
-                style={inputStyle}
-                required
-                value={formData.destinationZone}
-                onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}
-              >
-                <option value="">Selecciona zona destino</option>
-                <optgroup label="Sedes UTA">
+              <select className={inputClass} style={selectStyle} required value={formData.destinationZone}
+                onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}>
+                <option value="">Seleccionar zona</option>
+                <optgroup label="Campus UTA">
                   {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
                 </optgroup>
-                <optgroup label="Zonas / Sectores">
+                <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
               </select>
             </div>
 
-            {/* Detalle Destino */}
-            <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Detalle destino</label>
-              <input
-                type="text" className={inputClass} style={inputStyle} placeholder="Ej: Campus Ingahurco"
-                value={formData.destinationDetail} onChange={e => setFormData({ ...formData, destinationDetail: e.target.value })}
-              />
-            </div>
-
-            {/* Fecha y Hora */}
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Fecha *</label>
-              <input type="date" className={inputClass} style={inputStyle} required value={formData.departureDate} onChange={e => setFormData({ ...formData, departureDate: e.target.value })} />
+              <input type="date" className={inputClass} style={inputStyle} required
+                value={formData.departureDate} onChange={e => setFormData({ ...formData, departureDate: e.target.value })} />
             </div>
+
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Hora *</label>
-              <input type="time" className={inputClass} style={inputStyle} required value={formData.departureTime} onChange={e => setFormData({ ...formData, departureTime: e.target.value })} />
-            </div>
-
-            {/* Asientos y Precio */}
-            <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                Asientos disponibles *
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="45"
-                className={inputClass}
-                style={inputStyle}
-                required
-                value={formData.availableSeats}
-                onChange={e => {
-                  // Solo permitimos números enteros para los asientos
-                  let value = e.target.value.replace(/[^0-9]/g, '');
-                  if (parseInt(value) > 45) value = '45';
-                  setFormData({ ...formData, availableSeats: value });
-                }}
-              />
+              <input type="time" className={inputClass} style={inputStyle} required
+                value={formData.departureTime} onChange={e => setFormData({ ...formData, departureTime: e.target.value })} />
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                Precio por persona ($)
-              </label>
-              <input
-                type="number"
-                step="0.25" // Cambiamos a 0.1 para permitir un solo decimal
-                min="0"
-                className={inputClass}
-                style={inputStyle}
-                placeholder="0.00"
-                value={formData.pricePerSeat}
-                onChange={e => {
-                  const val = e.target.value;
-                  // Validamos mediante expresión regular para permitir solo 2 decimales (ej: 1.5 o 2.0)
-                  if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
-                    setFormData({ ...formData, pricePerSeat: val });
-                  }
-                }}
-              />
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Asientos disponibles *</label>
+              <input type="number" min="1" max="8" className={inputClass} style={inputStyle}
+                value={formData.availableSeats} onChange={e => setFormData({ ...formData, availableSeats: e.target.value })} />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Precio / persona ($)</label>
+              <input type="number" min="0" step="0.50" className={inputClass} style={inputStyle}
+                value={formData.pricePerSeat} onChange={e => setFormData({ ...formData, pricePerSeat: e.target.value })} />
             </div>
           </div>
 
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Notas</label>
-            <input className={inputClass} style={inputStyle} placeholder="Info adicional (ej: color del auto)..." value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
+            <input className={inputClass} style={inputStyle} placeholder="Info adicional..."
+              value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
           </div>
-
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Reglas del viaje</label>
-            <input className={inputClass} style={inputStyle} placeholder="Ej: Puntualidad, no comer en el auto..." value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} />
+            <input className={inputClass} style={inputStyle} placeholder="Ej: Puntualidad, no fumar..."
+              value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} />
           </div>
 
-          {/* Map */}
-          <div>
-            <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-3">Ubicación en el mapa (opcional)</label>
-            <div className="flex gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => setSelectMode(selectMode === 'origin' ? null : 'origin')}
-                className="r-btn-sm"
-                style={{
-                  background: selectMode === 'origin' ? '#f0faf4' : '#fafaf8',
-                  color: selectMode === 'origin' ? '#2d7a4f' : '#6b6b6b',
-                  borderColor: selectMode === 'origin' ? '#a8d5bc' : '#d8d4cc',
-                }}
-              >
-                {formData.originLat ? `Origen fijado` : 'Marcar origen en mapa'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectMode(selectMode === 'destination' ? null : 'destination')}
-                className="r-btn-sm"
-                style={{
-                  background: selectMode === 'destination' ? '#f0f4fa' : '#fafaf8',
-                  color: selectMode === 'destination' ? '#2d4f7a' : '#6b6b6b',
-                  borderColor: selectMode === 'destination' ? '#a8bcd5' : '#d8d4cc',
-                }}
-              >
-                {formData.destinationLat ? `Destino fijado` : 'Marcar destino en mapa'}
-              </button>
-            </div>
-            <LiveMap
-              origin={formData.originLat ? { lat: formData.originLat, lng: formData.originLng!, label: formData.originZone } : null}
-              destination={formData.destinationLat ? { lat: formData.destinationLat, lng: formData.destinationLng!, label: formData.destinationZone } : null}
-              onMapClick={handleMapClick}
-              selectMode={selectMode}
-              height="300px"
-            />
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="r-btn r-btn-primary">
+              {isEditing ? 'Actualizar viaje' : 'Publicar viaje'}
+            </button>
+            <button type="button" onClick={resetForm} className="r-btn r-btn-secondary" style={{ border: '0.5px solid #d8d4cc' }}>
+              Cancelar
+            </button>
           </div>
-
-          <button type="submit" className="r-btn r-btn-primary">Publicar viaje</button>
         </form>
       )}
-
-      {/* Filtros */}
-      <div className="r-card p-5">
-        <p className="section-label mb-4">Filtrar viajes</p>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <select className={inputClass} style={inputStyle} value={filters.originZone} onChange={e => setFilters({ ...filters, originZone: e.target.value })}>
-            <option value="">Cualquier origen</option>
-            <optgroup label="Sedes UTA">
-              {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
-            </optgroup>
-            <optgroup label="Zonas / Sectores">
-              {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
-            </optgroup>
-          </select>
-          <select className={inputClass} style={inputStyle} value={filters.destinationZone} onChange={e => setFilters({ ...filters, destinationZone: e.target.value })}>
-            <option value="">Cualquier destino</option>
-            <optgroup label="Sedes UTA">
-              {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
-            </optgroup>
-            <optgroup label="Zonas / Sectores">
-              {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
-            </optgroup>
-          </select>
-          <input type="date" className={inputClass} style={inputStyle} value={filters.departureDate} onChange={e => setFilters({ ...filters, departureDate: e.target.value })} />
-          <button onClick={loadRides} className="r-btn r-btn-primary">Buscar</button>
-        </div>
-      </div>
 
       {/* Rides list */}
       {loading ? (
@@ -398,7 +327,12 @@ export const RidesPage: React.FC = () => {
                       <p className="text-[#bbb] text-xs mt-0.5 ml-4">{ride.originDetail}</p>
                     )}
                   </div>
-                  <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                    {ride.driverId === user?.id && (
+                      <button className="r-btn-edit" onClick={() => handleEdit(ride)}>Editar</button>
+                    )}
+                    <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#999] text-xs">
                   <span>{ride.departureDate}</span>
@@ -407,7 +341,6 @@ export const RidesPage: React.FC = () => {
                   {ride.pricePerSeat > 0 && (
                     <span className="text-[#c8a96e] font-medium">${ride.pricePerSeat.toLocaleString()}</span>
                   )}
-                  {ride.originLat && <span className="text-[#2d7a4f]">GPS</span>}
                 </div>
               </div>
             );
@@ -427,31 +360,22 @@ export const RidesPage: React.FC = () => {
             style={{ borderRadius: '4px', maxHeight: '90vh', border: '0.5px solid #d8d4cc' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Modal header */}
             <div className="bg-[#1a1a2e] px-6 py-5 flex items-center justify-between">
               <h2 className="text-white text-lg tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
                 Detalle del viaje
               </h2>
-              <button
-                onClick={() => setViewRide(null)}
-                className="text-[#8a8fa8] hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl"
-              >✕</button>
+              <button onClick={() => setViewRide(null)} className="text-[#8a8fa8] hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl">✕</button>
             </div>
             <div className="w-full h-px bg-[#c8a96e] opacity-40" />
 
             <div className="p-6 space-y-4">
-              {/* Route */}
               <div className="flex items-center gap-2 text-[#1a1a2e] font-medium text-sm">
                 <span style={{ color: '#c8a96e', fontSize: 12 }}>●</span>
                 {viewRide.originZone}
                 <span className="text-[#ccc] text-xs">→</span>
                 {viewRide.destinationZone}
               </div>
-              {viewRide.originDetail && (
-                <p className="text-[#999] text-xs ml-4">{viewRide.originDetail} → {viewRide.destinationDetail}</p>
-              )}
 
-              {/* Details */}
               <div className="flex flex-wrap gap-x-5 gap-y-1 text-[#999] text-xs py-2 border-t border-b border-[#e8e4dc]">
                 <span>{viewRide.departureDate}</span>
                 <span>{viewRide.departureTime}</span>
@@ -478,7 +402,9 @@ export const RidesPage: React.FC = () => {
               {viewRide.originLat && viewRide.originLng && (
                 <LiveMap
                   origin={{ lat: viewRide.originLat, lng: viewRide.originLng, label: viewRide.originZone }}
-                  destination={viewRide.destinationLat && viewRide.destinationLng ? { lat: viewRide.destinationLat, lng: viewRide.destinationLng, label: viewRide.destinationZone } : null}
+                  destination={viewRide.destinationLat && viewRide.destinationLng
+                    ? { lat: viewRide.destinationLat, lng: viewRide.destinationLng, label: viewRide.destinationZone }
+                    : null}
                   height="200px"
                 />
               )}
@@ -492,10 +418,7 @@ export const RidesPage: React.FC = () => {
                     value={requestMsg}
                     onChange={e => setRequestMsg(e.target.value)}
                   />
-                  <button
-                    onClick={() => handleRequestJoin(viewRide.id)}
-                    className="r-btn r-btn-gold w-full"
-                  >
+                  <button onClick={() => handleRequestJoin(viewRide.id)} className="r-btn r-btn-gold w-full">
                     Solicitar unirme
                   </button>
                 </div>
@@ -508,9 +431,9 @@ export const RidesPage: React.FC = () => {
   );
 };
 
-/* ── Inline SVG icon ── */
+/* ── SVG icon ── */
 const RoadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8a96e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6" />
+    <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6"/>
   </svg>
 );
