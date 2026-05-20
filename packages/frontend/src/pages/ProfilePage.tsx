@@ -69,6 +69,20 @@ export const ProfilePage: React.FC = () => {
     setVehicleForm({ ...vehicleForm, [name]: finalValue });
   };
 
+  const handleEditVehicle = (vehicle: Vehicle) => {
+    setEditingVehicleId(vehicle.id);
+    setVehicleForm({
+      plate: vehicle.plate || '',
+      brand: vehicle.brand || '',
+      model: vehicle.model || '',
+      color: vehicle.color || '',
+      capacity: vehicle.capacity.toString() || '4',
+      year: vehicle.year?.toString() || '',
+      photoUrl: vehicle.photoUrl || ''
+    });
+    setShowVehicleForm(true);
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -507,17 +521,30 @@ export const ProfilePage: React.FC = () => {
                     {v.plate} · {v.color} · {v.capacity} asientos
                   </p>
                 </div>
-                <button
-                  onClick={() => deleteVehicle(v.id)}
-                  className="text-xs font-medium px-3 py-1.5 transition-colors hover:bg-[#faeaea]"
-                  style={{
-                    background: '#fdf2f2', color: '#c0392b',
-                    border: '0.5px solid #f0b8b8', borderRadius: '2px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Borrar
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditVehicle(v)}
+                    className="text-xs font-medium px-3 py-1.5 transition-colors hover:bg-[#e8f5e9]"
+                    style={{
+                      background: '#f0faf4', color: '#2d7a4f',
+                      border: '0.5px solid #a5d6a7', borderRadius: '2px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => deleteVehicle(v.id)}
+                    className="text-xs font-medium px-3 py-1.5 transition-colors hover:bg-[#faeaea]"
+                    style={{
+                      background: '#fdf2f2', color: '#c0392b',
+                      border: '0.5px solid #f0b8b8', borderRadius: '2px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Borrar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
