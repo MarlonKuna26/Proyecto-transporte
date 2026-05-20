@@ -439,7 +439,7 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {showVehicleForm && (
-          <form onSubmit={handleAddVehicle} className="mb-5 p-4 bg-[#fafaf8] border border-[#e8e4dc] space-y-3" style={{ borderRadius: '2px' }}>
+          <form onSubmit={handleVehicleSubmit} className="mb-5 p-4 bg-[#fafaf8] border border-[#e8e4dc] space-y-3" style={{ borderRadius: '2px' }}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {/* Placa */}
               <div className="col-span-1">
