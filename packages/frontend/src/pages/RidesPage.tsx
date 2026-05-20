@@ -4,7 +4,7 @@ import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
 import type { Ride, RideRequest, UserProfile } from '@/types';
-import { ZONAS_AMBATO, CAMPUS_UTA } from '@/constants';
+import { ZONAS_AMBATO, CAMPUS_UTA, ZONE_COORDINATES } from '@/constants';
 
 export const RidesPage: React.FC = () => {
   const { user } = useAuth();
@@ -372,14 +372,16 @@ export const RidesPage: React.FC = () => {
               />
             </div>
 
-            <div>
+             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona origen *</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {CAMPUS_UTA.map(c => (
+                  <button key={c} type="button" className="text-xs px-3 py-1 bg-[#fdf8f0] border border-[#e8d5b0] text-[#8a6a2e] rounded-sm hover:bg-[#e8d5b0]" onClick={() => setFormData({ ...formData, originZone: c })}>{c}</button>
+                ))}
+              </div>
               <select className={inputClass} style={selectStyle} required value={formData.originZone}
                 onChange={e => setFormData({ ...formData, originZone: e.target.value })}>
-                <option value="">Seleccionar zona</option>
-                <optgroup label="Campus UTA">
-                  {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
-                </optgroup>
+                <option value="">Seleccionar zona...</option>
                 <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
@@ -388,12 +390,14 @@ export const RidesPage: React.FC = () => {
 
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona destino *</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {CAMPUS_UTA.map(c => (
+                  <button key={c} type="button" className="text-xs px-3 py-1 bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-sm hover:bg-[#bfdbfe]" onClick={() => setFormData({ ...formData, destinationZone: c })}>{c}</button>
+                ))}
+              </div>
               <select className={inputClass} style={selectStyle} required value={formData.destinationZone}
                 onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}>
-                <option value="">Seleccionar zona</option>
-                <optgroup label="Campus UTA">
-                  {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
-                </optgroup>
+                <option value="">Seleccionar zona...</option>
                 <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
@@ -565,15 +569,33 @@ export const RidesPage: React.FC = () => {
                 </div>
               )}
 
-              {viewRide.originLat && viewRide.originLng && (
-                <LiveMap
-                  origin={{ lat: viewRide.originLat, lng: viewRide.originLng, label: viewRide.originZone }}
-                  destination={viewRide.destinationLat && viewRide.destinationLng
-                    ? { lat: viewRide.destinationLat, lng: viewRide.destinationLng, label: viewRide.destinationZone }
-                    : null}
-                  height="200px"
-                />
-              )}
+              {(() => {
+                const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
+                  if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+                    return { lat: Number(lat), lng: Number(lng) };
+                  }
+                  const fallback = ZONE_COORDINATES[zone];
+                  if (fallback) {
+                    return { lat: fallback[0], lng: fallback[1] };
+                  }
+                  return null;
+                };
+
+                const originCoords = getCoordinates(viewRide.originZone, viewRide.originLat, viewRide.originLng);
+                const destCoords = getCoordinates(viewRide.destinationZone, viewRide.destinationLat, viewRide.destinationLng);
+
+                return originCoords ? (
+                  <LiveMap
+                    origin={originCoords ? { ...originCoords, label: viewRide.originZone } : null}
+                    destination={destCoords ? { ...destCoords, label: viewRide.destinationZone } : null}
+                    height="200px"
+                  />
+                ) : (
+                  <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc]">
+                    No hay coordenadas disponibles para renderizar el mapa
+                  </div>
+                );
+              })()}
 
               {/* Usuarios aceptados */}
               <div>

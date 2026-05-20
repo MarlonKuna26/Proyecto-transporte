@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '@/services/api';
-import type { Ride, RideRequest } from '@/types';
+import type { Ride, RideRequest, UserProfile } from '@/types';
+import { LiveMap } from '@/components/LiveMap';
+import { ZONE_COORDINATES } from '@/constants';
 
 export const MyRidesPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [requests, setRequests] = useState<Record<string, RideRequest[]>>({});
+  const [viewRide, setViewRide] = useState<Ride | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState('');
 
@@ -179,6 +182,7 @@ export const MyRidesPage: React.FC = () => {
 
                 {/* Actions */}
                 <div className="flex flex-wrap items-center gap-2 mt-auto pt-3 border-t border-[#f5f5f5]">
+                  <button onClick={() => setViewRide(ride)} className="r-btn-edit">VER DETALLE</button>
                   {(ride.status === 'PUBLISHED' || ride.status === 'FULL') && (
                     <>
                       <button onClick={() => startRide(ride.id)} className="r-btn-edit">INICIAR</button>
@@ -231,8 +235,49 @@ export const MyRidesPage: React.FC = () => {
           })}
         </div>
       )}
-    </div>
-  );
-};
+        {/* Modal de detalle */}
+        {viewRide && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(26,26,46,0.55)' }} onClick={() => setViewRide(null)}>
+            <div className="w-full max-w-lg bg-white p-6 rounded" onClick={e => e.stopPropagation()}>
+              <h2 className="text-xl mb-4">Detalle del viaje</h2>
+              <div className="mb-4">
+                <p><strong>Origen:</strong> {viewRide.originZone} {viewRide.originDetail}</p>
+                <p><strong>Destino:</strong> {viewRide.destinationZone} {viewRide.destinationDetail}</p>
+              </div>
+              {(() => {
+                const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
+                  if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+                    return { lat: Number(lat), lng: Number(lng) };
+                  }
+                  const fallback = ZONE_COORDINATES[zone];
+                  if (fallback) {
+                    return { lat: fallback[0], lng: fallback[1] };
+                  }
+                  return null;
+                };
+
+                const originCoords = getCoordinates(viewRide.originZone, viewRide.originLat, viewRide.originLng);
+                const destCoords = getCoordinates(viewRide.destinationZone, viewRide.destinationLat, viewRide.destinationLng);
+
+                return originCoords ? (
+                  <LiveMap
+                    height="200px"
+                    origin={originCoords ? { ...originCoords, label: viewRide.originZone } : null}
+                    destination={destCoords ? { ...destCoords, label: viewRide.destinationZone } : null}
+                  />
+                ) : (
+                  <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc]">
+                    No hay coordenadas disponibles para renderizar el mapa
+                  </div>
+                );
+              })()}
+              <button onClick={() => setViewRide(null)} className="mt-4 r-btn-edit">Cerrar</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
 
 

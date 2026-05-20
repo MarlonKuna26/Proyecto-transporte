@@ -53,3 +53,19 @@ export const VEHICULO_DATA = {
   marcas: ["Chevrolet", "Toyota", "Kia", "Hyundai", "Nissan", "Mazda", "Suzuki", "Ford", "Renault", "Volkswagen", "Great Wall", "Chery", "Jac", "Hino"],
   colores: ["Blanco", "Negro", "Gris", "Plateado", "Rojo", "Azul", "Blanco Perla", "Vino", "Verde", "Amarillo", "Naranja", "Café"],
 };
+
+export const ZONE_COORDINATES: Record<string, [number, number]> = {
+  "Campus Huachi": [-1.2721, -78.6256],
+  "Campus Ingahurco": [-1.2389, -78.6181],
+  "Campus Querochaca": [-1.3411, -78.6019],
+  "Norte (Ficoa, Pinllo, Izamba, Ingahurco)": [-1.2405, -78.6315],
+  "Sur (Huachi Chico, Huachi Grande, Techo Propio)": [-1.2812, -78.6225],
+  "Centro (Av. Cevallos, 12 de Noviembre, Bolívar)": [-1.2491, -78.6167],
+  "Cevallos / Quero (Querochaca)": [-1.3483, -78.5833],
+  "Pelileo / Baños": [-1.3294, -78.5133],
+  "Píllaro": [-1.1719, -78.5381],
+  "Latacunga": [-0.9328, -78.6148],
+  "Oriente (Av. Bolivariana, Terremoto, Totoras)": [-1.2642, -78.5911],
+  "Oeste (Miraflores, Santa Rosa, San Bartolo)": [-1.2583, -78.6417]
+};
+
