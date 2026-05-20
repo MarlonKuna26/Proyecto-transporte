@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
-import type { Ride, RideRequest, UserProfile } from '@/types';
+// En el inicio de tu componente RidesPage
+import type { Ride, RideRequest, UserProfile, Vehicle } from '@/types';
 import { ZONAS_AMBATO, CAMPUS_UTA, ZONE_COORDINATES } from '@/constants';
 
 export const RidesPage: React.FC = () => {
@@ -35,6 +36,7 @@ export const RidesPage: React.FC = () => {
   const [loadingAccepted, setLoadingAccepted] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
+  const [driverVehicles, setDriverVehicles] = useState<Vehicle[]>([]);
   const [loadingDriver, setLoadingDriver] = useState(false);
 
   const [selectedRules, setSelectedRules] = useState<string[]>([]);
@@ -89,16 +91,19 @@ export const RidesPage: React.FC = () => {
       setLoadingAccepted(true);
       setLoadingDriver(true);
 
-      // Fetch driver profile
+      // Fetch driver profile & vehicles
       try {
-        const driverRes = await api.users.getProfile(viewRide.driverId);
-        if (driverRes.data) {
-          setDriverProfile(driverRes.data);
-        } else {
-          setDriverProfile(null);
-        }
-      } catch {
+        const [driverRes, vehiclesRes] = await Promise.all([
+          api.users.getProfile(viewRide.driverId),
+          api.users.getVehicles() // Usamos el endpoint existente
+        ]);
+        setDriverProfile(driverRes.data || null);
+        // Filtrar vehículos del conductor en el frontend
+        setDriverVehicles((vehiclesRes.data || []).filter((v: any) => v.ownerId === viewRide.driverId));
+      } catch (err) {
+        console.error("Error fetching driver info:", err);
         setDriverProfile(null);
+        setDriverVehicles([]);
       }
       setLoadingDriver(false);
 
@@ -597,7 +602,7 @@ export const RidesPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Conductor Profile Card */}
+                {/* Conductor Profile Card */}
               {loadingDriver ? (
                 <div className="p-4 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
                   <div className="pulse-line w-12 h-12 rounded-full" />
@@ -607,49 +612,74 @@ export const RidesPage: React.FC = () => {
                   </div>
                 </div>
               ) : driverProfile ? (
-                <div className="bg-[#fafaf9] border border-[#e8e4dc] p-4 rounded-sm flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-3">
-                    {driverProfile.photoUrl ? (
-                      <img
-                        src={driverProfile.photoUrl}
-                        alt={driverProfile.name}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-[#c8a96e]"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-[#fdf8f0] flex items-center justify-center font-medium text-[#c8a96e] border-2 border-[#e8d5b0] text-lg font-serif">
-                        {driverProfile.name?.[0] || '?'}
-                      </div>
-                    )}
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold text-[#1a1a2e]">{driverProfile.name}</p>
-                        {driverProfile.isVerified && (
-                          <span className="text-xs text-[#27ae60]" title="Conductor Verificado">✓</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-[#6b6b6b]">{driverProfile.career || 'Estudiante UTA'}</p>
-                      {driverProfile.reputation !== undefined && driverProfile.reputation !== null && Number(driverProfile.reputation) > 0 && (
-                        <div className="flex items-center gap-1 text-[11px] text-[#8a6a2e] mt-0.5">
-                          <span>★</span>
-                          <span>{Number(driverProfile.reputation).toFixed(1)} / 5</span>
-                          <span className="text-[#bbb]">({driverProfile.totalRatings || 0} calif.)</span>
+                <div className="bg-[#fafaf9] border border-[#e8e4dc] p-4 rounded-sm flex flex-col gap-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {driverProfile.photoUrl ? (
+                        <img
+                          src={driverProfile.photoUrl}
+                          alt={driverProfile.name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-[#c8a96e]"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#fdf8f0] flex items-center justify-center font-medium text-[#c8a96e] border-2 border-[#e8d5b0] text-lg font-serif">
+                          {driverProfile.name?.[0] || '?'}
                         </div>
                       )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-semibold text-[#1a1a2e]">{driverProfile.name}</p>
+                          {driverProfile.isVerified && (
+                            <span className="text-xs text-[#27ae60]" title="Conductor Verificado">✓</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#6b6b6b]">{driverProfile.career || 'Estudiante UTA'}</p>
+                        {driverProfile.reputation !== undefined && driverProfile.reputation !== null && Number(driverProfile.reputation) > 0 && (
+                          <div className="flex items-center gap-1 text-[11px] text-[#8a6a2e] mt-0.5">
+                            <span>★</span>
+                            <span>{Number(driverProfile.reputation).toFixed(1)} / 5</span>
+                            <span className="text-[#bbb]">({driverProfile.totalRatings || 0} calif.)</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    
+                    {driverProfile.phone && viewRide.driverId !== user?.id && (
+                      <a
+                        href={`https://wa.me/${String(driverProfile.phone).replace(/[^0-9]/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs px-3 py-1.5 bg-[#25d366] text-white rounded-sm hover:bg-[#20ba5a] transition-all font-semibold flex items-center gap-1 shadow-sm"
+                      >
+                        💬 WhatsApp
+                      </a>
+                    )}
                   </div>
                   
-                  {driverProfile.phone && viewRide.driverId !== user?.id && (
-                    <a
-                      href={`https://wa.me/${String(driverProfile.phone).replace(/[^0-9]/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs px-3 py-1.5 bg-[#25d366] text-white rounded-sm hover:bg-[#20ba5a] transition-all font-semibold flex items-center gap-1 shadow-sm"
-                    >
-                      💬 WhatsApp
-                    </a>
+                  {/* Vehículo del Conductor */}
+                  {driverVehicles.length > 0 && (
+                    <div className="text-[10px] bg-white border border-[#e8e4dc] p-2 rounded-sm text-[#555] grid grid-cols-2 gap-2 mt-2">
+                        <div className="flex flex-col">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Vehículo</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs">{driverVehicles[0].brand} {driverVehicles[0].model}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Placa</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs font-mono">{driverVehicles[0].plate}</span>
+                        </div>
+                        <div className="flex flex-col">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Color</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs">{driverVehicles[0].color}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Año</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs">{driverVehicles[0].year || 'N/A'}</span>
+                        </div>
+                    </div>
                   )}
                 </div>
               ) : null}
+
 
               {/* Detalles Grid */}
               {(() => {
@@ -694,7 +724,7 @@ export const RidesPage: React.FC = () => {
                 );
               })()}
 
-              {/* Notas y Reglas */}
+            {/* Notas y Reglas */}
               {(viewRide.notes || viewRide.rules) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {viewRide.notes && (
@@ -706,9 +736,12 @@ export const RidesPage: React.FC = () => {
                   {viewRide.rules && (
                     <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e] rounded-sm">
                       <p className="text-[10px] font-bold text-[#1a1a2e] tracking-widest uppercase mb-1">Reglas</p>
-                      <ul className="list-disc pl-4 space-y-1 mt-1 text-[#555] text-xs">
+                      <ul className="space-y-1 mt-1 text-[#555] text-xs">
                         {viewRide.rules.split(',').map(s => s.trim()).filter(Boolean).map((rule, idx) => (
-                          <li key={idx} className="leading-relaxed">{rule}</li>
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-1 h-1 bg-[#1a1a2e] rounded-full"></span>
+                            {rule}
+                          </li>
                         ))}
                       </ul>
                     </div>
