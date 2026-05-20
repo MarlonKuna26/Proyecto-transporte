@@ -37,6 +37,15 @@ export const RidesPage: React.FC = () => {
   const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
   const [loadingDriver, setLoadingDriver] = useState(false);
 
+  const [selectedRules, setSelectedRules] = useState<string[]>([]);
+  const [customRule, setCustomRule] = useState('');
+
+  // Sync selectedRules and customRule to formData.rules
+  useEffect(() => {
+    const combined = [...selectedRules, customRule].map(s => s.trim()).filter(Boolean).join(', ');
+    setFormData(prev => ({ ...prev, rules: combined }));
+  }, [selectedRules, customRule]);
+
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
 
   const [hasVehicles, setHasVehicles] = useState<boolean>(false);
@@ -179,6 +188,14 @@ export const RidesPage: React.FC = () => {
 
   /* ===== EDIT ===== */
   const handleEdit = (ride: Ride) => {
+    const rulesStr = ride.rules || '';
+    const parts = rulesStr.split(',').map(s => s.trim()).filter(Boolean);
+    const predefined = parts.filter(p => ['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p));
+    const custom = parts.filter(p => !['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p)).join(', ');
+    
+    setSelectedRules(predefined);
+    setCustomRule(custom);
+
     setEditRideId(ride.id);
     setShowCreate(true);
     setFormData({
@@ -201,6 +218,8 @@ export const RidesPage: React.FC = () => {
 
   /* ===== RESET ===== */
   const resetForm = () => {
+    setSelectedRules([]);
+    setCustomRule('');
     setEditRideId(null);
     setShowCreate(false);
     setFormData({
@@ -422,8 +441,35 @@ export const RidesPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Reglas del viaje</label>
-            <input className={inputClass} style={inputStyle} placeholder="Ej: Puntualidad, no fumar..."
-              value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} />
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-3 mt-1">
+              {['No fumar', 'No llevar mascotas', 'Puntualidad'].map(rule => {
+                const checked = selectedRules.includes(rule);
+                return (
+                  <label key={rule} className="flex items-center gap-2 text-xs text-[#1a1a2e] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        if (checked) {
+                          setSelectedRules(selectedRules.filter(r => r !== rule));
+                        } else {
+                          setSelectedRules([...selectedRules, rule]);
+                        }
+                      }}
+                      className="rounded border-[#ccc] text-[#c8a96e] focus:ring-[#c8a96e]"
+                    />
+                    {rule}
+                  </label>
+                );
+              })}
+            </div>
+            <input
+              className={inputClass}
+              style={inputStyle}
+              placeholder="Otras reglas personalizadas (separadas por comas)..."
+              value={customRule}
+              onChange={e => setCustomRule(e.target.value)}
+            />
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -660,7 +706,11 @@ export const RidesPage: React.FC = () => {
                   {viewRide.rules && (
                     <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e] rounded-sm">
                       <p className="text-[10px] font-bold text-[#1a1a2e] tracking-widest uppercase mb-1">Reglas</p>
-                      <p className="text-[#555] text-xs leading-relaxed">{viewRide.rules}</p>
+                      <ul className="list-disc pl-4 space-y-1 mt-1 text-[#555] text-xs">
+                        {viewRide.rules.split(',').map(s => s.trim()).filter(Boolean).map((rule, idx) => (
+                          <li key={idx} className="leading-relaxed">{rule}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
