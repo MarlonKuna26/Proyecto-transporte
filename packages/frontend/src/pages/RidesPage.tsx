@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
-import type { Ride } from '@/types';
+import type { Ride, RideRequest, UserProfile } from '@/types';
 import { ZONAS_AMBATO, CAMPUS_UTA } from '@/constants';
 
 export const RidesPage: React.FC = () => {
@@ -31,6 +31,10 @@ export const RidesPage: React.FC = () => {
     destinationLat: null as number | null, destinationLng: null as number | null,
   });
 
+  const [acceptedUsers, setAcceptedUsers] = useState<UserProfile[]>([]);
+  const [loadingAccepted, setLoadingAccepted] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
   /* ===== LOAD ===== */
   const loadRides = async () => {
     setLoading(true);
@@ -42,6 +46,27 @@ export const RidesPage: React.FC = () => {
   };
 
   useEffect(() => { loadRides(); }, []);
+
+  useEffect(() => {
+    const fetchAccepted = async () => {
+      if (!viewRide) { setAcceptedUsers([]); return; }
+      setLoadingAccepted(true);
+      try {
+        const res = await api.rideRequests.byRide(viewRide.id);
+        const accepted: RideRequest[] = (res.data || []).filter((r: RideRequest) => r.status === 'ACCEPTED');
+        const profiles: UserProfile[] = [];
+        for (const req of accepted) {
+          try {
+            const userRes = await api.users.getProfile(req.passengerId);
+            if (userRes.data) profiles.push(userRes.data);
+          } catch {}
+        }
+        setAcceptedUsers(profiles);
+      } catch { setAcceptedUsers([]); }
+      setLoadingAccepted(false);
+    };
+    fetchAccepted();
+  }, [viewRide]);
 
   /* ===== CREATE ===== */
   const handleCreate = async (e: FormEvent) => {
@@ -124,6 +149,19 @@ export const RidesPage: React.FC = () => {
     }
   };
 
+  const handleDeleteRide = async (rideId: string) => {
+    try {
+      await api.rides.cancel(rideId);
+      setFeedback({ msg: 'Viaje eliminado correctamente.', type: 'success' });
+      setConfirmDelete(null);
+      setViewRide(null);
+      loadRides();
+    } catch (err: any) {
+      setFeedback({ msg: err.message || 'Error al eliminar el viaje.', type: 'error' });
+      setConfirmDelete(null);
+    }
+  };
+
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
     PUBLISHED:   { label: 'Disponible', bg: '#f0faf4', color: '#2d7a4f' },
     FULL:        { label: 'Lleno',      bg: '#fdf8f0', color: '#8a6a2e' },
@@ -151,7 +189,7 @@ export const RidesPage: React.FC = () => {
         .r-ride:hover { border-color:#1a1a2e; }
         .status-badge { font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:2px; white-space:nowrap; }
         .section-label { font-size:11px; font-weight:500; color:#6b6b6b; letter-spacing:0.1em; text-transform:uppercase; }
-        .r-btn { padding:11px 22px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:background 0.2s; font-family:'DM Sans',sans-serif; }
+        .r-btn { padding:11px 22px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
         .r-btn-primary { background:#1a1a2e; color:#fff; }
         .r-btn-primary:hover { background:#2d2d4e; }
         .r-btn-secondary { background:#fafaf8; color:#1a1a2e; }
@@ -160,9 +198,13 @@ export const RidesPage: React.FC = () => {
         .r-btn-gold:hover { background:#d4b87a; }
         .r-btn-edit { background:#fafaf8; color:#6b6b6b; border:0.5px solid #d8d4cc; padding:5px 12px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
         .r-btn-edit:hover { border-color:#c8a96e; color:#c8a96e; }
+        .r-btn-danger { background:#fdf2f2; color:#c0392b; border:0.5px solid #f0b8b8; padding:10px 18px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
+        .r-btn-danger:hover { background:#fce8e8; border-color:#c0392b; }
         .pulse-line { background:#e8e4dc; border-radius:2px; animation:pulse 1.5s ease-in-out infinite; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
         optgroup { font-size:11px; color:#999; letter-spacing:0.06em; text-transform:uppercase; }
+        .user-avatar { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid #f0ece4; }
+        .user-avatar:last-child { border-bottom:none; }
       `}</style>
 
       {/* Page header */}
@@ -360,15 +402,20 @@ export const RidesPage: React.FC = () => {
             style={{ borderRadius: '4px', maxHeight: '90vh', border: '0.5px solid #d8d4cc' }}
             onClick={e => e.stopPropagation()}
           >
+            {/* Modal header */}
             <div className="bg-[#1a1a2e] px-6 py-5 flex items-center justify-between">
               <h2 className="text-white text-lg tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
                 Detalle del viaje
               </h2>
-              <button onClick={() => setViewRide(null)} className="text-[#8a8fa8] hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl">✕</button>
+              <button
+                onClick={() => setViewRide(null)}
+                className="text-[#8a8fa8] hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl"
+              >✕</button>
             </div>
             <div className="w-full h-px bg-[#c8a96e] opacity-40" />
 
             <div className="p-6 space-y-4">
+              {/* Ruta */}
               <div className="flex items-center gap-2 text-[#1a1a2e] font-medium text-sm">
                 <span style={{ color: '#c8a96e', fontSize: 12 }}>●</span>
                 {viewRide.originZone}
@@ -376,6 +423,7 @@ export const RidesPage: React.FC = () => {
                 {viewRide.destinationZone}
               </div>
 
+              {/* Detalles */}
               <div className="flex flex-wrap gap-x-5 gap-y-1 text-[#999] text-xs py-2 border-t border-b border-[#e8e4dc]">
                 <span>{viewRide.departureDate}</span>
                 <span>{viewRide.departureTime}</span>
@@ -409,6 +457,41 @@ export const RidesPage: React.FC = () => {
                 />
               )}
 
+              {/* Usuarios aceptados */}
+              <div>
+                <p className="section-label mb-3">Pasajeros aceptados</p>
+                {loadingAccepted ? (
+                  <div className="pulse-line h-3 w-1/2" />
+                ) : acceptedUsers.length === 0 ? (
+                  <p className="text-[#bbb] text-xs">Ningún pasajero aceptado aún</p>
+                ) : (
+                  <div>
+                    {acceptedUsers.map(u => (
+                      <div key={u.userId} className="user-avatar">
+                        {u.photoUrl ? (
+                          <img
+                            src={u.photoUrl}
+                            alt={u.name}
+                            style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #c8a96e' }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: 30, height: 30, borderRadius: '50%', background: '#fdf8f0',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: 500, color: '#c8a96e', border: '1.5px solid #e8d5b0',
+                            fontSize: 13, fontFamily: "'Playfair Display', serif",
+                          }}>
+                            {u.name?.[0] || '?'}
+                          </div>
+                        )}
+                        <span style={{ fontSize: 13, color: '#1a1a2e' }}>{u.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Solicitar unirse */}
               {viewRide.driverId !== user?.id && viewRide.status === 'PUBLISHED' && (
                 <div className="space-y-3 pt-2">
                   <input
@@ -423,6 +506,80 @@ export const RidesPage: React.FC = () => {
                   </button>
                 </div>
               )}
+
+              {/* Eliminar viaje — solo conductor, al fondo separado */}
+              {viewRide.driverId === user?.id && (
+                <div className="pt-4 mt-2" style={{ borderTop: '0.5px solid #e8e4dc' }}>
+                  
+                  <button
+                    className="r-btn-danger"
+                    onClick={() => setConfirmDelete(viewRide.id)}
+                  >
+                    <TrashIcon />
+                    Eliminar este viaje
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal confirmación eliminar */}
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: 'rgba(26,26,46,0.65)' }}
+        >
+          <div
+            className="w-full max-w-sm bg-white overflow-hidden"
+            style={{ borderRadius: '4px', border: '0.5px solid #d8d4cc' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-[#1a1a2e] px-6 py-5">
+              <h3 className="text-white text-lg tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
+                Eliminar viaje
+              </h3>
+              <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1">
+                Acción irreversible
+              </p>
+            </div>
+            <div className="w-full h-px" style={{ background: '#c0392b', opacity: 0.5 }} />
+
+            {/* Body */}
+            <div className="p-6">
+              <div className="flex items-start gap-3 mb-5">
+                <div
+                  className="shrink-0 w-9 h-9 flex items-center justify-center"
+                  style={{ background: '#fdf2f2', borderRadius: '2px', border: '0.5px solid #f0b8b8' }}
+                >
+                  <TrashIcon color="#c0392b" />
+                </div>
+                <div>
+                  <p className="text-[#1a1a2e] text-sm font-medium mb-1">¿Confirmar eliminación?</p>
+                  <p className="text-[#999] text-xs leading-relaxed">
+                    Este viaje será cancelado permanentemente. Los pasajeros aceptados serán notificados y no podrás deshacer esta acción.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleDeleteRide(confirmDelete)}
+                  className="r-btn-danger flex-1 justify-center"
+                  style={{ padding: '11px 16px', fontSize: '12px' }}
+                >
+                  <TrashIcon color="#c0392b" />
+                  Sí, eliminar
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="r-btn r-btn-secondary flex-1"
+                  style={{ border: '0.5px solid #d8d4cc', padding: '11px 16px' }}
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -431,9 +588,18 @@ export const RidesPage: React.FC = () => {
   );
 };
 
-/* ── SVG icon ── */
+/* ── SVG icons ── */
 const RoadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8a96e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6"/>
+  </svg>
+);
+
+const TrashIcon = ({ color = 'currentColor' }: { color?: string }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
   </svg>
 );
