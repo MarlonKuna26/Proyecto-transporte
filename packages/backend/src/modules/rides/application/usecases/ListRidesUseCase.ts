@@ -12,6 +12,9 @@ export class ListRidesUseCase implements IUseCase<RideFilterDTO, PaginatedRespon
     if (input.destinationZone) filters.destinationZone = input.destinationZone;
     if (input.departureDate) filters.departureDate = input.departureDate;
     if (input.status) filters.status = input.status as RideStatus;
+    if (input.driverId) {
+  filters.driverId = input.driverId;
+}
 
     const offset = (input.page - 1) * input.limit;
     const [rides, total] = await Promise.all([

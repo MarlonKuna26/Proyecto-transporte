@@ -10,6 +10,7 @@ export class RideRequest {
   readonly message: string | null;
   readonly seatsRequested: number;
   readonly respondedAt: Date | null;
+  readonly rejectReason: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 
@@ -20,6 +21,7 @@ export class RideRequest {
     message: string | null = null,
     status: RequestStatus = 'PENDING',
     respondedAt: Date | null = null,
+    rejectReason: string | null = null,
     id: string = uuidv4(),
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
@@ -31,6 +33,7 @@ export class RideRequest {
     this.message = message;
     this.seatsRequested = seatsRequested;
     this.respondedAt = respondedAt;
+    this.rejectReason = rejectReason;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

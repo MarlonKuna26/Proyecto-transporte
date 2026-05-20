@@ -4,8 +4,9 @@ import { UpdateProfileUseCase } from '../../application/usecases/UpdateProfileUs
 import { CreateVehicleUseCase } from '../../application/usecases/CreateVehicleUseCase';
 import { GetUserVehiclesUseCase } from '../../application/usecases/GetUserVehiclesUseCase';
 import { DeleteVehicleUseCase } from '../../application/usecases/DeleteVehicleUseCase';
+import { UpdateVehicleUseCase } from '../../application/usecases/UpdateVehicleUseCase';
 import { UpdateProfileDTO } from '../../application/dtos/UserProfileDTO';
-import { CreateVehicleDTO } from '../../application/dtos/VehicleDTO';
+import { CreateVehicleDTO, UpdateVehicleDTO } from '../../application/dtos/VehicleDTO';
 import { AppError, ValidationError } from '@shared/errors/AppError';
 import { Logger } from '@config/logger';
 
@@ -18,6 +19,7 @@ export class UserController {
     private createVehicleUseCase: CreateVehicleUseCase,
     private getUserVehiclesUseCase: GetUserVehiclesUseCase,
     private deleteVehicleUseCase: DeleteVehicleUseCase,
+    private updateVehicleUseCase: UpdateVehicleUseCase,
   ) {}
 
   // === Profile ===
@@ -73,6 +75,19 @@ export class UserController {
       res.status(200).json({ success: true, message: 'Vehicle deleted' });
     } catch (error: unknown) {
       this.handleError(error, res, 'delete_vehicle');
+    }
+  }
+
+  async updateVehicle(req: Request, res: Response): Promise<void> {
+    try {
+      const ownerId = req.user!.userId;
+      const vehicleId = req.params.vehicleId;
+      if (!vehicleId) throw new ValidationError('Vehicle ID is required');
+      const dto = new UpdateVehicleDTO(req.body);
+      const result = await this.updateVehicleUseCase.execute(ownerId, vehicleId, dto);
+      res.status(200).json({ success: true, data: result, message: 'Vehicle updated' });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'update_vehicle');
     }
   }
 

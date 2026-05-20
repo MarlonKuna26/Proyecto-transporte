@@ -98,6 +98,16 @@ export function createTrackingRoutes(): Router {
         throw new NotFoundError('Ride not found or not eligible to start');
       }
 
+      // Check for accepted passengers
+      const passengersResult = await pool.query(
+        "SELECT count(*) as total FROM solicitudes_viaje WHERE viaje_id = $1 AND estado = 'ACCEPTED'",
+        [rideId],
+      );
+      const totalPassengers = parseInt(passengersResult.rows[0].total);
+      if (totalPassengers === 0) {
+        throw new ValidationError('No puedes iniciar un viaje sin pasajeros aceptados. Espera a que alguien se una.');
+      }
+
       const result = await pool.query(
         "UPDATE viajes SET estado = 'IN_PROGRESS', inicio_real = NOW(), actualizado_en = NOW() WHERE id = $1 RETURNING *",
         [rideId],
@@ -132,6 +142,14 @@ export function createTrackingRoutes(): Router {
       );
       if (!ride.rows[0]) {
         throw new NotFoundError('Ride not found or not in progress');
+      }
+
+      if (ride.rows[0].inicio_real) {
+        const diffMs = new Date().getTime() - new Date(ride.rows[0].inicio_real).getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 15) {
+          throw new ValidationError(`El viaje debe durar al menos 15 minutos para ser completado. Llevas ${diffMins} minutos.`);
+        }
       }
 
       const result = await pool.query(

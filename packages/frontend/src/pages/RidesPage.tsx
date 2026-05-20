@@ -3,20 +3,27 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
-import type { Ride } from '@/types';
-import { ZONAS_AMBATO, CAMPUS_UTA } from '@/constants';
+// En el inicio de tu componente RidesPage
+import type { Ride, RideRequest, UserProfile, Vehicle } from '@/types';
+import { ZONAS_AMBATO, CAMPUS_UTA, ZONE_COORDINATES } from '@/constants';
 
 export const RidesPage: React.FC = () => {
   const { user } = useAuth();
   const [params] = useSearchParams();
+
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(params.get('create') === 'true');
   const [viewRide, setViewRide] = useState<Ride | null>(null);
+
+  const [editRideId, setEditRideId] = useState<string | null>(null);
+  const isEditing = !!editRideId;
+
   const [requestMsg, setRequestMsg] = useState('');
   const [filters, setFilters] = useState({ originZone: '', destinationZone: '', departureDate: '' });
   const [feedback, setFeedback] = useState({ msg: '', type: '' });
   const [selectMode, setSelectMode] = useState<'origin' | 'destination' | null>(null);
+
   const [formData, setFormData] = useState({
     originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
     departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
@@ -25,84 +32,269 @@ export const RidesPage: React.FC = () => {
     destinationLat: null as number | null, destinationLng: null as number | null,
   });
 
+  const [acceptedUsers, setAcceptedUsers] = useState<UserProfile[]>([]);
+  const [loadingAccepted, setLoadingAccepted] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
+  const [driverVehicles, setDriverVehicles] = useState<Vehicle[]>([]);
+  const [loadingDriver, setLoadingDriver] = useState(false);
+
+  const [selectedRules, setSelectedRules] = useState<string[]>([]);
+  const [customRule, setCustomRule] = useState('');
+
+  // Sync selectedRules and customRule to formData.rules
+  useEffect(() => {
+    const combined = [...selectedRules, customRule].map(s => s.trim()).filter(Boolean).join(', ');
+    setFormData(prev => ({ ...prev, rules: combined }));
+  }, [selectedRules, customRule]);
+
+  const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
+
+  const [hasVehicles, setHasVehicles] = useState<boolean>(false);
+  const [myRequests, setMyRequests] = useState<RideRequest[]>([]);
+
+  /* ===== LOAD ===== */
   const loadRides = async () => {
     setLoading(true);
     try {
-      const p: Record<string, string> = { status: 'PUBLISHED' };
-      if (filters.originZone) p.originZone = filters.originZone;
-      if (filters.destinationZone) p.destinationZone = filters.destinationZone;
-      if (filters.departureDate) p.departureDate = filters.departureDate;
-      const res = await api.rides.list(p);
+      const res = await api.rides.list({ status: 'PUBLISHED' });
       setRides(res.data || []);
     } catch { }
     setLoading(false);
   };
+  useEffect(() => {
+  if (feedback.msg) {
+    const timer = setTimeout(() => {
+      setFeedback({ msg: '', type: '' });
+    }, 4000);
+    
+    return () => clearTimeout(timer); // Limpia el timer si el feedback cambia antes
+  }
+}, [feedback]);
 
-  useEffect(() => { loadRides(); }, []);
+  useEffect(() => { 
+    loadRides(); 
+    if (user?.id) {
+      api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
+      api.users.getVehicles().then(res => setHasVehicles(res.data && res.data.length > 0)).catch();
+      api.rideRequests.myRequests().then(res => setMyRequests(res.data || [])).catch();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
-    const viewId = params.get('view');
-    if (viewId) {
-      api.rides.getById(viewId).then(r => setViewRide(r.data)).catch(() => { });
-    }
-  }, [params]);
+    const fetchDetails = async () => {
+      if (!viewRide) {
+        setAcceptedUsers([]);
+        setDriverProfile(null);
+        return;
+      }
+      setLoadingAccepted(true);
+      setLoadingDriver(true);
 
-  const handleMapClick = (lat: number, lng: number) => {
-    if (selectMode === 'origin') {
-      setFormData(prev => ({ ...prev, originLat: lat, originLng: lng }));
-      setSelectMode(null);
-    } else if (selectMode === 'destination') {
-      setFormData(prev => ({ ...prev, destinationLat: lat, destinationLng: lng }));
-      setSelectMode(null);
-    }
-  };
+      // Fetch driver profile & vehicles
+      try {
+        const [driverRes, vehiclesRes] = await Promise.all([
+          api.users.getProfile(viewRide.driverId),
+          api.users.getVehicles() // Usamos el endpoint existente
+        ]);
+        setDriverProfile(driverRes.data || null);
+        // Filtrar vehículos del conductor en el frontend
+        setDriverVehicles((vehiclesRes.data || []).filter((v: any) => v.ownerId === viewRide.driverId));
+      } catch (err) {
+        console.error("Error fetching driver info:", err);
+        setDriverProfile(null);
+        setDriverVehicles([]);
+      }
+      setLoadingDriver(false);
 
+      // Fetch accepted users
+      try {
+        const res = await api.rideRequests.byRide(viewRide.id);
+        const accepted: RideRequest[] = (res.data || []).filter((r: RideRequest) => r.status === 'ACCEPTED');
+        const profiles: UserProfile[] = [];
+        for (const req of accepted) {
+          try {
+            const userRes = await api.users.getProfile(req.passengerId);
+            if (userRes.data) profiles.push(userRes.data);
+          } catch {}
+        }
+        setAcceptedUsers(profiles);
+      } catch {
+        setAcceptedUsers([]);
+      }
+      setLoadingAccepted(false);
+    };
+    fetchDetails();
+  }, [viewRide]);
+
+  /* ===== CREATE ===== */
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
+    
+    if (!hasVehicles) {
+      setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
+      return;
+    }
+
+    const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
+    if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
+      setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de publicarlo.', type: 'error' });
+      return;
+    }
+
+    // Validación: Mismo origen y destino
+  if (formData.originZone === formData.destinationZone) {
+    setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
+    return; // Detenemos la ejecución
+  }
     try {
       await api.rides.create({
         ...formData,
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
-      setFeedback({ msg: '¡Viaje publicado correctamente!', type: 'success' });
-      setShowCreate(false);
-      setFormData({
-        originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
-        departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
-        notes: '', rules: '',
-        originLat: null, originLng: null, destinationLat: null, destinationLng: null,
-      });
+      setFeedback({ msg: '¡Viaje publicado!', type: 'success' });
+      resetForm();
       loadRides();
     } catch (err: any) {
       setFeedback({ msg: err.message, type: 'error' });
     }
   };
 
-  const handleRequestJoin = async (rideId: string) => {
+  /* ===== UPDATE ===== */
+  const handleUpdate = async (e: FormEvent) => {
+    e.preventDefault();
+
+    const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
+    if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
+      setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de actualizarlo.', type: 'error' });
+      return;
+    }
+
+    // Validación: Mismo origen y destino
+  if (formData.originZone === formData.destinationZone) {
+    setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
+    return; // Detenemos la ejecución
+  }
+    if (!editRideId) return;
     try {
-      await api.rideRequests.create({ rideId, message: requestMsg || null, seatsRequested: 1 });
-      setFeedback({ msg: '¡Solicitud enviada!', type: 'success' });
-      setViewRide(null);
-      setRequestMsg('');
+      await api.rides.update(editRideId, {
+        ...formData,
+        availableSeats: parseInt(formData.availableSeats),
+        pricePerSeat: parseFloat(formData.pricePerSeat),
+      });
+      setFeedback({ msg: '¡Viaje actualizado!', type: 'success' });
+      resetForm();
+      loadRides();
     } catch (err: any) {
       setFeedback({ msg: err.message, type: 'error' });
     }
   };
 
+  /* ===== EDIT ===== */
+  const handleEdit = (ride: Ride) => {
+    const rulesStr = ride.rules || '';
+    const parts = rulesStr.split(',').map(s => s.trim()).filter(Boolean);
+    const predefined = parts.filter(p => ['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p));
+    const custom = parts.filter(p => !['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p)).join(', ');
+    
+    setSelectedRules(predefined);
+    setCustomRule(custom);
+
+    setEditRideId(ride.id);
+    setShowCreate(true);
+    setFormData({
+      originZone: ride.originZone,
+      originDetail: ride.originDetail || '',
+      destinationZone: ride.destinationZone,
+      destinationDetail: ride.destinationDetail || '',
+      departureDate: ride.departureDate,
+      departureTime: ride.departureTime,
+      availableSeats: ride.availableSeats.toString(),
+      pricePerSeat: ride.pricePerSeat.toString(),
+      notes: ride.notes || '',
+      rules: ride.rules || '',
+      originLat: ride.originLat ?? null,
+      originLng: ride.originLng ?? null,
+      destinationLat: ride.destinationLat ?? null,
+      destinationLng: ride.destinationLng ?? null,
+    });
+  };
+
+  /* ===== RESET ===== */
+  const resetForm = () => {
+    setSelectedRules([]);
+    setCustomRule('');
+    setEditRideId(null);
+    setShowCreate(false);
+    setFormData({
+      originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
+      departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
+      notes: '', rules: '',
+      originLat: null, originLng: null,
+      destinationLat: null, destinationLng: null,
+    });
+  };
+
+  const handleRequestJoin = async (rideId: string) => {
+    if (!myProfile || !myProfile.career || !myProfile.phone) {
+      setFeedback({ msg: 'Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', type: 'error' });
+      return;
+    }
+
+    try {
+      await api.rideRequests.create({ rideId, message: requestMsg || null, seatsRequested: 1 });
+      setFeedback({ msg: '¡Solicitud enviada!', type: 'success' });
+      
+      if (user?.id) {
+        api.rideRequests.myRequests().then(res => setMyRequests(res.data || [])).catch();
+      }
+
+      setViewRide(null);
+      setRequestMsg('');
+    } catch (err: any) {
+      if (err.message && err.message.toLowerCase().includes('already have a pending or accepted')) {
+        setFeedback({ msg: 'Ya tienes una solicitud pendiente o aceptada para este viaje.', type: 'error' });
+      } else {
+        setFeedback({ msg: err.message || 'Error al solicitar viaje.', type: 'error' });
+      }
+    }
+  };
+
+  const handleDeleteRide = async (rideId: string) => {
+    try {
+      await api.rides.cancel(rideId);
+      setFeedback({ msg: 'Viaje eliminado correctamente.', type: 'success' });
+      setConfirmDelete(null);
+      setViewRide(null);
+      loadRides();
+    } catch (err: any) {
+      setFeedback({ msg: err.message || 'Error al eliminar el viaje.', type: 'error' });
+      setConfirmDelete(null);
+    }
+  };
+
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
-    PUBLISHED: { label: 'Disponible', bg: '#f0faf4', color: '#2d7a4f' },
-    FULL: { label: 'Lleno', bg: '#fdf8f0', color: '#8a6a2e' },
-    IN_PROGRESS: { label: 'En curso', bg: '#f0f4fa', color: '#2d4f7a' },
-    COMPLETED: { label: 'Completado', bg: '#f0f4fa', color: '#2d4f7a' },
-    CANCELLED: { label: 'Cancelado', bg: '#fdf2f2', color: '#c0392b' },
+    PUBLISHED:   { label: 'Disponible', bg: '#f0faf4', color: '#2d7a4f' },
+    FULL:        { label: 'Lleno',      bg: '#fdf8f0', color: '#8a6a2e' },
+    IN_PROGRESS: { label: 'En curso',   bg: '#f0f4fa', color: '#2d4f7a' },
+    COMPLETED:   { label: 'Completado', bg: '#f0f4fa', color: '#2d4f7a' },
+    CANCELLED:   { label: 'Cancelado',  bg: '#fdf2f2', color: '#c0392b' },
   };
 
   const inputClass = 'w-full px-3 py-2.5 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]';
   const inputStyle = { borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" };
+  const selectStyle = {
+    ...inputStyle,
+    appearance: 'none' as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+  };
+  const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
         .r-card { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; }
@@ -110,16 +302,22 @@ export const RidesPage: React.FC = () => {
         .r-ride:hover { border-color:#1a1a2e; }
         .status-badge { font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:2px; white-space:nowrap; }
         .section-label { font-size:11px; font-weight:500; color:#6b6b6b; letter-spacing:0.1em; text-transform:uppercase; }
-        .r-btn { padding:11px 22px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:background 0.2s; font-family:'DM Sans',sans-serif; }
+        .r-btn { padding:11px 22px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
         .r-btn-primary { background:#1a1a2e; color:#fff; }
         .r-btn-primary:hover { background:#2d2d4e; }
-        .r-btn-secondary { background:#fafaf8; color:#1a1a2e; border:0.5px solid #d8d4cc; }
-        .r-btn-secondary:hover { border-color:#1a1a2e; }
+        .r-btn-secondary { background:#fafaf8; color:#1a1a2e; }
+        .r-btn-secondary:hover { border-color:#1a1a2e !important; }
         .r-btn-gold { background:#c8a96e; color:#1a1a2e; }
         .r-btn-gold:hover { background:#d4b87a; }
-        .r-btn-sm { padding:7px 14px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; border:0.5px solid; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; background:transparent; }
+        .r-btn-edit { background:#fafaf8; color:#6b6b6b; border:0.5px solid #d8d4cc; padding:5px 12px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+        .r-btn-edit:hover { border-color:#c8a96e; color:#c8a96e; }
+        .r-btn-danger { background:#fdf2f2; color:#c0392b; border:0.5px solid #f0b8b8; padding:10px 18px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
+        .r-btn-danger:hover { background:#fce8e8; border-color:#c0392b; }
         .pulse-line { background:#e8e4dc; border-radius:2px; animation:pulse 1.5s ease-in-out infinite; }
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        optgroup { font-size:11px; color:#999; letter-spacing:0.06em; text-transform:uppercase; }
+        .user-avatar { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid #f0ece4; }
+        .user-avatar:last-child { border-bottom:none; }
       `}</style>
 
       {/* Page header */}
@@ -134,10 +332,25 @@ export const RidesPage: React.FC = () => {
             </p>
           </div>
           <button
-            onClick={() => setShowCreate(!showCreate)}
+            onClick={() => {
+              if (showCreate) {
+                resetForm();
+              } else {
+                if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
+                  setFeedback({ msg: '¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', type: 'error' });
+                  return;
+                }
+                if (!hasVehicles) {
+                  setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
+                  return;
+                }
+                setShowCreate(true);
+              }
+            }}
             className={`r-btn shrink-0 ${showCreate ? 'r-btn-secondary' : 'r-btn-gold'}`}
+            style={showCreate ? { border: '0.5px solid #d8d4cc' } : {}}
           >
-            {showCreate ? '✕ Cancelar' : '+ Publicar viaje'}
+            {showCreate ? '✕ Cancelar' : '+ Nuevo viaje'}
           </button>
         </div>
         <div className="w-full h-px bg-[#c8a96e] opacity-40" />
@@ -155,212 +368,125 @@ export const RidesPage: React.FC = () => {
           }}
         >
           <span>{feedback.msg}</span>
-          <button
-            onClick={() => setFeedback({ msg: '', type: '' })}
-            className="ml-auto bg-transparent border-none cursor-pointer text-current opacity-50 hover:opacity-100 text-base"
-          >✕</button>
+          <button onClick={() => setFeedback({ msg: '', type: '' })} className="ml-auto bg-transparent border-none cursor-pointer text-current opacity-50 hover:opacity-100 text-base">✕</button>
         </div>
       )}
 
-      {/* Crear viaje */}
+      {/* Form: crear / editar */}
       {showCreate && (
-        <form onSubmit={handleCreate} className="r-card p-6 space-y-5">
-          <div className="pb-4 border-b border-[#e8e4dc]">
-            <p className="section-label">Nuevo viaje</p>
+        <form onSubmit={isEditing ? handleUpdate : handleCreate} className="r-card p-6 space-y-5">
+          <div className="pb-4 border-b border-[#e8e4dc] flex items-center justify-between">
+            <p className="section-label">{isEditing ? 'Editar viaje' : 'Nuevo viaje'}</p>
+            {isEditing && (
+              <span className="text-xs px-2.5 py-1 font-medium" style={{ background: '#fdf8f0', color: '#8a6a2e', border: '0.5px solid #e8d5b0', borderRadius: '2px' }}>
+                Modo edición
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Zona Origen */}
-            <div>
+             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona origen *</label>
-              <select
-                className={inputClass}
-                style={inputStyle}
-                required
-                value={formData.originZone}
-                onChange={e => setFormData({ ...formData, originZone: e.target.value })}
-              >
-                <option value="">Selecciona zona origen</option>
-                <optgroup label="Sedes UTA">
+              <select className={inputClass} style={selectStyle} required value={formData.originZone}
+                onChange={e => setFormData({ ...formData, originZone: e.target.value })}>
+                <option value="">Seleccionar zona...</option>
+                <optgroup label="Campus UTA">
                   {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
                 </optgroup>
-                <optgroup label="Zonas / Sectores">
+                <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
               </select>
             </div>
 
-            {/* Detalle Origen */}
-            <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Detalle origen</label>
-              <input
-                type="text" className={inputClass} style={inputStyle} placeholder="Ej: Puerta principal Huachi"
-                value={formData.originDetail} onChange={e => setFormData({ ...formData, originDetail: e.target.value })}
-              />
-            </div>
-
-            {/* Zona Destino */}
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona destino *</label>
-              <select
-                className={inputClass}
-                style={inputStyle}
-                required
-                value={formData.destinationZone}
-                onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}
-              >
-                <option value="">Selecciona zona destino</option>
-                <optgroup label="Sedes UTA">
+              <select className={inputClass} style={selectStyle} required value={formData.destinationZone}
+                onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}>
+                <option value="">Seleccionar zona...</option>
+                <optgroup label="Campus UTA">
                   {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
                 </optgroup>
-                <optgroup label="Zonas / Sectores">
+                <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
               </select>
             </div>
 
-            {/* Detalle Destino */}
-            <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Detalle destino</label>
-              <input
-                type="text" className={inputClass} style={inputStyle} placeholder="Ej: Campus Ingahurco"
-                value={formData.destinationDetail} onChange={e => setFormData({ ...formData, destinationDetail: e.target.value })}
-              />
-            </div>
-
-            {/* Fecha y Hora */}
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Fecha *</label>
-              <input type="date" className={inputClass} style={inputStyle} required value={formData.departureDate} onChange={e => setFormData({ ...formData, departureDate: e.target.value })} />
+              <input type="date" className={inputClass} style={inputStyle} required
+                min={today}
+                value={formData.departureDate} onChange={e => setFormData({ ...formData, departureDate: e.target.value })} />
             </div>
+
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Hora *</label>
-              <input type="time" className={inputClass} style={inputStyle} required value={formData.departureTime} onChange={e => setFormData({ ...formData, departureTime: e.target.value })} />
-            </div>
-
-            {/* Asientos y Precio */}
-            <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                Asientos disponibles *
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="45"
-                className={inputClass}
-                style={inputStyle}
-                required
-                value={formData.availableSeats}
-                onChange={e => {
-                  // Solo permitimos números enteros para los asientos
-                  let value = e.target.value.replace(/[^0-9]/g, '');
-                  if (parseInt(value) > 45) value = '45';
-                  setFormData({ ...formData, availableSeats: value });
-                }}
-              />
+              <input type="time" className={inputClass} style={inputStyle} required
+                value={formData.departureTime} onChange={e => setFormData({ ...formData, departureTime: e.target.value })} />
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                Precio por persona ($)
-              </label>
-              <input
-                type="number"
-                step="0.25" // Cambiamos a 0.1 para permitir un solo decimal
-                min="0"
-                className={inputClass}
-                style={inputStyle}
-                placeholder="0.00"
-                value={formData.pricePerSeat}
-                onChange={e => {
-                  const val = e.target.value;
-                  // Validamos mediante expresión regular para permitir solo 2 decimales (ej: 1.5 o 2.0)
-                  if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
-                    setFormData({ ...formData, pricePerSeat: val });
-                  }
-                }}
-              />
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Asientos disponibles *</label>
+              <input type="number" min="1" max="8" className={inputClass} style={inputStyle}
+                value={formData.availableSeats} onChange={e => setFormData({ ...formData, availableSeats: e.target.value })} />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Precio / persona ($)</label>
+              <input type="number" min="0.50" step="0.50" className={inputClass} style={inputStyle}
+                value={formData.pricePerSeat} onChange={e => setFormData({ ...formData, pricePerSeat: e.target.value })} />
             </div>
           </div>
 
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Notas</label>
-            <input className={inputClass} style={inputStyle} placeholder="Info adicional (ej: color del auto)..." value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
+            <input className={inputClass} style={inputStyle} placeholder="Info adicional..."
+              value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
           </div>
-
           <div>
             <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Reglas del viaje</label>
-            <input className={inputClass} style={inputStyle} placeholder="Ej: Puntualidad, no comer en el auto..." value={formData.rules} onChange={e => setFormData({ ...formData, rules: e.target.value })} />
-          </div>
-
-          {/* Map */}
-          <div>
-            <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-3">Ubicación en el mapa (opcional)</label>
-            <div className="flex gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => setSelectMode(selectMode === 'origin' ? null : 'origin')}
-                className="r-btn-sm"
-                style={{
-                  background: selectMode === 'origin' ? '#f0faf4' : '#fafaf8',
-                  color: selectMode === 'origin' ? '#2d7a4f' : '#6b6b6b',
-                  borderColor: selectMode === 'origin' ? '#a8d5bc' : '#d8d4cc',
-                }}
-              >
-                {formData.originLat ? `Origen fijado` : 'Marcar origen en mapa'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectMode(selectMode === 'destination' ? null : 'destination')}
-                className="r-btn-sm"
-                style={{
-                  background: selectMode === 'destination' ? '#f0f4fa' : '#fafaf8',
-                  color: selectMode === 'destination' ? '#2d4f7a' : '#6b6b6b',
-                  borderColor: selectMode === 'destination' ? '#a8bcd5' : '#d8d4cc',
-                }}
-              >
-                {formData.destinationLat ? `Destino fijado` : 'Marcar destino en mapa'}
-              </button>
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-3 mt-1">
+              {['No fumar', 'No llevar mascotas', 'Puntualidad'].map(rule => {
+                const checked = selectedRules.includes(rule);
+                return (
+                  <label key={rule} className="flex items-center gap-2 text-xs text-[#1a1a2e] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        if (checked) {
+                          setSelectedRules(selectedRules.filter(r => r !== rule));
+                        } else {
+                          setSelectedRules([...selectedRules, rule]);
+                        }
+                      }}
+                      className="rounded border-[#ccc] text-[#c8a96e] focus:ring-[#c8a96e]"
+                    />
+                    {rule}
+                  </label>
+                );
+              })}
             </div>
-            <LiveMap
-              origin={formData.originLat ? { lat: formData.originLat, lng: formData.originLng!, label: formData.originZone } : null}
-              destination={formData.destinationLat ? { lat: formData.destinationLat, lng: formData.destinationLng!, label: formData.destinationZone } : null}
-              onMapClick={handleMapClick}
-              selectMode={selectMode}
-              height="300px"
+            <input
+              className={inputClass}
+              style={inputStyle}
+              placeholder="Otras reglas personalizadas (separadas por comas)..."
+              value={customRule}
+              onChange={e => setCustomRule(e.target.value)}
             />
           </div>
 
-          <button type="submit" className="r-btn r-btn-primary">Publicar viaje</button>
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="r-btn r-btn-primary">
+              {isEditing ? 'Actualizar viaje' : 'Publicar viaje'}
+            </button>
+            <button type="button" onClick={resetForm} className="r-btn r-btn-secondary" style={{ border: '0.5px solid #d8d4cc' }}>
+              Cancelar
+            </button>
+          </div>
         </form>
       )}
-
-      {/* Filtros */}
-      <div className="r-card p-5">
-        <p className="section-label mb-4">Filtrar viajes</p>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <select className={inputClass} style={inputStyle} value={filters.originZone} onChange={e => setFilters({ ...filters, originZone: e.target.value })}>
-            <option value="">Cualquier origen</option>
-            <optgroup label="Sedes UTA">
-              {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
-            </optgroup>
-            <optgroup label="Zonas / Sectores">
-              {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
-            </optgroup>
-          </select>
-          <select className={inputClass} style={inputStyle} value={filters.destinationZone} onChange={e => setFilters({ ...filters, destinationZone: e.target.value })}>
-            <option value="">Cualquier destino</option>
-            <optgroup label="Sedes UTA">
-              {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
-            </optgroup>
-            <optgroup label="Zonas / Sectores">
-              {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
-            </optgroup>
-          </select>
-          <input type="date" className={inputClass} style={inputStyle} value={filters.departureDate} onChange={e => setFilters({ ...filters, departureDate: e.target.value })} />
-          <button onClick={loadRides} className="r-btn r-btn-primary">Buscar</button>
-        </div>
-      </div>
 
       {/* Rides list */}
       {loading ? (
@@ -398,7 +524,15 @@ export const RidesPage: React.FC = () => {
                       <p className="text-[#bbb] text-xs mt-0.5 ml-4">{ride.originDetail}</p>
                     )}
                   </div>
-                  <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                    {ride.driverId === user?.id && (
+                      <>
+                        <button className="r-btn-edit" onClick={() => handleEdit(ride)}>Editar</button>
+                        <button className="r-btn-edit" style={{ color: '#c0392b', borderColor: '#f0b8b8' }} onClick={() => setConfirmDelete(ride.id)}>Eliminar</button>
+                      </>
+                    )}
+                    <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#999] text-xs">
                   <span>{ride.departureDate}</span>
@@ -407,7 +541,6 @@ export const RidesPage: React.FC = () => {
                   {ride.pricePerSeat > 0 && (
                     <span className="text-[#c8a96e] font-medium">${ride.pricePerSeat.toLocaleString()}</span>
                   )}
-                  {ride.originLat && <span className="text-[#2d7a4f]">GPS</span>}
                 </div>
               </div>
             );
@@ -439,67 +572,349 @@ export const RidesPage: React.FC = () => {
             </div>
             <div className="w-full h-px bg-[#c8a96e] opacity-40" />
 
-            <div className="p-6 space-y-4">
-              {/* Route */}
-              <div className="flex items-center gap-2 text-[#1a1a2e] font-medium text-sm">
-                <span style={{ color: '#c8a96e', fontSize: 12 }}>●</span>
-                {viewRide.originZone}
-                <span className="text-[#ccc] text-xs">→</span>
-                {viewRide.destinationZone}
+            <div className="p-6 space-y-5">
+              {/* Ruta / Timeline Segment */}
+              <div className="bg-[#fdf8f0] p-4 border border-[#e8d5b0] rounded-sm space-y-3 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center mt-1">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#c8a96e] border-2 border-white shadow-sm" />
+                    <div className="w-0.5 h-7 bg-dashed border-l border-[#d8c49c] my-0.5" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-[#8a6a2e] font-semibold">Punto de Partida</p>
+                    <p className="text-sm font-semibold text-[#1a1a2e]">{viewRide.originZone}</p>
+                    {viewRide.originDetail && (
+                      <p className="text-xs text-[#6b6b6b] mt-0.5">{viewRide.originDetail}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center mt-1">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#1a1a2e] border-2 border-white shadow-sm" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-[#666] font-semibold">Destino Final</p>
+                    <p className="text-sm font-semibold text-[#1a1a2e]">{viewRide.destinationZone}</p>
+                    {viewRide.destinationDetail && (
+                      <p className="text-xs text-[#6b6b6b] mt-0.5">{viewRide.destinationDetail}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-              {viewRide.originDetail && (
-                <p className="text-[#999] text-xs ml-4">{viewRide.originDetail} → {viewRide.destinationDetail}</p>
+
+                {/* Conductor Profile Card */}
+              {loadingDriver ? (
+                <div className="p-4 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                  <div className="pulse-line w-12 h-12 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <div className="pulse-line h-3 w-1/3" />
+                    <div className="pulse-line h-2 w-1/2" />
+                  </div>
+                </div>
+              ) : driverProfile ? (
+                <div className="bg-[#fafaf9] border border-[#e8e4dc] p-4 rounded-sm flex flex-col gap-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {driverProfile.photoUrl ? (
+                        <img
+                          src={driverProfile.photoUrl}
+                          alt={driverProfile.name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-[#c8a96e]"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#fdf8f0] flex items-center justify-center font-medium text-[#c8a96e] border-2 border-[#e8d5b0] text-lg font-serif">
+                          {driverProfile.name?.[0] || '?'}
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-semibold text-[#1a1a2e]">{driverProfile.name}</p>
+                          {driverProfile.isVerified && (
+                            <span className="text-xs text-[#27ae60]" title="Conductor Verificado">✓</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#6b6b6b]">{driverProfile.career || 'Estudiante UTA'}</p>
+                        {driverProfile.reputation !== undefined && driverProfile.reputation !== null && Number(driverProfile.reputation) > 0 && (
+                          <div className="flex items-center gap-1 text-[11px] text-[#8a6a2e] mt-0.5">
+                            <span>★</span>
+                            <span>{Number(driverProfile.reputation).toFixed(1)} / 5</span>
+                            <span className="text-[#bbb]">({driverProfile.totalRatings || 0} calif.)</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {driverProfile.phone && viewRide.driverId !== user?.id && (
+                      <a
+                        href={`https://wa.me/${String(driverProfile.phone).replace(/[^0-9]/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs px-3 py-1.5 bg-[#25d366] text-white rounded-sm hover:bg-[#20ba5a] transition-all font-semibold flex items-center gap-1 shadow-sm"
+                      >
+                        💬 WhatsApp
+                      </a>
+                    )}
+                  </div>
+                  
+                  {/* Vehículo del Conductor */}
+                  {driverVehicles.length > 0 && (
+                    <div className="text-[10px] bg-white border border-[#e8e4dc] p-2 rounded-sm text-[#555] grid grid-cols-2 gap-2 mt-2">
+                        <div className="flex flex-col">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Vehículo</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs">{driverVehicles[0].brand} {driverVehicles[0].model}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Placa</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs font-mono">{driverVehicles[0].plate}</span>
+                        </div>
+                        <div className="flex flex-col">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Color</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs">{driverVehicles[0].color}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                           <p className="font-bold uppercase tracking-wider text-[#999]">Año</p>
+                           <span className="font-semibold text-[#1a1a2e] text-xs">{driverVehicles[0].year || 'N/A'}</span>
+                        </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+
+              {/* Detalles Grid */}
+              {(() => {
+                const s = statusConfig[viewRide.status] || statusConfig.IN_PROGRESS;
+                return (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">📅</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Fecha y Hora</p>
+                        <p className="text-xs font-semibold text-[#1a1a2e]">{viewRide.departureDate} &bull; {viewRide.departureTime}</p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">💺</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Asientos</p>
+                        <p className="text-xs font-semibold text-[#1a1a2e]">{viewRide.availableSeats} disponibles</p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">💵</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Precio / Persona</p>
+                        <p className="text-xs font-semibold text-[#1a1a2e]">
+                          {viewRide.pricePerSeat !== undefined && viewRide.pricePerSeat !== null && Number(viewRide.pricePerSeat) > 0 
+                            ? `$${Number(viewRide.pricePerSeat).toFixed(2)}` 
+                            : 'Gratis'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">🏷️</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Estado del Viaje</p>
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm" style={{ background: s.bg, color: s.color }}>
+                          {s.label}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+            {/* Notas y Reglas */}
+              {(viewRide.notes || viewRide.rules) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {viewRide.notes && (
+                    <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#c8a96e] rounded-sm">
+                      <p className="text-[10px] font-bold text-[#8a6a2e] tracking-widest uppercase mb-1">Notas</p>
+                      <p className="text-[#555] text-xs leading-relaxed">{viewRide.notes}</p>
+                    </div>
+                  )}
+                  {viewRide.rules && (
+                    <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e] rounded-sm">
+                      <p className="text-[10px] font-bold text-[#1a1a2e] tracking-widest uppercase mb-1">Reglas</p>
+                      <ul className="space-y-1 mt-1 text-[#555] text-xs">
+                        {viewRide.rules.split(',').map(s => s.trim()).filter(Boolean).map((rule, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-1 h-1 bg-[#1a1a2e] rounded-full"></span>
+                            {rule}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )}
 
-              {/* Details */}
-              <div className="flex flex-wrap gap-x-5 gap-y-1 text-[#999] text-xs py-2 border-t border-b border-[#e8e4dc]">
-                <span>{viewRide.departureDate}</span>
-                <span>{viewRide.departureTime}</span>
-                <span>{viewRide.availableSeats} asientos</span>
-                {viewRide.pricePerSeat > 0 && (
-                  <span className="text-[#c8a96e] font-medium">${viewRide.pricePerSeat.toLocaleString()} / persona</span>
+              {/* Mapa */}
+              {(() => {
+                const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
+                  if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+                    return { lat: Number(lat), lng: Number(lng) };
+                  }
+                  const fallback = ZONE_COORDINATES[zone];
+                  if (fallback) {
+                    return { lat: fallback[0], lng: fallback[1] };
+                  }
+                  return null;
+                };
+
+                const originCoords = getCoordinates(viewRide.originZone, viewRide.originLat, viewRide.originLng);
+                const destCoords = getCoordinates(viewRide.destinationZone, viewRide.destinationLat, viewRide.destinationLng);
+
+                return originCoords ? (
+                  <div className="overflow-hidden rounded-sm border border-[#e8e4dc] shadow-sm">
+                    <LiveMap
+                      origin={originCoords ? { ...originCoords, label: viewRide.originZone } : null}
+                      destination={destCoords ? { ...destCoords, label: viewRide.destinationZone } : null}
+                      height="200px"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc] rounded-sm">
+                    No hay coordenadas disponibles para renderizar el mapa
+                  </div>
+                );
+              })()}
+
+              {/* Pasajeros aceptados */}
+              <div className="border-t border-[#e8e4dc] pt-4">
+                <p className="section-label mb-3">Pasajeros aceptados</p>
+                {loadingAccepted ? (
+                  <div className="flex gap-2">
+                    <div className="pulse-line w-8 h-8 rounded-full" />
+                    <div className="pulse-line w-24 h-8 rounded-sm" />
+                  </div>
+                ) : acceptedUsers.length === 0 ? (
+                  <p className="text-[#bbb] text-xs italic">Ningún pasajero aceptado aún</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {acceptedUsers.map(u => (
+                      <div key={u.userId} className="flex items-center gap-2 bg-[#f4f4f2] border border-[#e2e2df] px-2.5 py-1.5 rounded-sm shadow-sm">
+                        {u.photoUrl ? (
+                          <img
+                            src={u.photoUrl}
+                            alt={u.name}
+                            className="w-6 h-6 rounded-full object-cover border border-[#c8a96e]"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-[#fdf8f0] flex items-center justify-center font-medium text-[#c8a96e] border border-[#e8d5b0] text-xs font-serif">
+                            {u.name?.[0] || '?'}
+                          </div>
+                        )}
+                        <div className="text-left">
+                          <p className="text-xs font-semibold text-[#1a1a2e]" style={{ lineHeight: 1 }}>{u.name}</p>
+                          <p className="text-[9px] text-[#999]" style={{ lineHeight: 1, marginTop: 2 }}>{u.career || 'Pasajero'}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              {viewRide.notes && (
-                <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#c8a96e]">
-                  <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-1">Notas</p>
-                  <p className="text-[#555] text-sm">{viewRide.notes}</p>
-                </div>
-              )}
-
-              {viewRide.rules && (
-                <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e]">
-                  <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-1">Reglas</p>
-                  <p className="text-[#555] text-sm">{viewRide.rules}</p>
-                </div>
-              )}
-
-              {viewRide.originLat && viewRide.originLng && (
-                <LiveMap
-                  origin={{ lat: viewRide.originLat, lng: viewRide.originLng, label: viewRide.originZone }}
-                  destination={viewRide.destinationLat && viewRide.destinationLng ? { lat: viewRide.destinationLat, lng: viewRide.destinationLng, label: viewRide.destinationZone } : null}
-                  height="200px"
-                />
-              )}
-
+              {/* Solicitar unirse */}
               {viewRide.driverId !== user?.id && viewRide.status === 'PUBLISHED' && (
-                <div className="space-y-3 pt-2">
-                  <input
-                    className={inputClass}
-                    style={inputStyle}
-                    placeholder="Mensaje para el conductor (opcional)"
-                    value={requestMsg}
-                    onChange={e => setRequestMsg(e.target.value)}
-                  />
+                (() => {
+                  const alreadyRequested = myRequests.some(r => r.rideId === viewRide.id && (r.status === 'PENDING' || r.status === 'ACCEPTED'));
+                  if (alreadyRequested) {
+                    return (
+                      <div className="pt-2 text-center p-3 bg-[#f0faf4] text-[#2d7a4f] text-xs font-semibold uppercase tracking-widest border border-[#d2eadd] rounded-sm shadow-sm">
+                        Ya has solicitado este viaje
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-3 pt-2">
+                      <input
+                        className={inputClass}
+                        style={inputStyle}
+                        placeholder="Mensaje para el conductor (opcional)"
+                        value={requestMsg}
+                        onChange={e => setRequestMsg(e.target.value)}
+                      />
+                      <button onClick={() => handleRequestJoin(viewRide.id)} className="r-btn r-btn-gold w-full shadow-sm">
+                        Solicitar unirme
+                      </button>
+                    </div>
+                  );
+                })()
+              )}
+
+              {/* Eliminar viaje — solo conductor, al fondo separado */}
+              {viewRide.driverId === user?.id && (
+                <div className="pt-4 mt-2" style={{ borderTop: '0.5px solid #e8e4dc' }}>
                   <button
-                    onClick={() => handleRequestJoin(viewRide.id)}
-                    className="r-btn r-btn-gold w-full"
+                    className="r-btn-danger"
+                    onClick={() => setConfirmDelete(viewRide.id)}
                   >
-                    Solicitar unirme
+                    <TrashIcon />
+                    Eliminar este viaje
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal confirmación eliminar */}
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: 'rgba(26,26,46,0.65)' }}
+        >
+          <div
+            className="w-full max-w-sm bg-white overflow-hidden"
+            style={{ borderRadius: '4px', border: '0.5px solid #d8d4cc' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-[#1a1a2e] px-6 py-5">
+              <h3 className="text-white text-lg tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
+                Eliminar viaje
+              </h3>
+              <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1">
+                Acción irreversible
+              </p>
+            </div>
+            <div className="w-full h-px" style={{ background: '#c0392b', opacity: 0.5 }} />
+
+            {/* Body */}
+            <div className="p-6">
+              <div className="flex items-start gap-3 mb-5">
+                <div
+                  className="shrink-0 w-9 h-9 flex items-center justify-center"
+                  style={{ background: '#fdf2f2', borderRadius: '2px', border: '0.5px solid #f0b8b8' }}
+                >
+                  <TrashIcon color="#c0392b" />
+                </div>
+                <div>
+                  <p className="text-[#1a1a2e] text-sm font-medium mb-1">¿Confirmar eliminación?</p>
+                  <p className="text-[#999] text-xs leading-relaxed">
+                    Este viaje será cancelado permanentemente. Los pasajeros aceptados serán notificados y no podrás deshacer esta acción.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleDeleteRide(confirmDelete)}
+                  className="r-btn-danger flex-1 justify-center"
+                  style={{ padding: '11px 16px', fontSize: '12px' }}
+                >
+                  <TrashIcon color="#c0392b" />
+                  Sí, eliminar
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="r-btn r-btn-secondary flex-1"
+                  style={{ border: '0.5px solid #d8d4cc', padding: '11px 16px' }}
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -508,9 +923,18 @@ export const RidesPage: React.FC = () => {
   );
 };
 
-/* ── Inline SVG icon ── */
+/* ── SVG icons ── */
 const RoadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8a96e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6" />
+    <path d="M3 17l3-10 3 10M15 17l3-10 3 10M9 7h6"/>
+  </svg>
+);
+
+const TrashIcon = ({ color = 'currentColor' }: { color?: string }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
   </svg>
 );

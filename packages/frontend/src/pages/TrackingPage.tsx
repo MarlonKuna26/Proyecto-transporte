@@ -4,6 +4,7 @@ import { api } from '@/services/api';
 import { LiveMap } from '@/components/LiveMap';
 import { useAuth } from '@/context/AuthContext';
 import type { Ride, TrackingPoint, TrackingHistoryPoint, RideEvent } from '@/types';
+import { ZONE_COORDINATES } from '@/constants';
 
 export const TrackingPage: React.FC = () => {
   const { rideId } = useParams<{ rideId: string }>();
@@ -194,13 +195,31 @@ export const TrackingPage: React.FC = () => {
 
       {/* Map */}
       <div className="tr-card overflow-hidden">
-        <LiveMap
-          origin={ride.originLat && ride.originLng ? { lat: ride.originLat, lng: ride.originLng, label: ride.originZone } : null}
-          destination={ride.destinationLat && ride.destinationLng ? { lat: ride.destinationLat, lng: ride.destinationLng, label: ride.destinationZone } : null}
-          currentPosition={currentPos ? { lat: Number(currentPos.latitud_actual), lng: Number(currentPos.longitud_actual) } : null}
-          trackingPath={history.map(h => ({ lat: h.lat, lng: h.lng }))}
-          height="450px"
-        />
+        {(() => {
+          const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
+            if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+              return { lat: Number(lat), lng: Number(lng) };
+            }
+            const fallback = ZONE_COORDINATES[zone];
+            if (fallback) {
+              return { lat: fallback[0], lng: fallback[1] };
+            }
+            return null;
+          };
+
+          const originCoords = getCoordinates(ride.originZone, ride.originLat, ride.originLng);
+          const destCoords = getCoordinates(ride.destinationZone, ride.destinationLat, ride.destinationLng);
+
+          return (
+            <LiveMap
+              origin={originCoords ? { ...originCoords, label: ride.originZone } : null}
+              destination={destCoords ? { ...destCoords, label: ride.destinationZone } : null}
+              currentPosition={currentPos ? { lat: Number(currentPos.latitud_actual), lng: Number(currentPos.longitud_actual) } : null}
+              trackingPath={history.map(h => ({ lat: h.lat, lng: h.lng }))}
+              height="450px"
+            />
+          );
+        })()}
       </div>
 
       {/* Driver controls */}
@@ -283,7 +302,9 @@ export const TrackingPage: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1 pb-2">
-                  <p className="text-[#1a1a2e] text-sm font-medium">{evt.tipo_evento}</p>
+                  <p className="text-[#1a1a2e] text-sm font-medium">
+                    {evt.tipo_evento === 'STARTED' ? 'Iniciado' : evt.tipo_evento === 'COMPLETED' ? 'Completado' : evt.tipo_evento}
+                  </p>
                   {evt.descripcion && <p className="text-[#999] text-xs mt-0.5">{evt.descripcion}</p>}
                   <p className="text-[#bbb] text-xs mt-1">
                     {new Date(evt.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}

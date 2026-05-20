@@ -13,9 +13,11 @@ export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [showVehicleForm, setShowVehicleForm] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('');
   const [editData, setEditData] = useState<any>({});
-  const [vehicleForm, setVehicleForm] = useState({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '' });
+  const [vehicleForm, setVehicleForm] = useState({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
+  const [vehiclePhotoPreview, setVehiclePhotoPreview] = useState<string | null>(null);
   const [facultadSeleccionada, setFacultadSeleccionada] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -67,6 +69,20 @@ export const ProfilePage: React.FC = () => {
     setVehicleForm({ ...vehicleForm, [name]: finalValue });
   };
 
+  const handleEditVehicle = (vehicle: Vehicle) => {
+    setEditingVehicleId(vehicle.id);
+    setVehicleForm({
+      plate: vehicle.plate || '',
+      brand: vehicle.brand || '',
+      model: vehicle.model || '',
+      color: vehicle.color || '',
+      capacity: vehicle.capacity.toString() || '4',
+      year: vehicle.year?.toString() || '',
+      photoUrl: vehicle.photoUrl || ''
+    });
+    setShowVehicleForm(true);
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -111,9 +127,25 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleAddVehicle = async (e: FormEvent) => {
+  const handleVehiclePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setFeedback('La imagen es muy pesada (máximo 2MB)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setVehiclePhotoPreview(base64String);
+      setVehicleForm({ ...vehicleForm, photoUrl: base64String });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVehicleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     const plateRegex = /^[A-Z]{3}-\d{3,4}$/;
     if (!plateRegex.test(vehicleForm.plate)) {
       setFeedback('La placa no es válida (ej: ABC-1234)');
@@ -128,16 +160,30 @@ export const ProfilePage: React.FC = () => {
     }
 
     try {
-      await api.users.createVehicle({ 
-        ...vehicleForm, 
-        capacity: parseInt(vehicleForm.capacity), 
-        year: vehicleForm.year ? parseInt(vehicleForm.year) : undefined 
-      });
+      const payload: any = {
+        plate: vehicleForm.plate,
+        brand: vehicleForm.brand,
+        model: vehicleForm.model,
+        color: vehicleForm.color,
+        capacity: parseInt(vehicleForm.capacity),
+      };
+      if (vehicleForm.year) payload.year = parseInt(vehicleForm.year);
+      if (vehicleForm.photoUrl) payload.photoUrl = vehicleForm.photoUrl;
+
+      if (editingVehicleId) {
+        await api.users.updateVehicle(editingVehicleId, payload);
+        setFeedback('Vehículo actualizado');
+      } else {
+        await api.users.createVehicle(payload);
+        setFeedback('Vehículo registrado');
+      }
+
       const res = await api.users.getVehicles();
       setVehicles(res.data || []);
       setShowVehicleForm(false);
-      setVehicleForm({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '' });
-      setFeedback('Vehículo registrado');
+      setVehicleForm({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
+      setVehiclePhotoPreview(null);
+      setEditingVehicleId(null);
       setTimeout(() => setFeedback(''), 3000);
     } catch (err: any) {
       setFeedback(err.message);
@@ -393,7 +439,7 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {showVehicleForm && (
-          <form onSubmit={handleAddVehicle} className="mb-5 p-4 bg-[#fafaf8] border border-[#e8e4dc] space-y-3" style={{ borderRadius: '2px' }}>
+          <form onSubmit={handleVehicleSubmit} className="mb-5 p-4 bg-[#fafaf8] border border-[#e8e4dc] space-y-3" style={{ borderRadius: '2px' }}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {/* Placa */}
               <div className="col-span-1">
@@ -475,17 +521,30 @@ export const ProfilePage: React.FC = () => {
                     {v.plate} · {v.color} · {v.capacity} asientos
                   </p>
                 </div>
-                <button
-                  onClick={() => deleteVehicle(v.id)}
-                  className="text-xs font-medium px-3 py-1.5 transition-colors hover:bg-[#faeaea]"
-                  style={{
-                    background: '#fdf2f2', color: '#c0392b',
-                    border: '0.5px solid #f0b8b8', borderRadius: '2px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Borrar
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditVehicle(v)}
+                    className="text-xs font-medium px-3 py-1.5 transition-colors hover:bg-[#e8f5e9]"
+                    style={{
+                      background: '#f0faf4', color: '#2d7a4f',
+                      border: '0.5px solid #a5d6a7', borderRadius: '2px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => deleteVehicle(v.id)}
+                    className="text-xs font-medium px-3 py-1.5 transition-colors hover:bg-[#faeaea]"
+                    style={{
+                      background: '#fdf2f2', color: '#c0392b',
+                      border: '0.5px solid #f0b8b8', borderRadius: '2px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Borrar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
