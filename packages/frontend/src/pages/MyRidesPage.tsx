@@ -30,8 +30,13 @@ export const MyRidesPage: React.FC = () => {
 
   const handleResponse = async (requestId: string, rideId: string, action: 'accept' | 'reject') => {
     try {
-      if (action === 'accept') await api.rideRequests.accept(requestId);
-      else await api.rideRequests.reject(requestId);
+      if (action === 'accept') {
+        await api.rideRequests.accept(requestId);
+      } else {
+        const rejectReason = window.prompt("Por favor, ingresa el motivo del rechazo:");
+        if (rejectReason === null) return;
+        await api.rideRequests.reject(requestId, { rejectReason });
+      }
       setFeedback(`Solicitud ${action === 'accept' ? 'aceptada' : 'rechazada'}`);
       loadRequests(rideId);
       setTimeout(() => setFeedback(''), 3000);

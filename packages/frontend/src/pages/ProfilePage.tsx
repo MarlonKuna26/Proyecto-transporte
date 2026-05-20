@@ -13,9 +13,11 @@ export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [showVehicleForm, setShowVehicleForm] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('');
   const [editData, setEditData] = useState<any>({});
-  const [vehicleForm, setVehicleForm] = useState({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '' });
+  const [vehicleForm, setVehicleForm] = useState({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
+  const [vehiclePhotoPreview, setVehiclePhotoPreview] = useState<string | null>(null);
   const [facultadSeleccionada, setFacultadSeleccionada] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -111,9 +113,25 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleAddVehicle = async (e: FormEvent) => {
+  const handleVehiclePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setFeedback('La imagen es muy pesada (máximo 2MB)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setVehiclePhotoPreview(base64String);
+      setVehicleForm({ ...vehicleForm, photoUrl: base64String });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVehicleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     const plateRegex = /^[A-Z]{3}-\d{3,4}$/;
     if (!plateRegex.test(vehicleForm.plate)) {
       setFeedback('La placa no es válida (ej: ABC-1234)');
@@ -128,16 +146,30 @@ export const ProfilePage: React.FC = () => {
     }
 
     try {
-      await api.users.createVehicle({ 
-        ...vehicleForm, 
-        capacity: parseInt(vehicleForm.capacity), 
-        year: vehicleForm.year ? parseInt(vehicleForm.year) : undefined 
-      });
+      const payload: any = {
+        plate: vehicleForm.plate,
+        brand: vehicleForm.brand,
+        model: vehicleForm.model,
+        color: vehicleForm.color,
+        capacity: parseInt(vehicleForm.capacity),
+      };
+      if (vehicleForm.year) payload.year = parseInt(vehicleForm.year);
+      if (vehicleForm.photoUrl) payload.photoUrl = vehicleForm.photoUrl;
+
+      if (editingVehicleId) {
+        await api.users.updateVehicle(editingVehicleId, payload);
+        setFeedback('Vehículo actualizado');
+      } else {
+        await api.users.createVehicle(payload);
+        setFeedback('Vehículo registrado');
+      }
+
       const res = await api.users.getVehicles();
       setVehicles(res.data || []);
       setShowVehicleForm(false);
-      setVehicleForm({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '' });
-      setFeedback('Vehículo registrado');
+      setVehicleForm({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
+      setVehiclePhotoPreview(null);
+      setEditingVehicleId(null);
       setTimeout(() => setFeedback(''), 3000);
     } catch (err: any) {
       setFeedback(err.message);

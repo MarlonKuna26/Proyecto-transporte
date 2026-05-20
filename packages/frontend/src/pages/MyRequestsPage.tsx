@@ -110,6 +110,12 @@ export const MyRequestsPage: React.FC = () => {
                   {req.message && (
                     <p className="text-[#666] text-sm mb-1">{req.message}</p>
                   )}
+                  
+                  {req.status === 'REJECTED' && req.rejectReason && (
+                    <p className="text-[#c0392b] text-sm mb-1 bg-[#fdf2f2] p-2 rounded">
+                      Motivo: {req.rejectReason}
+                    </p>
+                  )}
 
                   <p className="text-[#bbb] text-xs">
                     {new Date(req.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}

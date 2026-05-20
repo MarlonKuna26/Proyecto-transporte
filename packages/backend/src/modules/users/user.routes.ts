@@ -8,6 +8,7 @@ import { UpdateProfileUseCase } from './application/usecases/UpdateProfileUseCas
 import { CreateVehicleUseCase } from './application/usecases/CreateVehicleUseCase';
 import { GetUserVehiclesUseCase } from './application/usecases/GetUserVehiclesUseCase';
 import { DeleteVehicleUseCase } from './application/usecases/DeleteVehicleUseCase';
+import { UpdateVehicleUseCase } from './application/usecases/UpdateVehicleUseCase';
 import { UserController } from './infrastructure/controllers/UserController';
 
 export function createUserRoutes(): Router {
@@ -23,10 +24,12 @@ export function createUserRoutes(): Router {
   const createVehicleUseCase = new CreateVehicleUseCase(vehicleRepository);
   const getUserVehiclesUseCase = new GetUserVehiclesUseCase(vehicleRepository);
   const deleteVehicleUseCase = new DeleteVehicleUseCase(vehicleRepository);
+  const updateVehicleUseCase = new UpdateVehicleUseCase(vehicleRepository);
 
   const userController = new UserController(
     getProfileUseCase, updateProfileUseCase,
     createVehicleUseCase, getUserVehiclesUseCase, deleteVehicleUseCase,
+    updateVehicleUseCase
   );
 
   // === Rutas de Perfil (protegidas) ===
@@ -38,6 +41,7 @@ export function createUserRoutes(): Router {
   router.post('/vehicles', authenticateToken, (req, res) => userController.createVehicle(req, res));
   router.get('/vehicles', authenticateToken, (req, res) => userController.getMyVehicles(req, res));
   router.delete('/vehicles/:vehicleId', authenticateToken, (req, res) => userController.deleteVehicle(req, res));
+  router.put('/vehicles/:vehicleId', authenticateToken, (req, res) => userController.updateVehicle(req, res));
 
   return router;
 }

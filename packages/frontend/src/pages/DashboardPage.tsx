@@ -9,6 +9,7 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [recentRides, setRecentRides] = useState<Ride[]>([]);
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
+  const [hasVehicles, setHasVehicles] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState('');
 
@@ -23,6 +24,7 @@ export const DashboardPage: React.FC = () => {
     load();
     if (user?.id) {
       api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
+      api.users.getVehicles().then(res => setHasVehicles(res.data && res.data.length > 0)).catch();
     }
   }, [user?.id]);
 
@@ -36,7 +38,11 @@ export const DashboardPage: React.FC = () => {
   const handleCreateRide = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
-      setFeedback('⚠️ ¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.');
+      setFeedback('¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.');
+      return;
+    }
+    if (!hasVehicles) {
+      setFeedback('Debes registrar un vehículo en tu perfil antes de publicar un viaje.');
       return;
     }
     navigate('/rides?create=true');

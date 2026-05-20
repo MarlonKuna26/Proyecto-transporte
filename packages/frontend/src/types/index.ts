@@ -75,6 +75,7 @@ export interface RideRequest {
   message: string | null;
   seatsRequested: number;
   respondedAt: string | null;
+  rejectReason?: string | null;
   createdAt: string;
 }
 

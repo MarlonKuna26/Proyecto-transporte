@@ -37,6 +37,9 @@ export const RidesPage: React.FC = () => {
 
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
 
+  const [hasVehicles, setHasVehicles] = useState<boolean>(false);
+  const [myRequests, setMyRequests] = useState<RideRequest[]>([]);
+
   /* ===== LOAD ===== */
   const loadRides = async () => {
     setLoading(true);
@@ -60,6 +63,8 @@ export const RidesPage: React.FC = () => {
     loadRides(); 
     if (user?.id) {
       api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
+      api.users.getVehicles().then(res => setHasVehicles(res.data && res.data.length > 0)).catch();
+      api.rideRequests.myRequests().then(res => setMyRequests(res.data || [])).catch();
     }
   }, [user?.id]);
 
@@ -88,6 +93,11 @@ export const RidesPage: React.FC = () => {
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     
+    if (!hasVehicles) {
+      setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
+      return;
+    }
+
     const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
     if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
       setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de publicarlo.', type: 'error' });
@@ -179,13 +189,27 @@ export const RidesPage: React.FC = () => {
   };
 
   const handleRequestJoin = async (rideId: string) => {
+    if (!myProfile || !myProfile.career || !myProfile.phone) {
+      setFeedback({ msg: 'Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', type: 'error' });
+      return;
+    }
+
     try {
       await api.rideRequests.create({ rideId, message: requestMsg || null, seatsRequested: 1 });
       setFeedback({ msg: '¡Solicitud enviada!', type: 'success' });
+      
+      if (user?.id) {
+        api.rideRequests.myRequests().then(res => setMyRequests(res.data || [])).catch();
+      }
+
       setViewRide(null);
       setRequestMsg('');
     } catch (err: any) {
-      setFeedback({ msg: err.message, type: 'error' });
+      if (err.message && err.message.toLowerCase().includes('already have a pending or accepted')) {
+        setFeedback({ msg: 'Ya tienes una solicitud pendiente o aceptada para este viaje.', type: 'error' });
+      } else {
+        setFeedback({ msg: err.message || 'Error al solicitar viaje.', type: 'error' });
+      }
     }
   };
 
@@ -265,7 +289,11 @@ export const RidesPage: React.FC = () => {
                 resetForm();
               } else {
                 if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
-                  setFeedback({ msg: '⚠️ ¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', type: 'error' });
+                  setFeedback({ msg: '¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', type: 'error' });
+                  return;
+                }
+                if (!hasVehicles) {
+                  setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
                   return;
                 }
                 setShowCreate(true);
@@ -309,6 +337,41 @@ export const RidesPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Ubicación en el mapa (Opcional pero recomendado)</label>
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectMode(selectMode === 'origin' ? null : 'origin')}
+                  className={`r-btn-edit ${selectMode === 'origin' ? 'border-[#c8a96e] text-[#c8a96e] bg-[#fdf8f0]' : ''}`}
+                >
+                  📍 Seleccionar Origen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectMode(selectMode === 'destination' ? null : 'destination')}
+                  className={`r-btn-edit ${selectMode === 'destination' ? 'border-[#3b82f6] text-[#3b82f6] bg-[#eff6ff]' : ''}`}
+                >
+                  🏁 Seleccionar Destino
+                </button>
+              </div>
+              <LiveMap
+                height="200px"
+                selectMode={selectMode}
+                onMapClick={(lat, lng) => {
+                  if (selectMode === 'origin') {
+                    setFormData(prev => ({ ...prev, originLat: lat, originLng: lng }));
+                    setSelectMode(null);
+                  } else if (selectMode === 'destination') {
+                    setFormData(prev => ({ ...prev, destinationLat: lat, destinationLng: lng }));
+                    setSelectMode(null);
+                  }
+                }}
+                origin={formData.originLat && formData.originLng ? { lat: formData.originLat, lng: formData.originLng, label: 'Origen' } : null}
+                destination={formData.destinationLat && formData.destinationLng ? { lat: formData.destinationLat, lng: formData.destinationLng, label: 'Destino' } : null}
+              />
+            </div>
+
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona origen *</label>
               <select className={inputClass} style={selectStyle} required value={formData.originZone}
@@ -548,18 +611,30 @@ export const RidesPage: React.FC = () => {
 
               {/* Solicitar unirse */}
               {viewRide.driverId !== user?.id && viewRide.status === 'PUBLISHED' && (
-                <div className="space-y-3 pt-2">
-                  <input
-                    className={inputClass}
-                    style={inputStyle}
-                    placeholder="Mensaje para el conductor (opcional)"
-                    value={requestMsg}
-                    onChange={e => setRequestMsg(e.target.value)}
-                  />
-                  <button onClick={() => handleRequestJoin(viewRide.id)} className="r-btn r-btn-gold w-full">
-                    Solicitar unirme
-                  </button>
-                </div>
+                (() => {
+                  const alreadyRequested = myRequests.some(r => r.rideId === viewRide.id && (r.status === 'PENDING' || r.status === 'ACCEPTED'));
+                  if (alreadyRequested) {
+                    return (
+                      <div className="pt-2 text-center p-3 bg-[#f0faf4] text-[#2d7a4f] text-xs font-medium uppercase tracking-widest border border-[#d2eadd] rounded-sm">
+                        Ya has solicitado este viaje
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-3 pt-2">
+                      <input
+                        className={inputClass}
+                        style={inputStyle}
+                        placeholder="Mensaje para el conductor (opcional)"
+                        value={requestMsg}
+                        onChange={e => setRequestMsg(e.target.value)}
+                      />
+                      <button onClick={() => handleRequestJoin(viewRide.id)} className="r-btn r-btn-gold w-full">
+                        Solicitar unirme
+                      </button>
+                    </div>
+                  );
+                })()
               )}
 
               {/* Eliminar viaje — solo conductor, al fondo separado */}

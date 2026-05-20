@@ -243,6 +243,7 @@ CREATE TABLE public.solicitudes_viaje (
     mensaje character varying(500),
     asientos_solicitados integer DEFAULT 1 NOT NULL,
     respondido_en timestamp without time zone,
+    motivo_rechazo character varying(255),
     creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT solicitudes_viaje_asientos_solicitados_check CHECK ((asientos_solicitados >= 1)),

@@ -52,6 +52,8 @@ export const api = {
       request<any>('/users/vehicles', { method: 'POST', body: JSON.stringify(data) }),
     deleteVehicle: (id: string) =>
       request<any>(`/users/vehicles/${id}`, { method: 'DELETE' }),
+    updateVehicle: (id: string, data: any) =>
+      request<any>(`/users/vehicles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
 
   // =================== RIDES ===================
@@ -81,8 +83,8 @@ export const api = {
     byRide: (rideId: string) => request<any>(`/ride-requests/ride/${rideId}`),
     accept: (id: string) =>
       request<any>(`/ride-requests/${id}/accept`, { method: 'PUT' }),
-    reject: (id: string) =>
-      request<any>(`/ride-requests/${id}/reject`, { method: 'PUT' }),
+    reject: (id: string, data?: { rejectReason: string }) =>
+      request<any>(`/ride-requests/${id}/reject`, { method: 'PUT', body: data ? JSON.stringify(data) : undefined }),
     cancel: (id: string) =>
       request<any>(`/ride-requests/${id}/cancel`, { method: 'PUT' }),
   },

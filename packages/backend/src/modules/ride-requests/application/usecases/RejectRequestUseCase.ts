@@ -7,6 +7,7 @@ import { NotFoundError, AuthorizationError, ValidationError } from '@shared/erro
 interface RejectRequestInput {
   requestId: string;
   driverId: string;
+  rejectReason?: string;
 }
 
 export class RejectRequestUseCase implements IUseCase<RejectRequestInput, RideRequest> {
@@ -27,6 +28,7 @@ export class RejectRequestUseCase implements IUseCase<RejectRequestInput, RideRe
     return this.requestRepo.update(input.requestId, {
       status: 'REJECTED',
       respondedAt: new Date(),
+      rejectReason: input.rejectReason || null,
     } as any);
   }
 }

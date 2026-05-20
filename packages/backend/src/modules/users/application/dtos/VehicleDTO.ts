@@ -31,3 +31,23 @@ export class CreateVehicleDTO {
     }
   }
 }
+
+export class UpdateVehicleDTO {
+  plate?: string;
+  brand?: string;
+  model?: string;
+  color?: string;
+  year?: number;
+  capacity?: number;
+  photoUrl?: string;
+
+  constructor(data: any) {
+    if (data.plate) this.plate = data.plate;
+    if (data.brand) this.brand = data.brand;
+    if (data.model) this.model = data.model;
+    if (data.color) this.color = data.color;
+    if (data.year !== undefined) this.year = data.year;
+    if (data.capacity !== undefined) this.capacity = data.capacity;
+    if (data.photoUrl) this.photoUrl = data.photoUrl;
+  }
+}

@@ -1,6 +1,7 @@
 import { IUseCase } from '@shared/types';
 import { IRideRepository } from '../../domain/interfaces/IRideRepository';
 import { NotFoundError, AuthorizationError, ValidationError } from '@shared/errors/AppError';
+import { DatabaseConnection } from '@config/database'; // Import it
 
 interface CancelRideInput {
   rideId: string;
@@ -19,5 +20,14 @@ export class CancelRideUseCase implements IUseCase<CancelRideInput, void> {
     }
 
     await this.rideRepository.update(input.rideId, { status: 'CANCELLED' } as any);
+
+    // Cancel related requests
+    const pool = DatabaseConnection.getInstance();
+    await pool.query(
+      `UPDATE solicitudes_viaje 
+       SET estado = 'CANCELLED', actualizado_en = NOW() 
+       WHERE viaje_id = $1 AND estado IN ('PENDING', 'ACCEPTED')`,
+      [input.rideId]
+    );
   }
 }

@@ -43,7 +43,8 @@ export class RideRequestController {
   async reject(req: Request, res: Response): Promise<void> {
     try {
       const driverId = req.user!.userId;
-      const result = await this.rejectRequestUseCase.execute({ requestId: req.params.id, driverId });
+      const { rejectReason } = req.body;
+      const result = await this.rejectRequestUseCase.execute({ requestId: req.params.id, driverId, rejectReason });
       res.status(200).json({ success: true, data: result, message: 'Request rejected' });
     } catch (error: unknown) {
       this.handleError(error, res, 'reject_request');
