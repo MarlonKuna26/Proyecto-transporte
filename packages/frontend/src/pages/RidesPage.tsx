@@ -34,6 +34,8 @@ export const RidesPage: React.FC = () => {
   const [acceptedUsers, setAcceptedUsers] = useState<UserProfile[]>([]);
   const [loadingAccepted, setLoadingAccepted] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
+  const [loadingDriver, setLoadingDriver] = useState(false);
 
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
 
@@ -69,9 +71,29 @@ export const RidesPage: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    const fetchAccepted = async () => {
-      if (!viewRide) { setAcceptedUsers([]); return; }
+    const fetchDetails = async () => {
+      if (!viewRide) {
+        setAcceptedUsers([]);
+        setDriverProfile(null);
+        return;
+      }
       setLoadingAccepted(true);
+      setLoadingDriver(true);
+
+      // Fetch driver profile
+      try {
+        const driverRes = await api.users.getProfile(viewRide.driverId);
+        if (driverRes.data) {
+          setDriverProfile(driverRes.data);
+        } else {
+          setDriverProfile(null);
+        }
+      } catch {
+        setDriverProfile(null);
+      }
+      setLoadingDriver(false);
+
+      // Fetch accepted users
       try {
         const res = await api.rideRequests.byRide(viewRide.id);
         const accepted: RideRequest[] = (res.data || []).filter((r: RideRequest) => r.status === 'ACCEPTED');
@@ -83,10 +105,12 @@ export const RidesPage: React.FC = () => {
           } catch {}
         }
         setAcceptedUsers(profiles);
-      } catch { setAcceptedUsers([]); }
+      } catch {
+        setAcceptedUsers([]);
+      }
       setLoadingAccepted(false);
     };
-    fetchAccepted();
+    fetchDetails();
   }, [viewRide]);
 
   /* ===== CREATE ===== */
@@ -337,51 +361,14 @@ export const RidesPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Ubicación en el mapa (Opcional pero recomendado)</label>
-              <div className="flex gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectMode(selectMode === 'origin' ? null : 'origin')}
-                  className={`r-btn-edit ${selectMode === 'origin' ? 'border-[#c8a96e] text-[#c8a96e] bg-[#fdf8f0]' : ''}`}
-                >
-                  📍 Seleccionar Origen
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectMode(selectMode === 'destination' ? null : 'destination')}
-                  className={`r-btn-edit ${selectMode === 'destination' ? 'border-[#3b82f6] text-[#3b82f6] bg-[#eff6ff]' : ''}`}
-                >
-                  🏁 Seleccionar Destino
-                </button>
-              </div>
-              <LiveMap
-                height="200px"
-                selectMode={selectMode}
-                onMapClick={(lat, lng) => {
-                  if (selectMode === 'origin') {
-                    setFormData(prev => ({ ...prev, originLat: lat, originLng: lng }));
-                    setSelectMode(null);
-                  } else if (selectMode === 'destination') {
-                    setFormData(prev => ({ ...prev, destinationLat: lat, destinationLng: lng }));
-                    setSelectMode(null);
-                  }
-                }}
-                origin={formData.originLat && formData.originLng ? { lat: formData.originLat, lng: formData.originLng, label: 'Origen' } : null}
-                destination={formData.destinationLat && formData.destinationLng ? { lat: formData.destinationLat, lng: formData.destinationLng, label: 'Destino' } : null}
-              />
-            </div>
-
              <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona origen *</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {CAMPUS_UTA.map(c => (
-                  <button key={c} type="button" className="text-xs px-3 py-1 bg-[#fdf8f0] border border-[#e8d5b0] text-[#8a6a2e] rounded-sm hover:bg-[#e8d5b0]" onClick={() => setFormData({ ...formData, originZone: c })}>{c}</button>
-                ))}
-              </div>
               <select className={inputClass} style={selectStyle} required value={formData.originZone}
                 onChange={e => setFormData({ ...formData, originZone: e.target.value })}>
                 <option value="">Seleccionar zona...</option>
+                <optgroup label="Campus UTA">
+                  {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
                 <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
@@ -390,14 +377,12 @@ export const RidesPage: React.FC = () => {
 
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Zona destino *</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {CAMPUS_UTA.map(c => (
-                  <button key={c} type="button" className="text-xs px-3 py-1 bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] rounded-sm hover:bg-[#bfdbfe]" onClick={() => setFormData({ ...formData, destinationZone: c })}>{c}</button>
-                ))}
-              </div>
               <select className={inputClass} style={selectStyle} required value={formData.destinationZone}
                 onChange={e => setFormData({ ...formData, destinationZone: e.target.value })}>
                 <option value="">Seleccionar zona...</option>
+                <optgroup label="Campus UTA">
+                  {CAMPUS_UTA.map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
                 <optgroup label="Zonas Ambato">
                   {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                 </optgroup>
@@ -536,39 +521,152 @@ export const RidesPage: React.FC = () => {
             </div>
             <div className="w-full h-px bg-[#c8a96e] opacity-40" />
 
-            <div className="p-6 space-y-4">
-              {/* Ruta */}
-              <div className="flex items-center gap-2 text-[#1a1a2e] font-medium text-sm">
-                <span style={{ color: '#c8a96e', fontSize: 12 }}>●</span>
-                {viewRide.originZone}
-                <span className="text-[#ccc] text-xs">→</span>
-                {viewRide.destinationZone}
+            <div className="p-6 space-y-5">
+              {/* Ruta / Timeline Segment */}
+              <div className="bg-[#fdf8f0] p-4 border border-[#e8d5b0] rounded-sm space-y-3 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center mt-1">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#c8a96e] border-2 border-white shadow-sm" />
+                    <div className="w-0.5 h-7 bg-dashed border-l border-[#d8c49c] my-0.5" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-[#8a6a2e] font-semibold">Punto de Partida</p>
+                    <p className="text-sm font-semibold text-[#1a1a2e]">{viewRide.originZone}</p>
+                    {viewRide.originDetail && (
+                      <p className="text-xs text-[#6b6b6b] mt-0.5">{viewRide.originDetail}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center mt-1">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#1a1a2e] border-2 border-white shadow-sm" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-[#666] font-semibold">Destino Final</p>
+                    <p className="text-sm font-semibold text-[#1a1a2e]">{viewRide.destinationZone}</p>
+                    {viewRide.destinationDetail && (
+                      <p className="text-xs text-[#6b6b6b] mt-0.5">{viewRide.destinationDetail}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Detalles */}
-              <div className="flex flex-wrap gap-x-5 gap-y-1 text-[#999] text-xs py-2 border-t border-b border-[#e8e4dc]">
-                <span>{viewRide.departureDate}</span>
-                <span>{viewRide.departureTime}</span>
-                <span>{viewRide.availableSeats} asientos</span>
-                {viewRide.pricePerSeat > 0 && (
-                  <span className="text-[#c8a96e] font-medium">${viewRide.pricePerSeat.toLocaleString()} / persona</span>
-                )}
-              </div>
+              {/* Conductor Profile Card */}
+              {loadingDriver ? (
+                <div className="p-4 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                  <div className="pulse-line w-12 h-12 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <div className="pulse-line h-3 w-1/3" />
+                    <div className="pulse-line h-2 w-1/2" />
+                  </div>
+                </div>
+              ) : driverProfile ? (
+                <div className="bg-[#fafaf9] border border-[#e8e4dc] p-4 rounded-sm flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3">
+                    {driverProfile.photoUrl ? (
+                      <img
+                        src={driverProfile.photoUrl}
+                        alt={driverProfile.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-[#c8a96e]"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-[#fdf8f0] flex items-center justify-center font-medium text-[#c8a96e] border-2 border-[#e8d5b0] text-lg font-serif">
+                        {driverProfile.name?.[0] || '?'}
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-[#1a1a2e]">{driverProfile.name}</p>
+                        {driverProfile.isVerified && (
+                          <span className="text-xs text-[#27ae60]" title="Conductor Verificado">✓</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-[#6b6b6b]">{driverProfile.career || 'Estudiante UTA'}</p>
+                      {driverProfile.reputation !== undefined && driverProfile.reputation !== null && Number(driverProfile.reputation) > 0 && (
+                        <div className="flex items-center gap-1 text-[11px] text-[#8a6a2e] mt-0.5">
+                          <span>★</span>
+                          <span>{Number(driverProfile.reputation).toFixed(1)} / 5</span>
+                          <span className="text-[#bbb]">({driverProfile.totalRatings || 0} calif.)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {driverProfile.phone && viewRide.driverId !== user?.id && (
+                    <a
+                      href={`https://wa.me/${String(driverProfile.phone).replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs px-3 py-1.5 bg-[#25d366] text-white rounded-sm hover:bg-[#20ba5a] transition-all font-semibold flex items-center gap-1 shadow-sm"
+                    >
+                      💬 WhatsApp
+                    </a>
+                  )}
+                </div>
+              ) : null}
 
-              {viewRide.notes && (
-                <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#c8a96e]">
-                  <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-1">Notas</p>
-                  <p className="text-[#555] text-sm">{viewRide.notes}</p>
+              {/* Detalles Grid */}
+              {(() => {
+                const s = statusConfig[viewRide.status] || statusConfig.IN_PROGRESS;
+                return (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">📅</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Fecha y Hora</p>
+                        <p className="text-xs font-semibold text-[#1a1a2e]">{viewRide.departureDate} &bull; {viewRide.departureTime}</p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">💺</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Asientos</p>
+                        <p className="text-xs font-semibold text-[#1a1a2e]">{viewRide.availableSeats} disponibles</p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">💵</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Precio / Persona</p>
+                        <p className="text-xs font-semibold text-[#1a1a2e]">
+                          {viewRide.pricePerSeat !== undefined && viewRide.pricePerSeat !== null && Number(viewRide.pricePerSeat) > 0 
+                            ? `$${Number(viewRide.pricePerSeat).toFixed(2)}` 
+                            : 'Gratis'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                      <span className="text-lg">🏷️</span>
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-[#999]">Estado del Viaje</p>
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm" style={{ background: s.bg, color: s.color }}>
+                          {s.label}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Notas y Reglas */}
+              {(viewRide.notes || viewRide.rules) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {viewRide.notes && (
+                    <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#c8a96e] rounded-sm">
+                      <p className="text-[10px] font-bold text-[#8a6a2e] tracking-widest uppercase mb-1">Notas</p>
+                      <p className="text-[#555] text-xs leading-relaxed">{viewRide.notes}</p>
+                    </div>
+                  )}
+                  {viewRide.rules && (
+                    <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e] rounded-sm">
+                      <p className="text-[10px] font-bold text-[#1a1a2e] tracking-widest uppercase mb-1">Reglas</p>
+                      <p className="text-[#555] text-xs leading-relaxed">{viewRide.rules}</p>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {viewRide.rules && (
-                <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e]">
-                  <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-1">Reglas</p>
-                  <p className="text-[#555] text-sm">{viewRide.rules}</p>
-                </div>
-              )}
-
+              {/* Mapa */}
               {(() => {
                 const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
                   if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
@@ -585,46 +683,49 @@ export const RidesPage: React.FC = () => {
                 const destCoords = getCoordinates(viewRide.destinationZone, viewRide.destinationLat, viewRide.destinationLng);
 
                 return originCoords ? (
-                  <LiveMap
-                    origin={originCoords ? { ...originCoords, label: viewRide.originZone } : null}
-                    destination={destCoords ? { ...destCoords, label: viewRide.destinationZone } : null}
-                    height="200px"
-                  />
+                  <div className="overflow-hidden rounded-sm border border-[#e8e4dc] shadow-sm">
+                    <LiveMap
+                      origin={originCoords ? { ...originCoords, label: viewRide.originZone } : null}
+                      destination={destCoords ? { ...destCoords, label: viewRide.destinationZone } : null}
+                      height="200px"
+                    />
+                  </div>
                 ) : (
-                  <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc]">
+                  <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc] rounded-sm">
                     No hay coordenadas disponibles para renderizar el mapa
                   </div>
                 );
               })()}
 
-              {/* Usuarios aceptados */}
-              <div>
+              {/* Pasajeros aceptados */}
+              <div className="border-t border-[#e8e4dc] pt-4">
                 <p className="section-label mb-3">Pasajeros aceptados</p>
                 {loadingAccepted ? (
-                  <div className="pulse-line h-3 w-1/2" />
+                  <div className="flex gap-2">
+                    <div className="pulse-line w-8 h-8 rounded-full" />
+                    <div className="pulse-line w-24 h-8 rounded-sm" />
+                  </div>
                 ) : acceptedUsers.length === 0 ? (
-                  <p className="text-[#bbb] text-xs">Ningún pasajero aceptado aún</p>
+                  <p className="text-[#bbb] text-xs italic">Ningún pasajero aceptado aún</p>
                 ) : (
-                  <div>
+                  <div className="flex flex-wrap gap-2">
                     {acceptedUsers.map(u => (
-                      <div key={u.userId} className="user-avatar">
+                      <div key={u.userId} className="flex items-center gap-2 bg-[#f4f4f2] border border-[#e2e2df] px-2.5 py-1.5 rounded-sm shadow-sm">
                         {u.photoUrl ? (
                           <img
                             src={u.photoUrl}
                             alt={u.name}
-                            style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #c8a96e' }}
+                            className="w-6 h-6 rounded-full object-cover border border-[#c8a96e]"
                           />
                         ) : (
-                          <div style={{
-                            width: 30, height: 30, borderRadius: '50%', background: '#fdf8f0',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: 500, color: '#c8a96e', border: '1.5px solid #e8d5b0',
-                            fontSize: 13, fontFamily: "'Playfair Display', serif",
-                          }}>
+                          <div className="w-6 h-6 rounded-full bg-[#fdf8f0] flex items-center justify-center font-medium text-[#c8a96e] border border-[#e8d5b0] text-xs font-serif">
                             {u.name?.[0] || '?'}
                           </div>
                         )}
-                        <span style={{ fontSize: 13, color: '#1a1a2e' }}>{u.name}</span>
+                        <div className="text-left">
+                          <p className="text-xs font-semibold text-[#1a1a2e]" style={{ lineHeight: 1 }}>{u.name}</p>
+                          <p className="text-[9px] text-[#999]" style={{ lineHeight: 1, marginTop: 2 }}>{u.career || 'Pasajero'}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -637,7 +738,7 @@ export const RidesPage: React.FC = () => {
                   const alreadyRequested = myRequests.some(r => r.rideId === viewRide.id && (r.status === 'PENDING' || r.status === 'ACCEPTED'));
                   if (alreadyRequested) {
                     return (
-                      <div className="pt-2 text-center p-3 bg-[#f0faf4] text-[#2d7a4f] text-xs font-medium uppercase tracking-widest border border-[#d2eadd] rounded-sm">
+                      <div className="pt-2 text-center p-3 bg-[#f0faf4] text-[#2d7a4f] text-xs font-semibold uppercase tracking-widest border border-[#d2eadd] rounded-sm shadow-sm">
                         Ya has solicitado este viaje
                       </div>
                     );
@@ -651,7 +752,7 @@ export const RidesPage: React.FC = () => {
                         value={requestMsg}
                         onChange={e => setRequestMsg(e.target.value)}
                       />
-                      <button onClick={() => handleRequestJoin(viewRide.id)} className="r-btn r-btn-gold w-full">
+                      <button onClick={() => handleRequestJoin(viewRide.id)} className="r-btn r-btn-gold w-full shadow-sm">
                         Solicitar unirme
                       </button>
                     </div>
@@ -662,7 +763,6 @@ export const RidesPage: React.FC = () => {
               {/* Eliminar viaje — solo conductor, al fondo separado */}
               {viewRide.driverId === user?.id && (
                 <div className="pt-4 mt-2" style={{ borderTop: '0.5px solid #e8e4dc' }}>
-                  
                   <button
                     className="r-btn-danger"
                     onClick={() => setConfirmDelete(viewRide.id)}

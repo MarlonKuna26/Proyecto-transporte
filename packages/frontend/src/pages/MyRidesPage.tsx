@@ -106,6 +106,9 @@ export const MyRidesPage: React.FC = () => {
         .status-badge { font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:2px; white-space:nowrap; }
         .r-btn-edit { background:#fafaf8; color:#6b6b6b; border:0.5px solid #d8d4cc; padding:5px 12px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; text-decoration: none; display: inline-block; }
         .r-btn-edit:hover { border-color:#c8a96e; color:#c8a96e; }
+        .r-btn { padding:11px 22px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+        .r-btn-gold { background:#c8a96e; color:#1a1a2e; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+        .r-btn-gold:hover { background:#d4b87a; }
         .pulse-line { background: #e8e4dc; border-radius: 2px; animation: pulse 1.5s ease-in-out infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
       `}</style>
@@ -237,41 +240,154 @@ export const MyRidesPage: React.FC = () => {
       )}
         {/* Modal de detalle */}
         {viewRide && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(26,26,46,0.55)' }} onClick={() => setViewRide(null)}>
-            <div className="w-full max-w-lg bg-white p-6 rounded" onClick={e => e.stopPropagation()}>
-              <h2 className="text-xl mb-4">Detalle del viaje</h2>
-              <div className="mb-4">
-                <p><strong>Origen:</strong> {viewRide.originZone} {viewRide.originDetail}</p>
-                <p><strong>Destino:</strong> {viewRide.destinationZone} {viewRide.destinationDetail}</p>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(26,26,46,0.55)' }}
+            onClick={() => setViewRide(null)}
+          >
+            <div
+              className="w-full max-w-lg bg-white overflow-y-auto"
+              style={{ borderRadius: '4px', maxHeight: '90vh', border: '0.5px solid #d8d4cc' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="bg-[#1a1a2e] px-6 py-5 flex items-center justify-between">
+                <h2 className="text-white text-lg tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
+                  Detalle del viaje
+                </h2>
+                <button
+                  onClick={() => setViewRide(null)}
+                  className="text-[#8a8fa8] hover:text-white transition-colors bg-transparent border-none cursor-pointer text-xl"
+                >✕</button>
               </div>
-              {(() => {
-                const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
-                  if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
-                    return { lat: Number(lat), lng: Number(lng) };
-                  }
-                  const fallback = ZONE_COORDINATES[zone];
-                  if (fallback) {
-                    return { lat: fallback[0], lng: fallback[1] };
-                  }
-                  return null;
-                };
+              <div className="w-full h-px bg-[#c8a96e] opacity-40" />
 
-                const originCoords = getCoordinates(viewRide.originZone, viewRide.originLat, viewRide.originLng);
-                const destCoords = getCoordinates(viewRide.destinationZone, viewRide.destinationLat, viewRide.destinationLng);
-
-                return originCoords ? (
-                  <LiveMap
-                    height="200px"
-                    origin={originCoords ? { ...originCoords, label: viewRide.originZone } : null}
-                    destination={destCoords ? { ...destCoords, label: viewRide.destinationZone } : null}
-                  />
-                ) : (
-                  <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc]">
-                    No hay coordenadas disponibles para renderizar el mapa
+              <div className="p-6 space-y-5">
+                {/* Ruta / Timeline Segment */}
+                <div className="bg-[#fdf8f0] p-4 border border-[#e8d5b0] rounded-sm space-y-3 shadow-sm text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-center mt-1">
+                      <div className="w-3.5 h-3.5 rounded-full bg-[#c8a96e] border-2 border-white shadow-sm" />
+                      <div className="w-0.5 h-7 bg-dashed border-l border-[#d8c49c] my-0.5" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-widest text-[#8a6a2e] font-semibold">Punto de Partida</p>
+                      <p className="text-sm font-semibold text-[#1a1a2e]">{viewRide.originZone}</p>
+                      {viewRide.originDetail && (
+                        <p className="text-xs text-[#6b6b6b] mt-0.5">{viewRide.originDetail}</p>
+                      )}
+                    </div>
                   </div>
-                );
-              })()}
-              <button onClick={() => setViewRide(null)} className="mt-4 r-btn-edit">Cerrar</button>
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-center mt-1">
+                      <div className="w-3.5 h-3.5 rounded-full bg-[#1a1a2e] border-2 border-white shadow-sm" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-widest text-[#666] font-semibold">Destino Final</p>
+                      <p className="text-sm font-semibold text-[#1a1a2e]">{viewRide.destinationZone}</p>
+                      {viewRide.destinationDetail && (
+                        <p className="text-xs text-[#6b6b6b] mt-0.5">{viewRide.destinationDetail}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detalles Grid */}
+                {(() => {
+                  const s = statusStyle[viewRide.status] || statusStyle.IN_PROGRESS;
+                  return (
+                    <div className="grid grid-cols-2 gap-3 text-left">
+                      <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                        <span className="text-lg">📅</span>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-[#999]">Fecha y Hora</p>
+                          <p className="text-xs font-semibold text-[#1a1a2e]">{viewRide.departureDate} &bull; {viewRide.departureTime}</p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                        <span className="text-lg">💺</span>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-[#999]">Asientos</p>
+                          <p className="text-xs font-semibold text-[#1a1a2e]">{viewRide.availableSeats} disponibles</p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                        <span className="text-lg">💵</span>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-[#999]">Precio / Persona</p>
+                          <p className="text-xs font-semibold text-[#1a1a2e]">
+                            {viewRide.pricePerSeat !== undefined && viewRide.pricePerSeat !== null && Number(viewRide.pricePerSeat) > 0 
+                              ? `$${Number(viewRide.pricePerSeat).toFixed(2)}` 
+                              : 'Gratis'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-[#fafaf9] border border-[#e8e4dc] rounded-sm flex items-center gap-3">
+                        <span className="text-lg">🏷️</span>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-[#999]">Estado del Viaje</p>
+                          <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm" style={{ background: s.bg, color: s.color }}>
+                            {s.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Notas y Reglas */}
+                {(viewRide.notes || viewRide.rules) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
+                    {viewRide.notes && (
+                      <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#c8a96e] rounded-sm">
+                        <p className="text-[10px] font-bold text-[#8a6a2e] tracking-widest uppercase mb-1">Notas</p>
+                        <p className="text-[#555] text-xs leading-relaxed">{viewRide.notes}</p>
+                      </div>
+                    )}
+                    {viewRide.rules && (
+                      <div className="px-4 py-3 bg-[#fafaf8] border-l-2 border-[#1a1a2e] rounded-sm">
+                        <p className="text-[10px] font-bold text-[#1a1a2e] tracking-widest uppercase mb-1">Reglas</p>
+                        <p className="text-[#555] text-xs leading-relaxed">{viewRide.rules}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Mapa */}
+                {(() => {
+                  const getCoordinates = (zone: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null => {
+                    if (lat !== null && lng !== null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+                      return { lat: Number(lat), lng: Number(lng) };
+                    }
+                    const fallback = ZONE_COORDINATES[zone];
+                    if (fallback) {
+                      return { lat: fallback[0], lng: fallback[1] };
+                    }
+                    return null;
+                  };
+
+                  const resolvedOrigin = getCoordinates(viewRide.originZone, viewRide.originLat, viewRide.originLng);
+                  const resolvedDest = getCoordinates(viewRide.destinationZone, viewRide.destinationLat, viewRide.destinationLng);
+
+                  return resolvedOrigin ? (
+                    <div className="overflow-hidden rounded-sm border border-[#e8e4dc] shadow-sm">
+                      <LiveMap
+                        origin={resolvedOrigin ? { ...resolvedOrigin, label: viewRide.originZone } : null}
+                        destination={resolvedDest ? { ...resolvedDest, label: viewRide.destinationZone } : null}
+                        height="200px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-xs text-[#999] bg-[#fafaf8] border border-[#e8e4dc] rounded-sm">
+                      No hay coordenadas disponibles para renderizar el mapa
+                    </div>
+                  );
+                })()}
+
+                <button onClick={() => setViewRide(null)} className="w-full r-btn r-btn-gold font-semibold uppercase tracking-widest">
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         )}
