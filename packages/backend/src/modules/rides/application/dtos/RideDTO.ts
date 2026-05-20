@@ -64,6 +64,8 @@ export class RideFilterDTO {
   destinationZone?: string;
   departureDate?: string;
   status?: string;
+    driverId?: string;
+
   page: number;
   limit: number;
 
@@ -72,6 +74,7 @@ export class RideFilterDTO {
     this.destinationZone = data.destinationZone;
     this.departureDate = data.departureDate;
     this.status = data.status;
+    this.driverId = data.driverId;
     this.page = parseInt(data.page) || 1;
     this.limit = Math.min(parseInt(data.limit) || 20, 50);
   }

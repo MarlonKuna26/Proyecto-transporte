@@ -51,14 +51,24 @@ export class RideRequestController {
   }
 
   async listByRide(req: Request, res: Response): Promise<void> {
-    try {
-      const result = await this.listRequestsUseCase.execute({ rideId: req.params.rideId });
-      res.status(200).json({ success: true, data: result });
-    } catch (error: unknown) {
-      this.handleError(error, res, 'list_requests');
-    }
-  }
+  try {
 
+    const driverId = req.user!.userId;
+
+    const result = await this.listRequestsUseCase.execute({
+      rideId: req.params.rideId,
+      driverId,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (error: unknown) {
+    this.handleError(error, res, 'list_requests');
+  }
+}
   async listMyRequests(req: Request, res: Response): Promise<void> {
     try {
       const result = await this.listRequestsUseCase.execute({ passengerId: req.user!.userId });

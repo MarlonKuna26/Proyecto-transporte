@@ -18,7 +18,11 @@ export function createRideRequestRoutes(): Router {
   const requestJoinUseCase = new RequestJoinUseCase(requestRepo, rideRepo);
   const acceptRequestUseCase = new AcceptRequestUseCase(requestRepo, rideRepo);
   const rejectRequestUseCase = new RejectRequestUseCase(requestRepo, rideRepo);
-  const listRequestsUseCase = new ListRequestsUseCase(requestRepo);
+  //const listRequestsUseCase = new ListRequestsUseCase(requestRepo);
+  const listRequestsUseCase = new ListRequestsUseCase(
+  requestRepo,
+  rideRepo
+);
   const cancelRequestUseCase = new CancelRequestUseCase(requestRepo, rideRepo);
 
   const controller = new RideRequestController(
