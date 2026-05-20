@@ -1,7 +1,7 @@
 import { IVehicleRepository } from '../../domain/interfaces/IVehicleRepository';
 import { UpdateVehicleDTO } from '../dtos/VehicleDTO';
 import { Vehicle } from '../../domain/entities/Vehicle';
-import { CustomError } from '@shared/errors/CustomError';
+import { NotFoundError, AuthorizationError } from '@shared/errors/AppError';
 
 export class UpdateVehicleUseCase {
   constructor(private readonly vehicleRepository: IVehicleRepository) {}
@@ -9,10 +9,10 @@ export class UpdateVehicleUseCase {
   async execute(userId: string, vehicleId: string, dtos: UpdateVehicleDTO): Promise<Vehicle> {
     const vehicle = await this.vehicleRepository.findById(vehicleId);
     if (!vehicle) {
-      throw new CustomError('Vehicle not found', 404);
+      throw new NotFoundError('Vehicle not found');
     }
     if (vehicle.ownerId !== userId) {
-      throw new CustomError('You are not the owner of this vehicle', 403);
+      throw new AuthorizationError('You are not the owner of this vehicle');
     }
     return this.vehicleRepository.update(vehicleId, dtos);
   }
