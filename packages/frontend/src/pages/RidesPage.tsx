@@ -35,6 +35,8 @@ export const RidesPage: React.FC = () => {
   const [loadingAccepted, setLoadingAccepted] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
+  const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
+
   /* ===== LOAD ===== */
   const loadRides = async () => {
     setLoading(true);
@@ -44,8 +46,22 @@ export const RidesPage: React.FC = () => {
     } catch { }
     setLoading(false);
   };
+  useEffect(() => {
+  if (feedback.msg) {
+    const timer = setTimeout(() => {
+      setFeedback({ msg: '', type: '' });
+    }, 4000);
+    
+    return () => clearTimeout(timer); // Limpia el timer si el feedback cambia antes
+  }
+}, [feedback]);
 
-  useEffect(() => { loadRides(); }, []);
+  useEffect(() => { 
+    loadRides(); 
+    if (user?.id) {
+      api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchAccepted = async () => {
@@ -71,6 +87,18 @@ export const RidesPage: React.FC = () => {
   /* ===== CREATE ===== */
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
+    
+    const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
+    if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
+      setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de publicarlo.', type: 'error' });
+      return;
+    }
+
+    // Validación: Mismo origen y destino
+  if (formData.originZone === formData.destinationZone) {
+    setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
+    return; // Detenemos la ejecución
+  }
     try {
       await api.rides.create({
         ...formData,
@@ -88,6 +116,18 @@ export const RidesPage: React.FC = () => {
   /* ===== UPDATE ===== */
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
+
+    const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
+    if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
+      setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de actualizarlo.', type: 'error' });
+      return;
+    }
+
+    // Validación: Mismo origen y destino
+  if (formData.originZone === formData.destinationZone) {
+    setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
+    return; // Detenemos la ejecución
+  }
     if (!editRideId) return;
     try {
       await api.rides.update(editRideId, {
@@ -179,6 +219,7 @@ export const RidesPage: React.FC = () => {
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right 12px center',
   };
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -219,7 +260,17 @@ export const RidesPage: React.FC = () => {
             </p>
           </div>
           <button
-            onClick={() => { if (showCreate) resetForm(); else setShowCreate(true); }}
+            onClick={() => {
+              if (showCreate) {
+                resetForm();
+              } else {
+                if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
+                  setFeedback({ msg: '⚠️ ¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', type: 'error' });
+                  return;
+                }
+                setShowCreate(true);
+              }
+            }}
             className={`r-btn shrink-0 ${showCreate ? 'r-btn-secondary' : 'r-btn-gold'}`}
             style={showCreate ? { border: '0.5px solid #d8d4cc' } : {}}
           >
@@ -289,6 +340,7 @@ export const RidesPage: React.FC = () => {
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Fecha *</label>
               <input type="date" className={inputClass} style={inputStyle} required
+                min={today}
                 value={formData.departureDate} onChange={e => setFormData({ ...formData, departureDate: e.target.value })} />
             </div>
 
@@ -306,7 +358,7 @@ export const RidesPage: React.FC = () => {
 
             <div>
               <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">Precio / persona ($)</label>
-              <input type="number" min="0" step="0.50" className={inputClass} style={inputStyle}
+              <input type="number" min="0.50" step="0.50" className={inputClass} style={inputStyle}
                 value={formData.pricePerSeat} onChange={e => setFormData({ ...formData, pricePerSeat: e.target.value })} />
             </div>
           </div>
@@ -371,7 +423,10 @@ export const RidesPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                     {ride.driverId === user?.id && (
-                      <button className="r-btn-edit" onClick={() => handleEdit(ride)}>Editar</button>
+                      <>
+                        <button className="r-btn-edit" onClick={() => handleEdit(ride)}>Editar</button>
+                        <button className="r-btn-edit" style={{ color: '#c0392b', borderColor: '#f0b8b8' }} onClick={() => setConfirmDelete(ride.id)}>Eliminar</button>
+                      </>
                     )}
                     <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
                   </div>

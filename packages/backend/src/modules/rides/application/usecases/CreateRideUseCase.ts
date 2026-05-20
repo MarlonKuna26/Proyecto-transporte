@@ -12,13 +12,22 @@ interface CreateRideInput {
 export class CreateRideUseCase implements IUseCase<CreateRideInput, Ride> {
   constructor(private rideRepository: IRideRepository) {}
 
-  async execute(input: CreateRideInput): Promise<Ride> {
-    // Validar que la fecha no sea en el pasado
-    const departureDateTime = new Date(`${input.data.departureDate}T${input.data.departureTime}`);
-    if (departureDateTime < new Date()) {
-      throw new ValidationError('Departure date/time cannot be in the past');
+async execute(input: CreateRideInput): Promise<Ride> {
+    // 1. Obtenemos solo la parte del día de la fecha de salida (input format YYYY-MM-DD)
+    const [year, month, day] = input.data.departureDate.split('-').map(Number);
+    const departureDateOnly = new Date(year, month - 1, day);
+
+    // 2. Obtenemos el día de hoy en la zona horaria de Ecuador, también sin horas
+    const nowEcuador = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Guayaquil" }));
+    const todayOnly = new Date(nowEcuador.getFullYear(), nowEcuador.getMonth(), nowEcuador.getDate());
+
+    // 3. Comparación estricta de días
+    // Si la fecha de salida es menor al día de hoy, lanzamos el error
+    if (departureDateOnly.getTime() < todayOnly.getTime()) {
+      throw new ValidationError('No puedes seleccionar una fecha anterior al día de hoy');
     }
 
+    // 4. Crear la entidad
     const ride = new Ride(
       input.driverId,
       input.data.originZone,

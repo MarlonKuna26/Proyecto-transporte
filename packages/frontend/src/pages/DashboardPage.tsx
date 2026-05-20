@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/services/api';
-import type { Ride } from '@/types';
+import type { Ride, UserProfile } from '@/types';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [recentRides, setRecentRides] = useState<Ride[]>([]);
+  const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -18,11 +21,30 @@ export const DashboardPage: React.FC = () => {
       setLoading(false);
     };
     load();
-  }, []);
+    if (user?.id) {
+      api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(''), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
+
+  const handleCreateRide = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
+      setFeedback('⚠️ ¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.');
+      return;
+    }
+    navigate('/rides?create=true');
+  };
 
   const quickActions = [
     { icon: SearchIcon, title: 'Buscar viajes',   desc: 'Encuentra viajes disponibles', path: '/rides',           accent: '#c8a96e' },
-    { icon: PinIcon,    title: 'Publicar viaje',  desc: 'Ofrece asientos',              path: '/rides?create=true',  accent: '#1a1a2e' },
+    { icon: PinIcon,    title: 'Publicar viaje',  desc: 'Ofrece asientos',              action: handleCreateRide,   accent: '#1a1a2e' },
     { icon: ListIcon,   title: 'Mis viajes',      desc: 'Gestiona como conductor',      path: '/my-rides',           accent: '#1a1a2e' },
     { icon: WalletIcon, title: 'Pagos',           desc: 'Gestiona tus pagos',           path: '/payments',           accent: '#c8a96e' },
   ];
@@ -36,70 +58,87 @@ export const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pt-0 pb-8  space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="max-w-6xl mx-auto px-6 pt-0 pb-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-        .dash-card { background: #fff; border: 1px solid #eceae5; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .action-card { background: #fff; border: 1px solid #eceae5; border-radius: 6px; padding: 1.25rem; display: block; text-decoration: none; transition: all 0.2s ease; }
-        .action-card:hover { border-color: #c8a96e; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(200,169,110,0.12); }
-        .ride-card { background: #fff; border: 1px solid #eceae5; border-radius: 6px; padding: 1.25rem; display: block; text-decoration: none; transition: border-color 0.2s; }
-        .ride-card:hover { border-color: #1a1a2e; }
+        .r-card { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; }
+        .action-card { background: #fff; border: 0.5px solid #d8d4cc; border-radius: 4px; padding: 1.25rem; display: block; text-decoration: none; transition: all 0.2s ease; cursor: pointer; text-align: left; width: 100%; }
+        .action-card:hover { border-color: #1a1a2e; }
+        .r-ride { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; padding:1.25rem; display: block; text-decoration: none; transition:border-color 0.2s; }
+        .r-ride:hover { border-color:#1a1a2e; }
         .pulse-line { background: #e8e4dc; border-radius: 2px; animation: pulse 1.5s ease-in-out infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .status-badge { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
-        .section-label { font-size: 11px; font-weight: 600; color: #a1a1a1; letter-spacing: 0.12em; text-transform: uppercase; }
+        .status-badge { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; white-space: nowrap; }
+        .section-label { font-size: 11px; font-weight: 500; color: #6b6b6b; letter-spacing: 0.1em; text-transform: uppercase; }
+        .r-btn-gold { background:#c8a96e; color:#1a1a2e; padding:10px 20px; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:background 0.2s; font-family:'DM Sans',sans-serif; text-decoration: none; }
+        .r-btn-gold:hover { background:#d4b87a; }
       `}</style>
 
       {/* Header / Welcome Section */}
-      <div className="dash-card overflow-hidden border-none shadow-md">
-        <div className="bg-[#1a1a2e] px-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="r-card overflow-hidden mb-6">
+        <div className="bg-[#1a1a2e] px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1
-              className="text-2xl text-white tracking-tight"
+              className="text-2xl text-white tracking-wide"
               style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
             >
               Bienvenido, <span style={{ color: '#c8a96e' }}>{user?.name?.split(' ')[0] || 'Usuario'}</span>
             </h1>
-            <div className="flex items-center gap-2">
-              <span className="w-4 h-[1px] bg-[#c8a96e]"></span>
-              <p className="text-[#8a8fa8] text-[10px] tracking-[0.2em] uppercase font-medium">
-                Panel de Control · U-Ride
-              </p>
-            </div>
+            <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1">
+              Panel de Control · U-Ride
+            </p>
           </div>
           
-          <Link
-            to="/rides?create=true"
-            className="inline-flex items-center gap-2 px-6 py-2.5 text-[#1a1a2e] text-xs font-bold tracking-widest uppercase transition-all duration-300 hover:brightness-110 hover:scale-[1.02] shrink-0"
-            style={{ 
-              background: 'linear-gradient(135deg, #c8a96e 0%, #a68b56 100%)', 
-              borderRadius: '4px', 
-              textDecoration: 'none',
-              boxShadow: '0 4px 15px rgba(200, 169, 110, 0.2)'
-            }}
+          <button
+            onClick={handleCreateRide}
+            className="r-btn-gold shrink-0 flex items-center justify-center gap-2"
           >
-            <span style={{ fontSize: 16 }}>+</span> Publicar viaje
-          </Link>
+            <span>+</span> Publicar viaje
+          </button>
         </div>
-        <div className="w-full h-[2px] bg-gradient-to-r from-[#c8a96e] to-transparent opacity-60" />
+        <div className="w-full h-px bg-[#c8a96e] opacity-40" />
       </div>
+
+      {feedback && (
+        <div
+          className="flex items-center gap-3 px-4 py-3 text-sm"
+          style={{ background: '#fdf2f2', borderLeft: '3px solid #c0392b', color: '#c0392b', borderRadius: '0 2px 2px 0' }}
+        >
+          <span>{feedback}</span>
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="space-y-4">
         <p className="section-label">Acciones rápidas</p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map((a) => (
-            <Link key={a.path} to={a.path} className="action-card">
-              <div
-                className="w-10 h-10 flex items-center justify-center mb-4"
-                style={{ background: a.accent === '#c8a96e' ? '#fdf8f0' : '#f0f0f5', borderRadius: '6px' }}
-              >
-                <a.icon color={a.accent} />
-              </div>
-              <h3 className="text-[#1a1a2e] text-sm font-bold">{a.title}</h3>
-              <p className="text-[#999] text-[11px] mt-1 hidden md:block leading-relaxed">{a.desc}</p>
-            </Link>
-          ))}
+          {quickActions.map((a, i) => {
+            const content = (
+              <>
+                <div
+                  className="w-10 h-10 flex items-center justify-center mb-4"
+                  style={{ background: a.accent === '#c8a96e' ? '#fdf8f0' : '#f0f0f5', borderRadius: '4px' }}
+                >
+                  <a.icon color={a.accent} />
+                </div>
+                <h3 className="text-[#1a1a2e] text-sm font-medium">{a.title}</h3>
+                <p className="text-[#999] text-xs mt-1 hidden md:block">{a.desc}</p>
+              </>
+            );
+
+            if (a.action) {
+              return (
+                <button key={i} onClick={a.action} className="action-card">
+                  {content}
+                </button>
+              );
+            }
+            return (
+              <Link key={i} to={a.path!} className="action-card">
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
@@ -109,7 +148,7 @@ export const DashboardPage: React.FC = () => {
           <p className="section-label">Viajes recientes</p>
           <Link
             to="/rides"
-            className="text-[#c8a96e] text-[10px] font-bold tracking-widest uppercase hover:underline flex items-center gap-1"
+            className="text-[#c8a96e] text-[11px] font-medium tracking-widest uppercase hover:underline flex items-center gap-1"
             style={{ textDecoration: 'none' }}
           >
             Ver todos <span>→</span>
@@ -119,7 +158,7 @@ export const DashboardPage: React.FC = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2].map((i) => (
-              <div key={i} className="dash-card p-6">
+              <div key={i} className="r-card p-6">
                 <div className="pulse-line h-3 w-3/4 mb-3" />
                 <div className="pulse-line h-2.5 w-1/2 mb-2" />
                 <div className="pulse-line h-2.5 w-1/3" />
@@ -127,52 +166,55 @@ export const DashboardPage: React.FC = () => {
             ))}
           </div>
         ) : recentRides.length === 0 ? (
-          <div className="dash-card p-12 text-center border-dashed">
+          <div className="r-card p-12 text-center border-dashed">
             <div
-              className="inline-flex items-center justify-center w-14 h-14 bg-[#fdf8f0] mb-4"
-              style={{ borderRadius: '50%' }}
+              className="inline-flex items-center justify-center w-12 h-12 bg-[#fdf8f0] mb-4"
+              style={{ borderRadius: '4px' }}
             >
               <RoadIcon color="#c8a96e" />
             </div>
             <p className="text-[#999] text-sm mb-6">No hay viajes disponibles por ahora</p>
-            <Link
-              to="/rides?create=true"
-              className="inline-block px-6 py-3 bg-[#1a1a2e] text-white text-[10px] font-bold tracking-widest uppercase hover:bg-[#2d2d4e] transition-colors"
-              style={{ borderRadius: '4px', textDecoration: 'none' }}
+            <button
+              onClick={handleCreateRide}
+              className="r-btn-gold"
             >
               Publica el primero
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recentRides.map((ride) => {
               const s = statusStyle[ride.status] || statusStyle.IN_PROGRESS;
               return (
-                <Link key={ride.id} to={`/rides?view=${ride.id}`} className="ride-card">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#c8a96e]" />
-                      <span className="text-[#1a1a2e] font-bold text-sm">{ride.originZone}</span>
-                      <span className="text-[#ccc] text-xs">→</span>
-                      <span className="text-[#1a1a2e] font-bold text-sm">{ride.destinationZone}</span>
+                <Link key={ride.id} to={`/rides?view=${ride.id}`} className="r-ride">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 text-[#1a1a2e] font-medium text-sm">
+                        <span style={{ color: '#c8a96e', fontSize: 12 }}>●</span>
+                        {ride.originZone}
+                        <span className="text-[#ccc] text-xs">→</span>
+                        {ride.destinationZone}
+                      </div>
+                      {ride.originDetail && (
+                        <p className="text-[#bbb] text-xs mt-0.5 ml-4">{ride.originDetail}</p>
+                      )}
                     </div>
-                    <span
-                      className="status-badge"
-                      style={{ background: s.bg, color: s.color }}
-                    >
-                      {s.label}
-                    </span>
+                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                      <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[#888] text-[11px]">
-                    <span className="flex items-center gap-1">📅 {ride.departureDate}</span>
-                    <span className="flex items-center gap-1">⏰ {ride.departureTime}</span>
-                    <span className="flex items-center gap-1">👥 {ride.availableSeats} asientos</span>
+                  
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#999] text-xs mb-3">
+                    <span>{ride.departureDate}</span>
+                    <span>{ride.departureTime}</span>
+                    <span>{ride.availableSeats} asientos</span>
                   </div>
+                  
                   {ride.pricePerSeat > 0 && (
-                    <div className="mt-4 pt-3 border-t border-[#f5f5f5] flex justify-between items-center">
-                      <span className="text-[#999] text-[10px] uppercase tracking-wider">Costo</span>
-                      <p className="text-[#c8a96e] font-bold text-base">
-                        ${ride.pricePerSeat.toLocaleString()} <span className="text-[10px] font-normal text-[#999]">/ pers</span>
+                    <div className="pt-3 border-t border-[#f5f5f5] flex justify-between items-center mt-auto">
+                      <span className="text-[#bbb] text-xs uppercase tracking-widest">Costo</span>
+                      <p className="text-[#c8a96e] font-medium text-sm">
+                        ${ride.pricePerSeat.toLocaleString()} <span className="text-xs font-normal text-[#999]">/ pers</span>
                       </p>
                     </div>
                   )}

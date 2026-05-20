@@ -283,7 +283,9 @@ export const TrackingPage: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1 pb-2">
-                  <p className="text-[#1a1a2e] text-sm font-medium">{evt.tipo_evento}</p>
+                  <p className="text-[#1a1a2e] text-sm font-medium">
+                    {evt.tipo_evento === 'STARTED' ? 'Iniciado' : evt.tipo_evento === 'COMPLETED' ? 'Completado' : evt.tipo_evento}
+                  </p>
                   {evt.descripcion && <p className="text-[#999] text-xs mt-0.5">{evt.descripcion}</p>}
                   <p className="text-[#bbb] text-xs mt-1">
                     {new Date(evt.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}

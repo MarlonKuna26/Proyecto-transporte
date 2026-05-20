@@ -73,79 +73,161 @@ export const MyRidesPage: React.FC = () => {
     }
   };
 
-  const statusColor: Record<string, string> = { PUBLISHED: 'badge-success', FULL: 'badge-warning', IN_PROGRESS: 'badge-info', COMPLETED: 'badge-info', CANCELLED: 'badge-danger' };
-  const statusLabel: Record<string, string> = { PUBLISHED: 'Activo', FULL: 'Lleno', IN_PROGRESS: '🟢 En curso', COMPLETED: 'Completado', CANCELLED: 'Cancelado' };
-  const reqStatusColor: Record<string, string> = { PENDING: 'badge-warning', ACCEPTED: 'badge-success', REJECTED: 'badge-danger', CANCELLED: 'badge-danger' };
+  const statusStyle: Record<string, { bg: string; color: string; label: string }> = {
+    PUBLISHED:   { bg: '#f0faf4', color: '#2d7a4f', label: 'Disponible' },
+    FULL:        { bg: '#fdf8f0', color: '#8a6a2e', label: 'Lleno'      },
+    IN_PROGRESS: { bg: '#f0f4fa', color: '#2d4f7a', label: 'En curso'   },
+    COMPLETED:   { bg: '#f0f4fa', color: '#2d4f7a', label: 'Completado' },
+    CANCELLED:   { bg: '#fdf2f2', color: '#c0392b', label: 'Cancelado'  },
+  };
+
+  const reqStatusStyle: Record<string, { bg: string; color: string; label: string }> = {
+    PENDING:   { bg: '#fdf8f0', color: '#8a6a2e', label: 'Pendiente' },
+    ACCEPTED:  { bg: '#f0faf4', color: '#2d7a4f', label: 'Aceptado'  },
+    REJECTED:  { bg: '#fdf2f2', color: '#c0392b', label: 'Rechazado' },
+    CANCELLED: { bg: '#fdf2f2', color: '#c0392b', label: 'Cancelado' },
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold text-navy-900">📋 Mis viajes como conductor</h1>
+    <div className="max-w-5xl mx-auto px-4 pb-8 space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+        .r-card { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; }
+        .r-ride { background:#fff; border:0.5px solid #d8d4cc; border-radius:4px; padding:1.25rem; transition:border-color 0.2s; }
+        .r-ride:hover { border-color:#1a1a2e; }
+        .status-badge { font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:2px; white-space:nowrap; }
+        .r-btn-edit { background:#fafaf8; color:#6b6b6b; border:0.5px solid #d8d4cc; padding:5px 12px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.2s; font-family:'DM Sans',sans-serif; text-decoration: none; display: inline-block; }
+        .r-btn-edit:hover { border-color:#c8a96e; color:#c8a96e; }
+        .pulse-line { background: #e8e4dc; border-radius: 2px; animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      `}</style>
 
-      {feedback && <div className="p-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-700 text-sm">✅ {feedback}</div>}
+      {/* Header */}
+      <div className="r-card overflow-hidden mb-6">
+        <div className="bg-[#1a1a2e] px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl text-white tracking-wide" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
+              Mis Viajes
+            </h1>
+            <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1">
+              Como conductor
+            </p>
+          </div>
+        </div>
+        <div className="w-full h-px bg-[#c8a96e] opacity-40" />
+      </div>
+
+      {feedback && (
+        <div
+          className="flex items-center gap-3 px-4 py-3 text-sm"
+          style={{ background: '#f0faf4', borderLeft: '3px solid #2d7a4f', color: '#2d7a4f', borderRadius: '0 2px 2px 0' }}
+        >
+          <span>{feedback}</span>
+        </div>
+      )}
 
       {loading ? (
-        <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="glass-card p-6 animate-pulse"><div className="h-4 bg-dark-200 rounded w-3/4 mb-3" /></div>)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="r-card p-6">
+              <div className="pulse-line h-3 w-3/4 mb-3" />
+              <div className="pulse-line h-2.5 w-1/2 mb-2" />
+            </div>
+          ))}
+        </div>
       ) : rides.length === 0 ? (
-        <div className="glass-card p-12 text-center"><p className="text-5xl mb-4">🚗</p><p className="text-dark-500 text-lg">No has publicado viajes aún</p></div>
+        <div className="r-card p-12 text-center">
+          <p className="text-5xl mb-4">🚗</p>
+          <p className="text-[#999] text-sm">No has publicado viajes aún</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {rides.map(ride => (
-            <div key={ride.id} className="glass-card p-5">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2 text-navy-900 font-medium">
-                  <span>📍</span> {ride.originZone} <span className="text-dark-400">→</span> {ride.destinationZone}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {rides.map(ride => {
+            const s = statusStyle[ride.status] || statusStyle.IN_PROGRESS;
+            return (
+              <div key={ride.id} className="r-ride flex flex-col">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-[#1a1a2e] font-medium text-sm">
+                      <span style={{ color: '#c8a96e', fontSize: 12 }}>●</span>
+                      {ride.originZone}
+                      <span className="text-[#ccc] text-xs">→</span>
+                      {ride.destinationZone}
+                    </div>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  <div className="flex items-center gap-2">
+                    <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={statusColor[ride.status]}>{statusLabel[ride.status]}</span>
+
+                {/* Details */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#999] text-xs mb-4">
+                  <span>{ride.departureDate}</span>
+                  <span>{ride.departureTime}</span>
+                  <span>{ride.availableSeats} asientos</span>
+                  {ride.pricePerSeat > 0 && (
+                    <span className="text-[#c8a96e] font-medium">${ride.pricePerSeat.toLocaleString()}</span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-2 mt-auto pt-3 border-t border-[#f5f5f5]">
                   {(ride.status === 'PUBLISHED' || ride.status === 'FULL') && (
                     <>
-                      <button onClick={() => startRide(ride.id)} className="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-medium hover:bg-green-100 transition-colors">▶ Iniciar</button>
-                      <button onClick={() => cancelRide(ride.id)} className="text-red-500 hover:text-red-600 text-xs font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Cancelar</button>
+                      <button onClick={() => startRide(ride.id)} className="r-btn-edit">INICIAR</button>
+                      <button onClick={() => cancelRide(ride.id)} className="r-btn-edit">CANCELAR</button>
                     </>
                   )}
                   {ride.status === 'IN_PROGRESS' && (
                     <>
-                      <Link to={`/tracking/${ride.id}`} className="px-3 py-1.5 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">📍 Seguimiento</Link>
-                      <button onClick={() => completeRide(ride.id)} className="px-3 py-1.5 rounded-lg bg-navy-50 text-navy-700 text-xs font-medium hover:bg-navy-100 transition-colors">⏹ Completar</button>
+                      <Link to={`/tracking/${ride.id}`} className="r-btn-edit">SEGUIMIENTO</Link>
+                      <button onClick={() => completeRide(ride.id)} className="r-btn-edit">COMPLETAR</button>
                     </>
                   )}
+                  <button onClick={() => loadRequests(ride.id)} className="r-btn-edit" style={{ marginLeft: 'auto' }}>
+                    {requests[ride.id] ? '▲ SOLICITUDES' : '▼ SOLICITUDES'}
+                  </button>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-3 text-dark-500 text-xs mb-3">
-                <span>📅 {ride.departureDate}</span><span>🕐 {ride.departureTime}</span><span>💺 {ride.availableSeats} asientos</span>
-                {ride.pricePerSeat > 0 && <span className="text-primary-600 font-bold">${ride.pricePerSeat.toLocaleString()}</span>}
-              </div>
-              <button onClick={() => loadRequests(ride.id)} className="text-primary-500 hover:text-primary-600 text-sm font-medium transition-colors">
-                {requests[ride.id] ? '▲ Ocultar solicitudes' : '▼ Ver solicitudes'}
-              </button>
 
-              {requests[ride.id] && (
-                <div className="mt-3 space-y-2 p-3 rounded-xl bg-dark-50">
-                  {requests[ride.id].length === 0 ? (
-                    <p className="text-dark-400 text-sm">No hay solicitudes</p>
-                  ) : (
-                    requests[ride.id].map(req => (
-                      <div key={req.id} className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-3 rounded-lg bg-white border border-primary-100">
-                        <div>
-                          <span className={reqStatusColor[req.status]}>{req.status}</span>
-                          <span className="text-dark-500 text-xs ml-2">{req.seatsRequested} asiento(s)</span>
-                          {req.message && <p className="text-dark-400 text-xs mt-1">💬 {req.message}</p>}
-                        </div>
-                        {req.status === 'PENDING' && (
-                          <div className="flex gap-2">
-                            <button onClick={() => handleResponse(req.id, ride.id, 'accept')} className="px-3 py-1.5 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">✅ Aceptar</button>
-                            <button onClick={() => handleResponse(req.id, ride.id, 'reject')} className="px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors">❌ Rechazar</button>
+                {/* Requests Section */}
+                {requests[ride.id] && (
+                  <div className="mt-3 pt-3 border-t border-[#f5f5f5] space-y-2">
+                    {requests[ride.id].length === 0 ? (
+                      <p className="text-[#999] text-xs">No hay solicitudes.</p>
+                    ) : (
+                      requests[ride.id].map(req => {
+                        const rs = reqStatusStyle[req.status] || reqStatusStyle.PENDING;
+                        return (
+                          <div key={req.id} className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-2 rounded bg-[#fafafa] border border-[#eceae5]">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="status-badge" style={{ background: rs.bg, color: rs.color, fontSize: '9px', padding: '2px 6px' }}>{rs.label}</span>
+                                <span className="text-[#1a1a2e] text-[11px] font-medium">{req.seatsRequested} asiento(s)</span>
+                              </div>
+                              {req.message && <p className="text-[#888] text-[10px] mt-1 italic">"{req.message}"</p>}
+                            </div>
+                            
+                            {req.status === 'PENDING' && (
+                              <div className="flex gap-1">
+                                <button onClick={() => handleResponse(req.id, ride.id, 'accept')} className="r-btn-edit" style={{ padding: '3px 8px', fontSize: '9px' }}>ACEPTAR</button>
+                                <button onClick={() => handleResponse(req.id, ride.id, 'reject')} className="r-btn-edit" style={{ padding: '3px 8px', fontSize: '9px' }}>RECHAZAR</button>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+                        )
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 };
+
+
