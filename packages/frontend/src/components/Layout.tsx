@@ -121,8 +121,14 @@ export const Layout: React.FC = () => {
               style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
             >
               {/* Avatar circle */}
-              <div className="w-9 h-9 rounded-full bg-uber-gray-200 flex items-center justify-center text-sm font-semibold text-uber-gray-700">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+              <div className="w-9 h-9 rounded-full bg-uber-gray-200 flex items-center justify-center overflow-hidden border border-zinc-200 shrink-0">
+                {user?.photoUrl ? (
+                  <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-semibold text-uber-gray-700 select-none">
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                )}
               </div>
               {/* Chevron */}
               <svg
@@ -139,8 +145,14 @@ export const Layout: React.FC = () => {
               <div className="uber-dropdown" id="profile-dropdown-menu">
                 {/* User header */}
                 <div className="px-6 pb-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-uber-gray-200 flex items-center justify-center text-lg font-semibold text-uber-gray-700 shrink-0">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  <div className="w-12 h-12 rounded-full bg-uber-gray-200 flex items-center justify-center overflow-hidden border border-zinc-200 shrink-0">
+                    {user?.photoUrl ? (
+                      <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-lg font-semibold text-uber-gray-700 select-none">
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-base font-semibold text-black truncate">{user?.name || 'Usuario'}</p>
@@ -242,18 +254,30 @@ export const Layout: React.FC = () => {
         <div className="relative" ref={mobileRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-uber-gray-700"
-            style={{ background: '#E2E2E2', border: 'none', cursor: 'pointer' }}
+            className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-zinc-200"
+            style={{ background: '#E2E2E2', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
+            {user?.photoUrl ? (
+              <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-semibold text-uber-gray-700 select-none">
+                {user?.name?.charAt(0).toUpperCase() || 'U'}
+              </span>
+            )}
           </button>
 
           {/* Mobile dropdown */}
           {dropdownOpen && (
             <div className="uber-dropdown" style={{ right: 0, width: '300px' }}>
               <div className="px-6 pb-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-uber-gray-200 flex items-center justify-center text-base font-semibold text-uber-gray-700 shrink-0">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                <div className="w-10 h-10 rounded-full bg-uber-gray-200 flex items-center justify-center overflow-hidden border border-zinc-200 shrink-0">
+                  {user?.photoUrl ? (
+                    <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-base font-semibold text-uber-gray-700 select-none">
+                      {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-black truncate">{user?.name || 'Usuario'}</p>
@@ -315,6 +339,25 @@ export const Layout: React.FC = () => {
       <nav className="uber-bottom-bar md:hidden">
         {mobileBottomTabs.map((tab) => {
           const active = isActive(tab.path);
+          if (tab.path === '/profile') {
+            return (
+              <Link
+                key={tab.path}
+                to={tab.path}
+                className={active ? 'uber-bottom-tab-active' : 'uber-bottom-tab'}
+              >
+                {user?.photoUrl ? (
+                  <div className={`w-[22px] h-[22px] rounded-full overflow-hidden border ${active ? 'border-black' : 'border-zinc-300'} flex items-center justify-center shrink-0`}>
+                    <img src={user.photoUrl} alt="Account" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <MobileAccountIcon active={active} />
+                )}
+                <span>{tab.label}</span>
+              </Link>
+            );
+          }
+          
           const Icon = tab.icon;
           return (
             <Link

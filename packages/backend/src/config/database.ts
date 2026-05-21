@@ -47,6 +47,15 @@ console.log("DB_USER =", process.env.DB_USER);
     try {
       const client = await pool.connect();
       console.log('✅ Database connected successfully');
+      
+      // Run the migration automatically
+      try {
+        await client.query('ALTER TABLE public.solicitudes_viaje ADD COLUMN IF NOT EXISTS motivo_rechazo character varying(255);');
+        console.log('✅ SQL Migration: motivo_rechazo column verified/added successfully');
+      } catch (migrationError) {
+        console.error('❌ SQL Migration failed:', migrationError);
+      }
+
       client.release();
     } catch (error) {
       console.error('❌ Database connection failed:', error);

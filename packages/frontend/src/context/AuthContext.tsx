@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   role: 'STUDENT' | 'ADMIN';
+  photoUrl?: string | null;
 }
 
 interface AuthContextType {
@@ -21,6 +22,7 @@ interface AuthContextType {
   requestPasswordReset: (email: string) => Promise<{ resetUrl?: string; resetToken?: string; expiresInMinutes?: number }>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -37,12 +39,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Restaurar sesión
   useEffect(() => {
+    const restoreSession = async () => {
+      const stored = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      if (stored && token) {
+        try {
+          const parsedUser = JSON.parse(stored);
+          setUser(parsedUser);
+          
+          // Obtener el perfil de la base de datos en segundo plano
+          try {
+            const res = await api.users.getProfile();
+            if (res.data) {
+              const enrichedUser = {
+                ...parsedUser,
+                name: res.data.name || parsedUser.name,
+                photoUrl: res.data.photoUrl || null
+              };
+              localStorage.setItem('user', JSON.stringify(enrichedUser));
+              setUser(enrichedUser);
+            }
+          } catch (profileError) {
+            console.error('Error syncing user profile on load:', profileError);
+          }
+        } catch (e) {
+          console.error('Error restoring session:', e);
+        }
+      }
+      setLoading(false);
+    };
+    restoreSession();
+  }, []);
+
+  const refreshUser = useCallback(async () => {
     const stored = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (stored && token) {
-      try { setUser(JSON.parse(stored)); } catch {}
+    if (stored) {
+      try {
+        const parsedUser = JSON.parse(stored);
+        const res = await api.users.getProfile();
+        if (res.data) {
+          const enrichedUser = {
+            ...parsedUser,
+            name: res.data.name || parsedUser.name,
+            photoUrl: res.data.photoUrl || null
+          };
+          localStorage.setItem('user', JSON.stringify(enrichedUser));
+          setUser(enrichedUser);
+        }
+      } catch (err) {
+        console.error('Error refreshing user:', err);
+      }
     }
-    setLoading(false);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -57,8 +104,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     localStorage.setItem('token', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    
+    // Si login no devolvió photoUrl, podemos intentar recuperarla si existe
+    let finalUserData = userData;
+    try {
+      const pRes = await api.users.getProfile();
+      if (pRes.data && pRes.data.photoUrl) {
+        finalUserData = { ...userData, photoUrl: pRes.data.photoUrl };
+      }
+    } catch {}
+
+    localStorage.setItem('user', JSON.stringify(finalUserData));
+    setUser(finalUserData);
   }, []);
 
   const register = useCallback(async (email: string, name: string, password: string) => {
@@ -94,7 +151,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, requestPasswordReset, resetPassword, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, requestPasswordReset, resetPassword, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

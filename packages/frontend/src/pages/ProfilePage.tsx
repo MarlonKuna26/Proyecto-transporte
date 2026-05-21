@@ -5,7 +5,7 @@ import type { UserProfile, Vehicle, Rating } from '@/types';
 import { ESTRUCTURA_UTA, ZONAS_AMBATO, VEHICULO_DATA } from '@/constants';
 
 export const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [ratings, setRatings] = useState<{ ratings: Rating[]; average: number; count: number } | null>(null);
@@ -134,6 +134,7 @@ export const ProfilePage: React.FC = () => {
     try {
       const res = await api.users.updateProfile(editData);
       setProfile(res.data);
+      await refreshUser();
       setEditMode(false);
       setFeedback('Perfil actualizado');
       setTimeout(() => setFeedback(''), 3000);
