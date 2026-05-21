@@ -15,7 +15,7 @@ export const ResetPasswordPage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const passwordHint = 'Minimo 8 caracteres, con mayuscula, minuscula y numero.';
+  const passwordHint = 'Mínimo 8 caracteres, con mayúscula, minúscula y número.';
 
   const isStrongPassword = useMemo(() => {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
@@ -27,146 +27,162 @@ export const ResetPasswordPage: React.FC = () => {
     setSuccess('');
 
     if (!token.trim()) {
-      setError('El token de recuperacion es obligatorio');
+      setError('El token de recuperación es obligatorio');
       return;
     }
 
     if (!isStrongPassword) {
-      setError('La contrasena no cumple los requisitos');
+      setError('La contraseña no cumple con los requisitos mínimos de seguridad');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Las contrasenas no coinciden');
+      setError('Las contraseñas no coinciden');
       return;
     }
 
     setLoading(true);
     try {
       await resetPassword(token.trim(), password);
-      setSuccess('Contrasena actualizada. Ya puedes iniciar sesion.');
-      setTimeout(() => navigate('/login'), 1200);
+      setSuccess('Contraseña actualizada con éxito. Redirigiendo...');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err: any) {
-      setError(err.message || 'No se pudo actualizar la contrasena');
+      setError(err.message || 'No se pudo actualizar la contraseña');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#f5f3ef]"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}>
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-      `}</style>
-
-      <div className="w-full max-w-md">
-        <div className="bg-white border border-[#d8d4cc] overflow-hidden" style={{ borderRadius: '4px' }}>
-          <div className="bg-[#1a1a2e] px-10 py-10 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-[#c8a96e] mb-4" style={{ borderRadius: '2px' }}>
-              <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24">
-                <path d="M17 8h-1V6a4 4 0 00-8 0v2H7a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2v-8a2 2 0 00-2-2zm-7-2a2 2 0 114 0v2h-4V6zm2 7a2 2 0 110 4 2 2 0 010-4z" />
-              </svg>
-            </div>
-            <h1 className="text-white text-2xl tracking-wide m-0" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Nueva contrasena
-            </h1>
-            <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1 mb-0">
-              Seguridad U-Ride
-            </p>
-            <div className="w-10 h-px bg-[#c8a96e] mx-auto mt-4" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-50 font-sans selection:bg-black selection:text-white">
+      <div className="w-full max-w-[420px] space-y-6">
+        
+        {/* Logo / Header */}
+        <div className="text-center space-y-2.5">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-black rounded-2xl shadow-lg border border-zinc-800 transition-transform duration-300 hover:scale-105">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 8h-1V6a4 4 0 00-8 0v2H7a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2v-8a2 2 0 00-2-2zm-7-2a2 2 0 114 0v2h-4V6zm2 7a2 2 0 110 4 2 2 0 010-4z" />
+            </svg>
           </div>
-
-          <div className="px-10 py-8">
-            <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-7">
-              Restablecer contrasena
-            </p>
-
-            {error && (
-              <div className="mb-5 px-4 py-3 bg-[#fdf2f2] border-l-2 border-[#c0392b] text-[#c0392b] text-sm">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="mb-5 px-4 py-3 bg-[#f2f8ff] border-l-2 border-[#1a1a2e] text-[#1a1a2e] text-sm">
-                {success}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                  Token de recuperacion
-                </label>
-                <input
-                  type="text"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  placeholder="Pega tu token o usa el enlace"
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]"
-                  style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                  Nueva contrasena
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={passwordHint}
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]"
-                  style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" }}
-                />
-                <p className="text-[#888] text-xs mt-2">{passwordHint}</p>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                  Confirmar contrasena
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repite la nueva contrasena"
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]"
-                  style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-[#1a1a2e] text-white text-xs font-medium tracking-widest uppercase transition-colors duration-200 hover:bg-[#2d2d4e] disabled:opacity-50 mt-2"
-                style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif", border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}
-              >
-                {loading ? 'Actualizando...' : 'Actualizar contrasena'}
-              </button>
-            </form>
-          </div>
-
-          <div className="px-10 py-5 border-t border-[#e8e4dc] bg-[#fafaf8] text-center">
-            <span className="text-[#888] text-sm">¿Ya tienes cuenta? </span>
-            <Link
-              to="/login"
-              className="text-[#c8a96e] font-medium text-sm hover:underline"
-            >
-              Inicia sesion
-            </Link>
-          </div>
+          <h1 className="text-3xl font-black text-black tracking-tight mt-3">
+            Nueva contraseña
+          </h1>
+          <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">
+            Seguridad U-Ride
+          </p>
         </div>
+
+        {/* Card */}
+        <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-xl p-8 space-y-6">
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-extrabold text-black">
+              Restablecer credenciales
+            </h2>
+            <p className="text-xs text-zinc-400 font-medium">
+              Completa los campos a continuación para configurar tu nueva contraseña de acceso.
+            </p>
+          </div>
+
+          {error && (
+            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 border border-red-100/60 animate-fade-in">
+              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span className="font-semibold leading-relaxed">{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-zinc-50 text-black border border-zinc-200/80 animate-fade-in">
+              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <span className="font-semibold leading-relaxed">{success}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                Token de recuperación
+              </label>
+              <input
+                type="text"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Pega el token recibido o usa el enlace"
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black font-mono"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                Nueva contraseña
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 8 caracteres"
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+              />
+              <p className="text-[10px] font-medium text-zinc-400">
+                {passwordHint}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                Confirmar contraseña
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repite la nueva contraseña"
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-zinc-800 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-md shadow-black/10 mt-2"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Actualizando...</span>
+                </>
+              ) : (
+                'Restablecer contraseña'
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Footer links */}
+        <div className="text-center text-xs font-semibold">
+          <span className="text-zinc-400">¿Ya tienes una cuenta? </span>
+          <Link to="/login" className="text-black hover:underline underline-offset-4 decoration-2">
+            Inicia sesión
+          </Link>
+        </div>
+
       </div>
     </div>
   );
 };
+

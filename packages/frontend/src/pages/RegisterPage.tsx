@@ -68,201 +68,207 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
-  const inputClass =
-    'w-full px-4 py-3 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]';
-  const inputStyle = { borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" };
-
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-6 bg-[#f5f3ef]"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-      `}</style>
-
-      <div className="w-full max-w-md">
-        <div className="bg-white border border-[#d8d4cc] overflow-hidden" style={{ borderRadius: '4px' }}>
-          <div className="bg-[#1a1a2e] px-10 py-10 text-center">
-            <div
-              className="inline-flex items-center justify-center w-12 h-12 bg-[#c8a96e] mb-4"
-              style={{ borderRadius: '2px' }}
-            >
-              <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24">
-                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
-              </svg>
-            </div>
-            <h1
-              className="text-white text-2xl tracking-wide m-0"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              {step === 'register' ? 'Crear cuenta' : 'Verificar email'}
-            </h1>
-            <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1 mb-0">
-              Únete a la comunidad U-Ride
-            </p>
-            <div className="w-10 h-px bg-[#c8a96e] mx-auto mt-4" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-50 font-sans selection:bg-black selection:text-white">
+      <div className="w-full max-w-[420px] space-y-6">
+        
+        {/* Logo / Header */}
+        <div className="text-center space-y-2.5">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-black rounded-2xl shadow-lg border border-zinc-800 transition-transform duration-300 hover:scale-105">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+            </svg>
           </div>
-
-          <div className="px-10 py-8">
-            <div className="flex gap-1.5 mb-7">
-              <div
-                className="flex-1 h-0.5 transition-colors duration-300"
-                style={{ background: '#c8a96e', borderRadius: '1px' }}
-              />
-              <div
-                className="flex-1 h-0.5 transition-colors duration-300"
-                style={{ background: step === 'verify' ? '#c8a96e' : '#e8e4dc', borderRadius: '1px' }}
-              />
-            </div>
-
-            <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-6">
-              {step === 'register' ? 'Datos de registro' : 'Código de verificación'}
-            </p>
-
-            {error && (
-              <div className="mb-5 px-4 py-3 bg-[#fdf2f2] border-l-2 border-[#c0392b] text-[#c0392b] text-sm">
-                {error}
-              </div>
-            )}
-
-            {hint && (
-              <div className="mb-5 px-4 py-3 bg-[#fdf8f0] border-l-2 border-[#c8a96e] text-[#8a6a2e] text-sm">
-                {hint}
-              </div>
-            )}
-
-            {step === 'register' ? (
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                    Nombre completo
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Juan Pérez"
-                    required
-                    disabled={loading}
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                    Email institucional
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tu.email@uta.edu.ec"
-                    pattern="^[a-z0-9._%+-]+@uta\.edu\.ec$"
-                    title="Ingresa un correo institucional @uta.edu.ec"
-                    required
-                    disabled={loading}
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                    Contraseña
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Mínimo 8 caracteres"
-                    required
-                    disabled={loading}
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                  <p className="text-[#888] text-xs mt-2">Mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                    Confirmar contraseña
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repite tu contraseña"
-                    required
-                    disabled={loading}
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-[#1a1a2e] text-white text-xs font-medium tracking-widest uppercase transition-colors duration-200 hover:bg-[#2d2d4e] disabled:opacity-50 mt-2"
-                  style={{
-                    borderRadius: '2px',
-                    fontFamily: "'DM Sans', sans-serif",
-                    border: 'none',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {loading ? 'Registrando...' : 'Crear cuenta'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerify} className="space-y-4">
-                <p className="text-[#888] text-sm mb-2 leading-relaxed">
-                  Hemos enviado un código de verificación a{' '}
-                  <span className="text-[#c8a96e] font-medium">{email}</span>
-                </p>
-                {expiresInMinutes && (
-                  <p className="text-[#888] text-xs mb-3">El código expira en {expiresInMinutes} minutos.</p>
-                )}
-                <div>
-                  <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                    Código de verificación
-                  </label>
-                  <input
-                    type="text"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="000000"
-                    maxLength={6}
-                    required
-                    disabled={loading}
-                    className={`${inputClass} text-center text-2xl tracking-[0.5em] font-mono`}
-                    style={inputStyle}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-[#1a1a2e] text-white text-xs font-medium tracking-widest uppercase transition-colors duration-200 hover:bg-[#2d2d4e] disabled:opacity-50 mt-2"
-                  style={{
-                    borderRadius: '2px',
-                    fontFamily: "'DM Sans', sans-serif",
-                    border: 'none',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {loading ? 'Verificando...' : 'Verificar email'}
-                </button>
-              </form>
-            )}
-
-            <div className="mt-6 text-center">
-              <span className="text-[#888] text-sm">¿Ya tienes cuenta? </span>
-              <Link to="/login" className="text-[#c8a96e] font-medium text-sm hover:underline">
-                Inicia sesión
-              </Link>
-            </div>
-          </div>
-
-          <div className="px-10 py-5 border-t border-[#e8e4dc] bg-[#fafaf8]" />
+          <h1 className="text-3xl font-black text-black tracking-tight mt-3">
+            {step === 'register' ? 'Crear cuenta' : 'Verificar cuenta'}
+          </h1>
+          <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">
+            Únete a la comunidad U-Ride
+          </p>
         </div>
+
+        {/* Card */}
+        <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-xl p-8 space-y-6">
+          
+          {/* Progress Indicators */}
+          <div className="flex gap-2">
+            <div className="flex-1 h-1 rounded-full bg-black transition-all duration-350" />
+            <div className={`flex-1 h-1 rounded-full transition-all duration-350 ${step === 'verify' ? 'bg-black' : 'bg-zinc-100'}`} />
+          </div>
+
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-extrabold text-black">
+              {step === 'register' ? 'Datos de registro' : 'Código de verificación'}
+            </h2>
+            <p className="text-xs text-zinc-400 font-medium">
+              {step === 'register' ? 'Completa los campos para crear tu cuenta institucional.' : 'Ingresa el código enviado a tu correo institucional.'}
+            </p>
+          </div>
+
+          {error && (
+            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 border border-red-100/60 animate-fade-in">
+              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span className="font-semibold leading-relaxed">{error}</span>
+            </div>
+          )}
+
+          {hint && (
+            <div className="p-3.5 text-xs rounded-xl bg-amber-50 text-amber-800 border border-amber-100/60 break-all font-mono leading-relaxed space-y-1 animate-fade-in">
+              <div className="font-bold text-[10px] uppercase tracking-wider text-amber-900">Entorno Desarrollo:</div>
+              <div>{hint}</div>
+            </div>
+          )}
+
+          {step === 'register' ? (
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Nombre completo
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Juan Pérez"
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Email institucional
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@uta.edu.ec"
+                  pattern="^[a-z0-9._%+-]+@uta\.edu\.ec$"
+                  title="Ingresa un correo institucional @uta.edu.ec"
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+                />
+                <p className="text-[10px] font-medium text-zinc-400">
+                  Debe incluir al menos una mayúscula, una minúscula y un número.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Confirmar contraseña
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repite tu contraseña"
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-zinc-800 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-md shadow-black/10 mt-2"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>Registrando...</span>
+                  </>
+                ) : (
+                  'Crear cuenta'
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerify} className="space-y-4">
+              <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl space-y-1">
+                <p className="text-xs text-zinc-500 font-medium">
+                  Enviamos un código de verificación de 6 dígitos a:
+                </p>
+                <p className="text-sm font-extrabold text-black">{email}</p>
+                {expiresInMinutes && (
+                  <p className="text-[10px] font-bold text-zinc-400 mt-1 uppercase tracking-wider">
+                    Expira en {expiresInMinutes} minutos
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-center">
+                  Código de verificación
+                </label>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="000000"
+                  maxLength={6}
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-4 bg-zinc-50 border border-zinc-200 rounded-xl text-2xl font-mono text-center tracking-[0.5em] text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-zinc-800 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-md shadow-black/10"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>Verificando...</span>
+                  </>
+                ) : (
+                  'Verificar email'
+                )}
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* Footer links */}
+        <div className="text-center text-xs font-semibold">
+          <span className="text-zinc-400">¿Ya tienes una cuenta? </span>
+          <Link to="/login" className="text-black hover:underline underline-offset-4 decoration-2">
+            Inicia sesión
+          </Link>
+        </div>
+
       </div>
     </div>
   );
 };
+

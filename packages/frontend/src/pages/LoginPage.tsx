@@ -15,7 +15,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await login(email, password);
+      await login(email.trim().toLowerCase(), password);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
@@ -25,126 +25,119 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#f5f3ef]"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-50 font-sans selection:bg-black selection:text-white">
+      <div className="w-full max-w-[420px] space-y-6">
+        
+        {/* Logo / Header */}
+        <div className="text-center space-y-2.5">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-black rounded-2xl shadow-lg border border-zinc-800 transition-transform duration-300 hover:scale-105">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z" />
+              <circle cx="7" cy="17" r="1" fill="white" />
+              <circle cx="17" cy="17" r="1" fill="white" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-black text-black tracking-tight mt-3">
+            U-Ride
+          </h1>
+          <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">
+            Transporte Universitario
+          </p>
+        </div>
 
-      {/* Google Fonts */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-      `}</style>
-
-      <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white border border-[#d8d4cc] overflow-hidden" style={{ borderRadius: '4px' }}>
-
-          {/* Header */}
-          <div className="bg-[#1a1a2e] px-10 py-10 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-[#c8a96e] mb-4" style={{ borderRadius: '2px' }}>
-              <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24">
-                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-              </svg>
-            </div>
-            <h1 className="text-white text-2xl tracking-wide m-0" style={{ fontFamily: "'Playfair Display', serif" }}>
-              U-Ride
-            </h1>
-            <p className="text-[#8a8fa8] text-xs tracking-widest uppercase mt-1 mb-0">
-              Transporte seguro para estudiantes
+        <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-xl p-8 space-y-6">
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-extrabold text-black">
+              Ingresar
+            </h2>
+            <p className="text-xs text-zinc-400 font-medium">
+              Accede usando tus credenciales institucionales de la UTA.
             </p>
-            <div className="w-10 h-px bg-[#c8a96e] mx-auto mt-4" />
           </div>
 
-          {/* Body */}
-          <div className="px-10 py-8">
-            <p className="text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-7">
-              Acceso institucional
-            </p>
+          {error && (
+            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 border border-red-100/60 animate-fade-in">
+              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span className="font-semibold leading-relaxed">{error}</span>
+            </div>
+          )}
 
-            {error && (
-              <div className="mb-5 px-4 py-3 bg-[#fdf2f2] border-l-2 border-[#c0392b] text-[#c0392b] text-sm">
-                {error}
-              </div>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                Email institucional
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="usuario@uta.edu.ec"
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+              />
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
-                  Email institucional
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu.email@institucion.edu"
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]"
-                  style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#6b6b6b] tracking-widest uppercase mb-2">
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Contraseña
                 </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  disabled={loading}
-                  className="w-full px-4 py-3 border border-[#ccc] text-[#1a1a2e] text-sm bg-[#fafaf8] outline-none transition-colors duration-200 focus:border-[#1a1a2e] focus:bg-white placeholder-[#bbb]"
-                  style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif" }}
-                />
               </div>
-
-              <button
-                type="submit"
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
                 disabled={loading}
-                className="w-full py-3 bg-[#1a1a2e] text-white text-xs font-medium tracking-widest uppercase transition-colors duration-200 hover:bg-[#2d2d4e] disabled:opacity-50 mt-2"
-                style={{ borderRadius: '2px', fontFamily: "'DM Sans', sans-serif", border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Ingresando...
-                  </span>
-                ) : (
-                  'Iniciar sesión'
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Footer */}
-          <div className="px-10 py-5 border-t border-[#e8e4dc] bg-[#fafaf8] text-center">
-            <div className="flex flex-col gap-2 text-sm">
-              <div>
-                <span className="text-[#888]">¿Olvidaste tu contraseña? </span>
-                <Link
-                  to="/forgot-password"
-                  className="text-[#c8a96e] font-medium hover:underline"
-                >
-                  Recuperar
-                </Link>
-              </div>
-              <div>
-                <span className="text-[#888]">¿No tienes cuenta? </span>
-                <Link
-                  to="/register"
-                  className="text-[#c8a96e] font-medium hover:underline"
-                >
-                  Regístrate aquí
-                </Link>
-              </div>
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black"
+              />
             </div>
-          </div>
 
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-zinc-800 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 shadow-md shadow-black/10"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Ingresando...</span>
+                </>
+              ) : (
+                'Iniciar sesión'
+              )}
+            </button>
+          </form>
         </div>
+
+        {/* Footer links */}
+        <div className="flex flex-col gap-2.5 text-center text-xs font-semibold">
+          <div>
+            <span className="text-zinc-400">¿Olvidaste tu contraseña? </span>
+            <Link to="/forgot-password" className="text-black hover:underline underline-offset-4 decoration-2">
+              Recuperar acceso
+            </Link>
+          </div>
+          <div>
+            <span className="text-zinc-400">¿No tienes una cuenta? </span>
+            <Link to="/register" className="text-black hover:underline underline-offset-4 decoration-2">
+              Regístrate aquí
+            </Link>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 };
+
