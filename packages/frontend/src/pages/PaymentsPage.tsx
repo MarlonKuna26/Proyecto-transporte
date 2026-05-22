@@ -2,10 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import type { Payment, PaymentSummary } from '@/types';
+import {
+  Wallet,
+  ArrowDownLeft,
+  Clock3,
+  BadgeCheck,
+} from 'lucide-react';
 
 export const PaymentsPage: React.FC = () => {
   const { user } = useAuth();
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'COMPLETED' | 'REFUNDED' | 'FAILED'>('ALL');
   const [sentPayments, setSentPayments] = useState<Payment[]>([]);
   const [receivedPayments, setReceivedPayments] = useState<Payment[]>([]);
   const [summary, setSummary] = useState<PaymentSummary | null>(null);
@@ -76,11 +83,33 @@ export const PaymentsPage: React.FC = () => {
   };
 
   const summaryCards = summary ? [
-    { label: 'Total pagado',      value: `$${Number(summary.sent.monto_total).toLocaleString()}`,                                         icon: <ArrowUpIcon />,    color: 'text-uber-green bg-green-50' },
-    { label: 'Total recibido',    value: `$${Number(summary.received.monto_total).toLocaleString()}`,                                     icon: <ArrowDownIcon />,  color: 'text-black bg-uber-gray-50' },
-    { label: 'Pagos pendientes',  value: String(summary.sent.pendientes),                                                                 icon: <ClockIcon />,      color: 'text-amber-500 bg-amber-50' },
-    { label: 'Pagos completados', value: String(Number(summary.sent.completados) + Number(summary.received.completados)),                 icon: <CheckIcon />,      color: 'text-black bg-uber-gray-50' },
-  ] : [];
+{
+    label: 'Total pagado',
+    value: `$${Number(summary.sent.monto_total).toLocaleString()}`,
+    icon: <Wallet size={20} strokeWidth={2.5} />,
+    color: 'bg-green-50 text-emerald-600',
+  },
+       {
+    label: 'Total recibido',
+    value: `$${Number(summary.received.monto_total).toLocaleString()}`,
+    icon: <ArrowDownLeft size={20} strokeWidth={2.5} />,
+    color: 'bg-blue-50 text-blue-600',
+  },
+  {
+    label: 'Pagos pendientes',
+    value: String(summary.sent.pendientes),
+    icon: <Clock3 size={20} strokeWidth={2.5} />,
+    color: 'bg-amber-50 text-amber-600',
+  },
+  {
+    label: 'Pagos completados',
+    value: String(
+      Number(summary.sent.completados) +
+      Number(summary.received.completados)
+    ),
+    icon: <BadgeCheck size={20} strokeWidth={2.5} />,
+    color: 'bg-purple-50 text-purple-600',
+  },] : [];
 
   if (loading) return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-4" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -93,7 +122,12 @@ export const PaymentsPage: React.FC = () => {
     </div>
   );
 
-  const payments = tab === 'sent' ? sentPayments : receivedPayments;
+  const allPayments = tab === 'sent' ? sentPayments : receivedPayments;
+
+const payments =
+  statusFilter === 'ALL'
+    ? allPayments
+    : allPayments.filter(p => p.estado === statusFilter);
   const currentConfirmPayment = payments.find(p => p.id === confirmPaymentId);
   const currentRefundPayment = payments.find(p => p.id === refundPaymentId);
 
@@ -138,9 +172,12 @@ export const PaymentsPage: React.FC = () => {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
           {summaryCards.map((c, i) => (
-            <div key={i} className="bg-white border border-uber-gray-100 rounded-2xl p-5 shadow-uber-sm">
-              <div className={`w-10 h-10 flex items-center justify-center mb-3 rounded-xl ${c.color}`}>
-                {c.icon}
+<div
+  key={i}
+  className="bg-white border border-uber-gray-100 rounded-3xl p-5 shadow-uber-sm hover:shadow-uber-md transition-all duration-300 hover:-translate-y-1"
+><div
+  className={`w-12 h-12 flex items-center justify-center mb-4 rounded-2xl ${c.color}`}
+>                {c.icon}
               </div>
               <p className="text-black text-2xl font-black tracking-tight">{c.value}</p>
               <p className="text-uber-gray-500 text-xs mt-1 font-semibold">{c.label}</p>
@@ -174,7 +211,33 @@ export const PaymentsPage: React.FC = () => {
           )}
         </button>
       </div>
+{/* ═══ STATUS FILTERS ═══ */}
+<div className="flex gap-2 overflow-x-auto pb-1 animate-fade-in">
+  {[
+    { key: 'ALL', label: 'Todos' },
+    { key: 'PENDING', label: 'Pendientes' },
+    { key: 'COMPLETED', label: 'Completados' },
+    { key: 'REFUNDED', label: 'Reembolsados' },
+    { key: 'FAILED', label: 'Fallidos' },
+  ].map(filter => {
+    const active = statusFilter === filter.key;
 
+    return (
+      <button
+        key={filter.key}
+        onClick={() => setStatusFilter(filter.key as any)}
+        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer
+          ${
+            active
+              ? 'bg-black text-white border-black shadow-sm'
+              : 'bg-white text-uber-gray-500 border-uber-gray-200 hover:border-black hover:text-black'
+          }`}
+      >
+        {filter.label}
+      </button>
+    );
+  })}
+</div>
       {/* ═══ PAYMENTS LIST ═══ */}
       {payments.length === 0 ? (
         <div className="bg-white border border-uber-gray-100 rounded-3xl p-12 text-center max-w-xl mx-auto my-6 animate-fade-in">

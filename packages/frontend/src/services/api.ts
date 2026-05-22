@@ -80,7 +80,9 @@ export const api = {
     create: (data: any) =>
       request<any>('/ride-requests', { method: 'POST', body: JSON.stringify(data) }),
     myRequests: () => request<any>('/ride-requests/my-requests'),
-    byRide: (rideId: string) => request<any>(`/ride-requests/ride/${rideId}`),
+    //byRide: (rideId: string) => request<any>(`/ride-requests/ride/${rideId}`),
+    // donde tienes rideRequests:
+passengers: (rideId: string) => request<any>(`/ride-requests/ride/${rideId}/passengers`),
     accept: (id: string) =>
       request<any>(`/ride-requests/${id}/accept`, { method: 'PUT' }),
     reject: (id: string, data?: { rejectReason: string }) =>

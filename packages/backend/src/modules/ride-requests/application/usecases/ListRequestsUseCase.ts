@@ -8,6 +8,7 @@ interface ListRequestsInput {
   rideId?: string;
   passengerId?: string;
   driverId?: string;
+  onlyAccepted?: boolean; // ← agregar esto
 }
 
 export class ListRequestsUseCase implements IUseCase<ListRequestsInput, RideRequest[]> {
@@ -19,21 +20,21 @@ export class ListRequestsUseCase implements IUseCase<ListRequestsInput, RideRequ
 
   async execute(input: ListRequestsInput): Promise<RideRequest[]> {
 
-    // Solicitudes de un viaje (solo conductor dueño)
-    if (input.rideId) {
-
+    // NUEVO: pasajeros aceptados públicos (sin validar driverId)
+    if (input.rideId && input.onlyAccepted) {
       const ride = await this.rideRepo.findById(input.rideId);
+      if (!ride) throw new NotFoundError('Ride not found');
+      const all = await this.requestRepo.findByRideId(input.rideId);
+      return all.filter(r => r.status === 'ACCEPTED');
+    }
 
-      if (!ride) {
-        throw new NotFoundError('Ride not found');
-      }
-
+    // Solicitudes de un viaje (solo conductor dueño) — igual que antes
+    if (input.rideId) {
+      const ride = await this.rideRepo.findById(input.rideId);
+      if (!ride) throw new NotFoundError('Ride not found');
       if (ride.driverId !== input.driverId) {
-        throw new AuthorizationError(
-          'You are not authorized to view these requests'
-        );
+        throw new AuthorizationError('You are not authorized to view these requests');
       }
-
       return this.requestRepo.findByRideId(input.rideId);
     }
 

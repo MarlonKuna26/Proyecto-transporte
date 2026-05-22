@@ -89,6 +89,17 @@ export class RideRequestController {
     }
   }
 
+    async getAcceptedPassengers(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await this.listRequestsUseCase.execute({
+      rideId: req.params.rideId,
+      onlyAccepted: true,  // solo ACCEPTED, sin validar driverId
+    });
+    res.status(200).json({ success: true, data: result });
+  } catch (error: unknown) {
+    this.handleError(error, res, 'get_accepted_passengers');
+  }
+}
   private handleError(error: unknown, res: Response, context: string): void {
     if (error instanceof AppError) {
       this.logger.warn(`${context} failed: ${error.message}`, 'RIDE_REQUEST_CONTROLLER');
@@ -100,4 +111,6 @@ export class RideRequestController {
       res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
+
+
 }

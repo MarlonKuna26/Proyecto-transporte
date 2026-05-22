@@ -85,40 +85,43 @@ export const RidesPage: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    const fetchAccepted = async () => {
-      if (!viewRide) {
-        setAcceptedUsers([]);
-        setDriverProfile(null);
-        return;
-      }
-      setLoadingAccepted(true);
-      setLoadingDriver(true);
-      try {
-        const res = await api.rideRequests.byRide(viewRide.id);
-        const accepted: RideRequest[] = (res.data || []).filter((r: RideRequest) => r.status === 'ACCEPTED');
-        const profiles: UserProfile[] = [];
-        for (const req of accepted) {
-          try {
-            const userRes = await api.users.getProfile(req.passengerId);
-            if (userRes.data) profiles.push(userRes.data);
-          } catch {}
-        }
-        setAcceptedUsers(profiles);
-      } catch { setAcceptedUsers([]); }
-      setLoadingAccepted(false);
+  const fetchAccepted = async () => {
+    if (!viewRide) {
+      setAcceptedUsers([]);
+      setDriverProfile(null);
+      return;
+    }
+    setLoadingDriver(true);
+    setLoadingAccepted(true);
 
-      try {
-        const resDriver = await api.users.getProfile(viewRide.driverId);
-        if (resDriver && resDriver.data) {
-          setDriverProfile(resDriver.data);
-        }
-      } catch {
-        setDriverProfile(null);
+    // Cargar pasajeros aceptados (endpoint público)
+    try {
+      const res = await api.rideRequests.passengers(viewRide.id);
+      const accepted: RideRequest[] = res.data || [];
+      const profiles: UserProfile[] = [];
+      for (const req of accepted) {
+        try {
+          const userRes = await api.users.getProfile(req.passengerId);
+          if (userRes.data) profiles.push(userRes.data);
+        } catch {}
       }
-      setLoadingDriver(false);
-    };
-    fetchAccepted();
-  }, [viewRide]);
+      setAcceptedUsers(profiles);
+    } catch {
+      setAcceptedUsers([]);
+    }
+    setLoadingAccepted(false);
+
+    // Cargar perfil del conductor
+    try {
+      const resDriver = await api.users.getProfile(viewRide.driverId);
+      if (resDriver?.data) setDriverProfile(resDriver.data);
+    } catch {
+      setDriverProfile(null);
+    }
+    setLoadingDriver(false);
+  };
+  fetchAccepted();
+}, [viewRide]);
 
   /* ===== CREATE ===== */
   const handleCreate = async (e: FormEvent) => {
