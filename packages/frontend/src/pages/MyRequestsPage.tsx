@@ -43,13 +43,17 @@ export const MyRequestsPage: React.FC = () => {
   const [givenRatings, setGivenRatings] = useState<any[]>([]);
   const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
 
+  // State for Payment Modal
+  const [paymentRide, setPaymentRide] = useState<Ride | null>(null);
+
   const hasAlreadyRated = (rideId: string) => {
     return givenRatings.some(r => r.rideId === rideId);
   };
 
   useEffect(() => {
-    if (ratingRide) {
-      api.users.getProfile(ratingRide.driverId)
+    const activeRide = ratingRide || paymentRide;
+    if (activeRide) {
+      api.users.getProfile(activeRide.driverId)
         .then(res => {
           if (res.data) {
             setDriverProfile(res.data);
@@ -61,7 +65,7 @@ export const MyRequestsPage: React.FC = () => {
     } else {
       setDriverProfile(null);
     }
-  }, [ratingRide]);
+  }, [ratingRide, paymentRide]);
 
   useEffect(() => {
     const load = async () => {
@@ -444,6 +448,17 @@ export const MyRequestsPage: React.FC = () => {
                       </button>
                     )}
 
+                    {/* VER PAGO */}
+                    {req.status === 'ACCEPTED' && paymentInfo && paymentInfo.method.toLowerCase() === 'transferencia' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && (
+                      <button
+                        onClick={() => setPaymentRide(ride)}
+                        className="px-4 py-2.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        Ver datos de pago
+                      </button>
+                    )}
+
                     {/* CALIFICAR VIAJE */}
                     {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && !hasAlreadyRated(ride.id) && (
                       <button
@@ -687,6 +702,108 @@ export const MyRequestsPage: React.FC = () => {
                 </button>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ═══ PAYMENT MODAL ═══ */}
+      {paymentRide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile">
+            
+            <div className="bg-black text-white px-6 py-5 flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-lg font-bold">Datos para pago</h3>
+                <p className="text-xs text-uber-gray-400 mt-0.5">
+                  Realiza la transferencia al conductor
+                </p>
+              </div>
+              <button 
+                onClick={() => setPaymentRide(null)}
+                className="text-white hover:text-uber-gray-300 transition-colors bg-transparent border-none cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="space-y-3.5 p-4 bg-uber-gray-50 border border-uber-gray-100 rounded-2xl">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  {/* SVG Mock QR Code */}
+                  <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0">
+                    <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
+                      <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
+                      <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
+                      <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
+                      <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
+                      
+                      <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
+                      
+                      <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
+                      
+                      <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
+
+                      <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
+                      <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
+                      <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
+                      <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
+                      
+                      <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
+                      <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
+                      <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
+                      
+                      <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
+                      <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
+                      <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
+                      <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
+                      <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
+                      
+                      <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
+                      <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
+                      <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
+                      <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
+                      <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
+                      
+                      <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
+                      <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
+                      <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
+                      
+                      <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
+                      <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
+                      <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
+                      <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
+                      
+                      <rect x="42" y="42" width="16" height="16" fill="white"/>
+                      <rect x="45" y="45" width="10" height="10" fill="black"/>
+                      <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
+                    </svg>
+                  </div>
+
+                  <div className="text-xs text-uber-gray-700 space-y-1.5 min-w-0 flex-1">
+                    <p className="font-extrabold text-black">Banco Pichincha (Ahorros)</p>
+                    <p className="font-semibold text-black">Nro: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-uber-gray-200 select-all font-bold">2200123456</span></p>
+                    <p className="font-medium truncate">Titular: {driverProfile?.name || 'Conductor del Viaje'}</p>
+                    <p className="text-[10px] text-uber-gray-400">
+                      Escanea el QR o transfiere a la cuenta mostrada.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-uber-gray-100">
+                <button
+                  onClick={() => setPaymentRide(null)}
+                  className="w-full py-3 text-sm font-bold bg-black text-white rounded-xl cursor-pointer border-none"
+                >
+                  Entendido
+                </button>
+              </div>
             </div>
           </div>
         </div>

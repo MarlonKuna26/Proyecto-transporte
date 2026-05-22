@@ -684,7 +684,7 @@ export const RidesPage: React.FC = () => {
                               <div>
                                 <h4 className="text-sm font-bold leading-tight">Efectivo</h4>
                                 <p className={`text-[10px] mt-1 ${paymentMethod === 'efectivo' ? 'text-uber-gray-300' : 'text-uber-gray-500'}`}>
-                                  Coordina directamente
+                                  Paga al conductor
                                 </p>
                               </div>
                             </button>
@@ -708,7 +708,7 @@ export const RidesPage: React.FC = () => {
                               <div>
                                 <h4 className="text-sm font-bold leading-tight">Transferencia</h4>
                                 <p className={`text-[10px] mt-1 ${paymentMethod === 'transferencia' ? 'text-uber-gray-300' : 'text-uber-gray-500'}`}>
-                                  Paga con código QR
+                                  Paga cuando te acepten
                                 </p>
                               </div>
                             </button>
@@ -719,95 +719,15 @@ export const RidesPage: React.FC = () => {
                             <div className="p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">💡</span>
                               <p className="text-xs text-emerald-800 leading-relaxed font-medium">
-                                Coordina con el conductor para realizar el pago en efectivo al subir al vehículo.
+                                Has elegido pagar en efectivo. Podrás coordinar el pago al subir al vehículo una vez que el conductor acepte tu solicitud.
                               </p>
                             </div>
                           ) : (
-                            <div className="space-y-3.5 p-4 bg-uber-gray-50 border border-uber-gray-100 rounded-2xl">
-                              <div className="flex flex-col sm:flex-row items-center gap-4">
-                                {/* SVG Mock QR Code */}
-                                <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0">
-                                  <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
-                                    {/* QR Corners */}
-                                    <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
-                                    <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
-                                    {/* Top-Right Corner */}
-                                    <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
-                                    {/* Bottom-Right Corner */}
-                                    <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
-                                    
-                                    {/* Inner square borders */}
-                                    <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                                    <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
-                                    
-                                    <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                                    <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
-                                    
-                                    <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                                    <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
-
-                                    {/* Random simulated QR modules */}
-                                    <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
-                                    <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
-                                    <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
-                                    <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
-                                    
-                                    <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
-                                    <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
-                                    <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
-                                    
-                                    <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
-                                    <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
-                                    <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
-                                    <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
-                                    <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
-                                    
-                                    <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
-                                    <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
-                                    <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
-                                    <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
-                                    <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
-                                    
-                                    <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
-                                    <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
-                                    <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
-                                    
-                                    <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
-                                    <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
-                                    <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
-                                    <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
-                                    
-                                    {/* Mini decorative UTA/transp logo box in center */}
-                                    <rect x="42" y="42" width="16" height="16" fill="white"/>
-                                    <rect x="45" y="45" width="10" height="10" fill="black"/>
-                                    <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
-                                  </svg>
-                                </div>
-
-                                {/* Bank transfer instructions */}
-                                <div className="text-xs text-uber-gray-700 space-y-1.5 min-w-0 flex-1">
-                                  <p className="font-extrabold text-black">Banco Pichincha (Ahorros)</p>
-                                  <p className="font-semibold text-black">Nro: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-uber-gray-200 select-all font-bold">2200123456</span></p>
-                                  <p className="font-medium truncate">Titular: {driverProfile?.name || 'Conductor del Viaje'}</p>
-                                  <p className="text-[10px] text-uber-gray-400">
-                                    Escanea el QR o transfiere y guarda el número de comprobante.
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Transaction reference input */}
-                              <div>
-                                <label className="block text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider mb-1.5 pl-1">
-                                  Comprobante / Referencia de Pago (opcional)
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="Ej: 19847293"
-                                  className="w-full px-4 py-3 bg-white rounded-xl text-sm text-black border border-uber-gray-200 outline-none focus:ring-2 focus:ring-black/10 focus:border-black placeholder-uber-gray-400"
-                                  value={transferRef}
-                                  onChange={e => setTransferRef(e.target.value)}
-                                />
-                              </div>
+                            <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-2.5">
+                              <span className="text-base shrink-0">ℹ️</span>
+                              <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                                Podrás ver los datos bancarios y el código QR del conductor en la sección "Mis solicitudes" cuando el conductor apruebe tu viaje.
+                              </p>
                             </div>
                           )}
 
