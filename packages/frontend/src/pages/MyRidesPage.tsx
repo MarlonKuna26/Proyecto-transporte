@@ -19,6 +19,22 @@ const findNearestZone = (lat: number, lng: number): string => {
   }
   return nearestZone;
 };
+const parseMessage = (msg: string | null) => {
+  if (!msg) return { cleanMessage: '', paymentInfo: null };
+  const regex = /\[Pago:\s*(Efectivo|Transferencia)(?:,\s*Ref:\s*([^\]]*))?\]/i;
+  const match = msg.match(regex);
+  if (match) {
+    const cleanMessage = msg.replace(regex, '').trim();
+    return {
+      cleanMessage,
+      paymentInfo: {
+        method: match[1],
+        reference: match[2] ? match[2].trim() : null
+      }
+    };
+  }
+  return { cleanMessage: msg, paymentInfo: null };
+};
 
 export const MyRidesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -47,6 +63,7 @@ export const MyRidesPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [requests, setRequests] = useState<Record<string, RideRequest[]>>({});
   const [viewRide, setViewRide] = useState<Ride | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PUBLISHED' | 'CANCELLED'>('ALL');
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<ToastMessage[]>([]);
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
@@ -280,8 +297,8 @@ export const MyRidesPage: React.FC = () => {
     setSearchParams({ create: 'true' });
   };
 
-  const loadRequests = async (rideId: string) => {
-    if (requests[rideId]) {
+  const loadRequests = async (rideId: string, forceReload = false) => {
+    if (requests[rideId] && !forceReload) {
       setRequests(prev => {
         const n = { ...prev };
         delete n[rideId];
@@ -300,7 +317,8 @@ export const MyRidesPage: React.FC = () => {
       try {
         await api.rideRequests.accept(requestId);
         addToast('Solicitud aceptada con éxito', 'success');
-        loadRequests(rideId);
+        await loadRequests(rideId, true);
+        await loadMyRides();
       } catch (err: any) {
         addToast(err.message, 'error');
       }
@@ -321,7 +339,8 @@ export const MyRidesPage: React.FC = () => {
     try {
       await api.rideRequests.reject(rejectReqId, { rejectReason: rejectReasonInput });
       addToast('Solicitud rechazada con éxito', 'success');
-      loadRequests(rejectRideId);
+      await loadRequests(rejectRideId, true);
+      await loadMyRides();
       setRejectReqId(null);
       setRejectRideId(null);
       setRejectReasonInput('');
@@ -376,6 +395,11 @@ export const MyRidesPage: React.FC = () => {
     REJECTED:  { bg: '#FDECEA', color: '#E11900', label: 'Rechazado' },
     CANCELLED: { bg: '#F6F6F6', color: '#545454', label: 'Cancelado' },
   };
+
+  const filteredRides = rides.filter(ride => {
+    if (statusFilter === 'ALL') return true;
+    return ride.status === statusFilter;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -809,6 +833,34 @@ export const MyRidesPage: React.FC = () => {
         </form>
       )}
 
+      {/* ═══ STATUS FILTERS ═══ */}
+      {!loading && rides.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 animate-fade-in">
+          {[
+            { key: 'ALL', label: 'Todos' },
+            { key: 'PUBLISHED', label: 'Disponibles' },
+            { key: 'CANCELLED', label: 'Cancelados' },
+          ].map(filter => {
+            const active = statusFilter === filter.key;
+            return (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={() => setStatusFilter(filter.key as any)}
+                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer
+                  ${
+                    active
+                      ? 'bg-black text-white border-black shadow-sm'
+                      : 'bg-white text-uber-gray-500 border-uber-gray-200 hover:border-black hover:text-black'
+                  }`}
+              >
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ═══ RIDES LIST SECTION ═══ */}
       {loading ? (
         /* Uber Skeleton loaders */
@@ -847,10 +899,25 @@ export const MyRidesPage: React.FC = () => {
             Publicar mi primer viaje
           </button>
         </div>
+      ) : filteredRides.length === 0 ? (
+        /* Filtered Empty State */
+        <div className="bg-white rounded-3xl p-12 text-center border border-uber-gray-100 shadow-uber-sm max-w-xl mx-auto my-6 animate-fade-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-uber-gray-50 flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CBCBCB" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-black mb-1">No hay viajes</h3>
+          <p className="text-sm text-uber-gray-500 max-w-xs mx-auto">
+            No tienes viajes con el estado seleccionado en este momento.
+          </p>
+        </div>
       ) : (
         /* Rides Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rides.map(ride => {
+          {filteredRides.map(ride => {
             const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
             const expanded = !!requests[ride.id];
             return (
@@ -993,12 +1060,13 @@ export const MyRidesPage: React.FC = () => {
                       <div className="space-y-2">
                         {requests[ride.id].map(req => {
                           const rs = reqStatusStyleMap[req.status] || reqStatusStyleMap.PENDING;
+                          const { cleanMessage, paymentInfo } = parseMessage(req.message);
                           return (
                             <div
                               key={req.id}
                               className="p-3 bg-uber-gray-50 rounded-xl border border-uber-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                             >
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span
                                     className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
@@ -1010,10 +1078,28 @@ export const MyRidesPage: React.FC = () => {
                                     {req.seatsRequested} asiento{req.seatsRequested > 1 ? 's' : ''} solicitado{req.seatsRequested > 1 ? 's' : ''}
                                   </span>
                                 </div>
-                                {req.message && (
+                                {cleanMessage && (
                                   <p className="text-xs text-uber-gray-600 bg-white px-3 py-2 rounded-lg border border-uber-gray-100 mt-2 italic">
-                                    "{req.message}"
+                                    "{cleanMessage}"
                                   </p>
+                                )}
+                                {paymentInfo && (
+                                  <div className="flex flex-wrap gap-1.5 mt-2">
+                                    <span
+                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                                        paymentInfo.method.toLowerCase() === 'efectivo'
+                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                          : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                      }`}
+                                    >
+                                      {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia'}
+                                    </span>
+                                    {paymentInfo.reference && paymentInfo.reference !== '-' && (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
+                                        Ref: {paymentInfo.reference}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
 

@@ -4,6 +4,24 @@ import type { RideRequest, Ride, UserProfile } from '@/types';
 import { Link } from 'react-router-dom';
 import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
+const parseMessage = (msg: string | null) => {
+  if (!msg) return { cleanMessage: '', paymentInfo: null };
+  const regex = /\[Pago:\s*(Efectivo|Transferencia)(?:,\s*Ref:\s*([^\]]*))?\]/i;
+  const match = msg.match(regex);
+  if (match) {
+    const cleanMessage = msg.replace(regex, '').trim();
+    return {
+      cleanMessage,
+      paymentInfo: {
+        method: match[1],
+        reference: match[2] ? match[2].trim() : null
+      }
+    };
+  }
+  return { cleanMessage: msg, paymentInfo: null };
+};
+
+
 export const MyRequestsPage: React.FC = () => {
   const [requests, setRequests] = useState<RideRequest[]>([]);
   const [ridesMap, setRidesMap] = useState<Record<string, Ride>>({});
@@ -302,6 +320,7 @@ export const MyRequestsPage: React.FC = () => {
 
             const cfg = statusConfig[req.status] || statusConfig.PENDING;
             const ride = ridesMap[req.rideId];
+            const { cleanMessage, paymentInfo } = parseMessage(req.message);
 
             return (
               <div
@@ -367,15 +386,35 @@ export const MyRequestsPage: React.FC = () => {
                     )}
 
                     {/* MESSAGE */}
-                    {req.message && (
+                    {cleanMessage && (
                       <div className="bg-uber-gray-50 border border-uber-gray-100 rounded-xl px-4 py-2.5 max-w-xl">
                         <span className="block text-[9px] text-uber-gray-400 font-bold uppercase tracking-wider mb-0.5">
                           Tu mensaje
                         </span>
 
                         <p className="text-xs text-uber-gray-700 font-medium leading-relaxed">
-                          "{req.message}"
+                          "{cleanMessage}"
                         </p>
+                      </div>
+                    )}
+
+                    {/* PAYMENT METHOD BADGES */}
+                    {paymentInfo && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                            paymentInfo.method.toLowerCase() === 'efectivo'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              : 'bg-blue-50 text-blue-700 border border-blue-100'
+                          }`}
+                        >
+                          {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia'}
+                        </span>
+                        {paymentInfo.reference && paymentInfo.reference !== '-' && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
+                            Ref: {paymentInfo.reference}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

@@ -24,6 +24,10 @@ export const RidesPage: React.FC = () => {
   const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
   const [loadingDriver, setLoadingDriver] = useState(false);
 
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia'>('efectivo');
+  const [transferRef, setTransferRef] = useState('');
+
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
   const [myRequests, setMyRequests] = useState<RideRequest[]>([]);
 
@@ -55,6 +59,10 @@ export const RidesPage: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
+    setShowPaymentStep(false);
+    setPaymentMethod('efectivo');
+    setTransferRef('');
+
     const fetchAccepted = async () => {
       if (!viewRide) {
         setAcceptedUsers([]);
@@ -100,7 +108,15 @@ export const RidesPage: React.FC = () => {
     }
 
     try {
-      await api.rideRequests.create({ rideId, message: requestMsg || null, seatsRequested: 1 });
+      let finalMsg = requestMsg;
+      if (paymentMethod === 'efectivo') {
+        finalMsg = `${requestMsg} [Pago: Efectivo]`.trim();
+      } else {
+        const ref = transferRef.trim() || '-';
+        finalMsg = `${requestMsg} [Pago: Transferencia, Ref: ${ref}]`.trim();
+      }
+
+      await api.rideRequests.create({ rideId, message: finalMsg || null, seatsRequested: 1 });
       addToast('¡Solicitud enviada con éxito!', 'success');
 
       if (user?.id) {
@@ -109,6 +125,8 @@ export const RidesPage: React.FC = () => {
 
       setViewRide(null);
       setRequestMsg('');
+      setShowPaymentStep(false);
+      setTransferRef('');
     } catch (err: any) {
       if (err.message && err.message.toLowerCase().includes('already have a pending or accepted')) {
         addToast('Ya tienes una solicitud pendiente o aceptada para este viaje.', 'error');
@@ -118,7 +136,22 @@ export const RidesPage: React.FC = () => {
     }
   };
 
-
+  const handleViewRide = async (ride: Ride) => {
+    setViewRide(ride);
+    try {
+      const res = await api.rides.getById(ride.id);
+      if (res.data) {
+        setViewRide(res.data);
+        setRides(prev => prev.map(r => r.id === ride.id ? res.data : r));
+      }
+    } catch {}
+    if (user?.id) {
+      try {
+        const reqRes = await api.rideRequests.myRequests();
+        setMyRequests(reqRes.data || []);
+      } catch {}
+    }
+  };
 
   const statusStyleMap: Record<string, { label: string; bg: string; color: string }> = {
     PUBLISHED:   { label: 'Disponible', bg: '#E6F4EA', color: '#06C167' },
@@ -296,7 +329,7 @@ export const RidesPage: React.FC = () => {
             return (
               <div
                 key={ride.id}
-                onClick={() => setViewRide(ride)}
+                onClick={() => handleViewRide(ride)}
                 className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 cursor-pointer flex flex-col group relative animate-fade-in"
               >
                 {/* Top line: Route with dot indicators */}
@@ -599,14 +632,202 @@ export const RidesPage: React.FC = () => {
 
               {/* Modal footer (Actions) */}
               <div className="p-6 border-t border-uber-gray-100 bg-uber-gray-50 shrink-0">
-                {/* Solicitar unirse form */}
+                {/* Solicitar unirme form */}
                 {viewRide.driverId !== user?.id && viewRide.status === 'PUBLISHED' ? (
                   (() => {
-                    const alreadyRequested = myRequests.some(r => r.rideId === viewRide.id && (r.status === 'PENDING' || r.status === 'ACCEPTED'));
-                    if (alreadyRequested) {
+                    const acceptedRequest = myRequests.find(r => r.rideId === viewRide.id && r.status === 'ACCEPTED');
+                    const pendingRequest = myRequests.find(r => r.rideId === viewRide.id && r.status === 'PENDING');
+                    if (acceptedRequest) {
+                      return (
+                        <div className="text-center p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-xl uppercase tracking-wider shadow-xs flex items-center justify-center gap-2">
+                          <span className="text-sm">✓</span> Ya está aceptado
+                        </div>
+                      );
+                    }
+                    if (pendingRequest) {
                       return (
                         <div className="text-center p-3.5 bg-green-50 border border-green-200 text-uber-green text-xs font-bold rounded-xl uppercase tracking-wider shadow-xs">
                           Ya has enviado una solicitud para este viaje
+                        </div>
+                      );
+                    }
+                    if (showPaymentStep) {
+                      return (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-uber-gray-500 uppercase tracking-wider">
+                              Método de Pago
+                            </span>
+                            <span className="text-xs font-bold text-black bg-uber-gray-100 px-2 py-0.5 rounded">
+                              Paso 2 de 2
+                            </span>
+                          </div>
+
+                          {/* Options grid */}
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Cash Option */}
+                            <button
+                              type="button"
+                              onClick={() => setPaymentMethod('efectivo')}
+                              className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between h-28 cursor-pointer ${
+                                paymentMethod === 'efectivo'
+                                  ? 'bg-black text-white border-black shadow-md'
+                                  : 'bg-white text-black border-uber-gray-200 hover:bg-uber-gray-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <span className="text-2xl">💵</span>
+                                {paymentMethod === 'efectivo' && (
+                                  <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">✓</span>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold leading-tight">Efectivo</h4>
+                                <p className={`text-[10px] mt-1 ${paymentMethod === 'efectivo' ? 'text-uber-gray-300' : 'text-uber-gray-500'}`}>
+                                  Coordina directamente
+                                </p>
+                              </div>
+                            </button>
+
+                            {/* Transfer Option */}
+                            <button
+                              type="button"
+                              onClick={() => setPaymentMethod('transferencia')}
+                              className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between h-28 cursor-pointer ${
+                                paymentMethod === 'transferencia'
+                                  ? 'bg-black text-white border-black shadow-md'
+                                  : 'bg-white text-black border-uber-gray-200 hover:bg-uber-gray-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <span className="text-2xl">🏦</span>
+                                {paymentMethod === 'transferencia' && (
+                                  <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">✓</span>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold leading-tight">Transferencia</h4>
+                                <p className={`text-[10px] mt-1 ${paymentMethod === 'transferencia' ? 'text-uber-gray-300' : 'text-uber-gray-500'}`}>
+                                  Paga con código QR
+                                </p>
+                              </div>
+                            </button>
+                          </div>
+
+                          {/* Detail panel */}
+                          {paymentMethod === 'efectivo' ? (
+                            <div className="p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2.5">
+                              <span className="text-base shrink-0">💡</span>
+                              <p className="text-xs text-emerald-800 leading-relaxed font-medium">
+                                Coordina con el conductor para realizar el pago en efectivo al subir al vehículo.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-3.5 p-4 bg-uber-gray-50 border border-uber-gray-100 rounded-2xl">
+                              <div className="flex flex-col sm:flex-row items-center gap-4">
+                                {/* SVG Mock QR Code */}
+                                <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0">
+                                  <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
+                                    {/* QR Corners */}
+                                    <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
+                                    <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
+                                    {/* Top-Right Corner */}
+                                    <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
+                                    {/* Bottom-Right Corner */}
+                                    <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
+                                    
+                                    {/* Inner square borders */}
+                                    <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                    <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
+                                    
+                                    <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                    <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
+                                    
+                                    <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                    <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
+
+                                    {/* Random simulated QR modules */}
+                                    <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
+                                    <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
+                                    <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
+                                    <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
+                                    
+                                    <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
+                                    <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
+                                    <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
+                                    
+                                    <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
+                                    <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
+                                    <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
+                                    <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
+                                    <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
+                                    
+                                    <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
+                                    <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
+                                    <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
+                                    <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
+                                    <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
+                                    
+                                    <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
+                                    <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
+                                    <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
+                                    
+                                    <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
+                                    <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
+                                    <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
+                                    <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
+                                    
+                                    {/* Mini decorative UTA/transp logo box in center */}
+                                    <rect x="42" y="42" width="16" height="16" fill="white"/>
+                                    <rect x="45" y="45" width="10" height="10" fill="black"/>
+                                    <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
+                                  </svg>
+                                </div>
+
+                                {/* Bank transfer instructions */}
+                                <div className="text-xs text-uber-gray-700 space-y-1.5 min-w-0 flex-1">
+                                  <p className="font-extrabold text-black">Banco Pichincha (Ahorros)</p>
+                                  <p className="font-semibold text-black">Nro: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-uber-gray-200 select-all font-bold">2200123456</span></p>
+                                  <p className="font-medium truncate">Titular: {driverProfile?.name || 'Conductor del Viaje'}</p>
+                                  <p className="text-[10px] text-uber-gray-400">
+                                    Escanea el QR o transfiere y guarda el número de comprobante.
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Transaction reference input */}
+                              <div>
+                                <label className="block text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider mb-1.5 pl-1">
+                                  Comprobante / Referencia de Pago (opcional)
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Ej: 19847293"
+                                  className="w-full px-4 py-3 bg-white rounded-xl text-sm text-black border border-uber-gray-200 outline-none focus:ring-2 focus:ring-black/10 focus:border-black placeholder-uber-gray-400"
+                                  value={transferRef}
+                                  onChange={e => setTransferRef(e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Footer action buttons */}
+                          <div className="flex gap-3 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowPaymentStep(false)}
+                              className="flex-1 py-3.5 text-sm font-semibold bg-white border border-uber-gray-200 hover:bg-uber-gray-50 text-black rounded-xl transition-colors cursor-pointer"
+                            >
+                              Atrás
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRequestJoin(viewRide.id)}
+                              className="flex-1 py-3.5 text-sm font-bold bg-black text-white hover:bg-uber-gray-800 rounded-xl transition-colors cursor-pointer border-none"
+                            >
+                              Confirmar y Solicitar
+                            </button>
+                          </div>
                         </div>
                       );
                     }
@@ -618,7 +839,16 @@ export const RidesPage: React.FC = () => {
                           value={requestMsg}
                           onChange={e => setRequestMsg(e.target.value)}
                         />
-                        <button onClick={() => handleRequestJoin(viewRide.id)} className="uber-btn-primary w-full py-3.5 text-sm font-bold tracking-wide">
+                        <button
+                          onClick={() => {
+                            if (!myProfile || !myProfile.career || !myProfile.phone) {
+                              addToast('Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', 'error');
+                              return;
+                            }
+                            setShowPaymentStep(true);
+                          }}
+                          className="uber-btn-primary w-full py-3.5 text-sm font-bold tracking-wide"
+                        >
                           Solicitar unirme al viaje
                         </button>
                       </div>
