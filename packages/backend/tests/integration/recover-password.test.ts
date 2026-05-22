@@ -1,10 +1,9 @@
 // Prueba de integración para la ruta `/api/v1/auth/forgot-password`.
-// Objetivo: comprobar que la API genera un token de recuperación, guarda su
-// hash en la base de datos y llama al servicio de envío de correo. En modo
-// desarrollo (`EMAIL_DEV_MODE=true`) la respuesta incluye el token para facilitar
+// Objetivo: comprobar que la API genera un código de recuperación, guarda su
+// valor en la base de datos y llama al servicio de envío de correo. En modo
+// desarrollo (`EMAIL_DEV_MODE=true`) la respuesta incluye el código para facilitar
 // las comprobaciones desde las pruebas.
 import request from 'supertest';
-import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { App } from '@/app';
 import { createAuthRoutes } from '@/modules/auth/auth.routes';
@@ -14,7 +13,7 @@ import { EmailService } from '@/shared/services/EmailService';
 jest.setTimeout(20000);
 
 describe('RequestPasswordReset - integración', () => {
-	// Preparar entorno de prueba: activar modo dev (para recibir token) y
+	// Preparar entorno de prueba: activar modo dev (para recibir el código) y
 	// conectar a la base de datos de integración.
 	beforeAll(async () => {
 		process.env.EMAIL_DEV_MODE = 'true';
@@ -36,7 +35,7 @@ describe('RequestPasswordReset - integración', () => {
 		await pool.query('DELETE FROM usuarios WHERE correo = $1', ['user@example.com']);
 	});
 
-	it('genera token, guarda hash y envía email (dev mode devuelve token)', async () => {
+	it('genera código, guarda en BD y envía email (dev mode devuelve código)', async () => {
 		const pool = DatabaseConnection.getInstance();
 
 		// Insertar usuario de prueba en la tabla `usuarios`.
@@ -48,7 +47,7 @@ describe('RequestPasswordReset - integración', () => {
 		);
 
 		// Espiar el envío de correo para evitar enviar emails reales durante la prueba.
-		const emailSpy = jest.spyOn(EmailService, 'sendPasswordResetEmail').mockImplementation(async () => {});
+		const emailSpy = jest.spyOn(EmailService, 'sendPasswordResetCode').mockImplementation(async () => {});
 
 		// Montar la app con las rutas de autenticación (no arrancamos un servidor HTTP real).
 		const app = new App();
@@ -61,26 +60,25 @@ describe('RequestPasswordReset - integración', () => {
 			.send({ email: ' USER@Example.COM ' })
 			.expect(200);
 
-		// Comprobar respuesta y que el token devuelto (modo dev) cumple formato esperado.
+		// Comprobar respuesta y que el código devuelto (modo dev) cumple formato esperado.
 		expect(res.body.success).toBe(true);
 		const data = res.body.data;
 		expect(data.requested).toBe(true);
-		expect(data.expiresInMinutes).toBe(30);
-		expect(data.resetToken).toBeDefined();
-		expect(typeof data.resetToken).toBe('string');
-		expect((data.resetToken as string).length).toBe(64);
+		expect(data.expiresInMinutes).toBe(15);
+		expect(data.code).toBeDefined();
+		expect(typeof data.code).toBe('string');
+		expect((data.code as string).length).toBe(6);
 
-		// Verificar que la base de datos guardó el hash del token.
+		// Verificar que la base de datos guardó el código.
 		const dbRes = await pool.query('SELECT * FROM recuperaciones_contrasena WHERE correo = $1', ['user@example.com']);
 		expect(dbRes.rows.length).toBe(1);
 		const row = dbRes.rows[0];
 
-		const expectedHash = crypto.createHash('sha256').update(data.resetToken).digest('hex');
-		expect(row.token_hash).toBe(expectedHash);
+		expect(row.codigo).toBe(data.code);
 		expect(new Date(row.expira_en) instanceof Date).toBeTruthy();
 
-		// Verificar que se llamó al servicio de email con la URL que contiene el token.
-		expect(emailSpy).toHaveBeenCalledWith('user@example.com', expect.stringContaining(`token=${data.resetToken}`));
+		// Verificar que se llamó al servicio de email con el código correcto.
+		expect(emailSpy).toHaveBeenCalledWith('user@example.com', data.code);
 
 		emailSpy.mockRestore();
 	});
