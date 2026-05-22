@@ -146,10 +146,10 @@ export function createTrackingRoutes(): Router {
 
       if (ride.rows[0].inicio_real) {
         const diffMs = new Date().getTime() - new Date(ride.rows[0].inicio_real).getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        if (diffMins < 15) {
-          throw new ValidationError(`El viaje debe durar al menos 15 minutos para ser completado. Llevas ${diffMins} minutos.`);
-        }
+       // const diffMins = Math.floor(diffMs / 60000);
+       // if (diffMins < 1) {
+       //   throw new ValidationError(`El viaje debe durar al menos 15 minutos para ser completado. Llevas ${diffMins} minutos.`);
+       // }
       }
 
       const result = await pool.query(
