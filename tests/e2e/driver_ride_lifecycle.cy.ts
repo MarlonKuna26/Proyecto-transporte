@@ -1,10 +1,6 @@
-describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
+describe('U-Ride Driver Ride Lifecycle Flow', () => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  // Formato dd/mm/yyyy para las pruebas
-  const tomorrowStr = String(tomorrow.getDate()).padStart(2, '0') + '/' + 
-                      String(tomorrow.getMonth() + 1).padStart(2, '0') + '/' + 
-                      tomorrow.getFullYear();
 
   beforeEach(() => {
     cy.config('defaultCommandTimeout', 10000);
@@ -59,12 +55,10 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     // ═══════════════════════════════════════════════════════════════════════════
     cy.log('🧹 Buscando y limpiando viajes activos previos...');
     cy.get('body').then(($body) => {
-      // Si existen botones de CANCELAR, significa que hay viajes activos de ejecuciones previas
       const cancelButtons = $body.find('button:contains("CANCELAR")');
       if (cancelButtons.length > 0) {
         cy.log(`Se encontraron ${cancelButtons.length} viaje(s) activo(s). Limpiando...`);
         
-        // Función recursiva para cancelar todos los viajes uno por uno de forma limpia
         const cancelAll = () => {
           cy.get('body').then(($b) => {
             const buttons = $b.find('button:contains("CANCELAR")');
@@ -74,7 +68,7 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
               cy.contains('Confirmar cancelación')
                 .should('be.visible')
                 .click();
-              cy.wait(2500); // Esperar a que se procese la cancelación y se actualice el DOM
+              cy.wait(2500);
               cancelAll();
             }
           });
@@ -116,7 +110,7 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
       .eq(1)
       .should('be.visible')
       .wait(500)
-      .select(1); // Campus Huachi es el índice 1
+      .select(1);
     cy.wait(1200);
     cy.log('✅ Zona origen: Campus Huachi');
 
@@ -128,7 +122,7 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
       .eq(2)
       .should('be.visible')
       .wait(500)
-      .select(2); // Ficoa es el índice 2
+      .select(2);
     cy.wait(1200);
     cy.log('✅ Zona destino: Ficoa');
 
@@ -162,7 +156,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     // 9. LLENAR FECHA
     // ═══════════════════════════════════════════════════════════════════════════
     cy.log('📅 SELECCIONANDO FECHA (MAÑANA)...');
-    // Formatear mañana como YYYY-MM-DD para el input type="date" nativo
     const yyyy = tomorrow.getFullYear();
     const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
     const dd = String(tomorrow.getDate()).padStart(2, '0');
@@ -192,7 +185,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     // 11. LLENAR ASIENTOS DISPONIBLES
     // ═══════════════════════════════════════════════════════════════════════════
     cy.log('💺 INGRESANDO ASIENTOS...');
-    // Primer input[type=number] es asientos
     cy.get('input[type="number"]')
       .first()
       .should('be.visible')
@@ -208,7 +200,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     // 12. LLENAR PRECIO POR ASIENTO
     // ═══════════════════════════════════════════════════════════════════════════
     cy.log('💵 INGRESANDO PRECIO...');
-    // Segundo input[type=number] es precio
     cy.get('input[type="number"]')
       .eq(1)
       .should('be.visible')
@@ -237,7 +228,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     // 14. SELECCIONAR REGLAS DE SEGURIDAD
     // ═══════════════════════════════════════════════════════════════════════════
     cy.log('🛡️  SELECCIONANDO REGLAS...');
-    // Buscar el checkbox o botón de Puntualidad
     cy.contains('Puntualidad')
       .should('be.visible')
       .wait(500)
@@ -265,7 +255,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.log('✏️  EDITANDO VIAJE...');
     cy.wait(2000);
     
-    // Encontrar y hacer click en EDITAR en el viaje activo (Disponible)
     cy.get('.shadow-uber-sm')
       .filter(':contains("Campus Huachi")')
       .filter(':contains("Ficoa")')
@@ -305,7 +294,7 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     // Cambiar fecha a otro día diferente (pasado mañana)
     cy.log('📅 ACTUALIZANDO FECHA A OTRO DÍA...');
     const dayAfterTomorrow = new Date();
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2); // 2 días desde hoy
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
     const yyyyEdit = dayAfterTomorrow.getFullYear();
     const mmEdit = String(dayAfterTomorrow.getMonth() + 1).padStart(2, '0');
     const ddEdit = String(dayAfterTomorrow.getDate()).padStart(2, '0');
@@ -337,7 +326,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.log('❌ ELIMINANDO VIAJE...');
     cy.wait(2000);
 
-    // Encontrar el viaje activo (Disponible) y hacer click en CANCELAR
     cy.get('.shadow-uber-sm')
       .filter(':contains("Campus Huachi")')
       .filter(':contains("Ficoa")')
@@ -362,275 +350,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.contains('Viaje cancelado con éxito').should('be.visible');
     cy.wait(1000);
     cy.log('✅✅✅ VIAJE ELIMINADO EXITOSAMENTE ✅✅✅');
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // 🎉 ¡PRUEBA COMPLETADA EXITOSAMENTE!
-    // ═══════════════════════════════════════════════════════════════════════════
     cy.log('🎉🎉🎉 TODAS LAS PRUEBAS COMPLETADAS EXITOSAMENTE 🎉🎉🎉');
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PRUEBA 2: VISUALIZAR, RESERVAR Y CANCELAR VIAJE (PASAJERO)
-  // ═══════════════════════════════════════════════════════════════════════════
-  it('allows passenger to view, reserve, and cancel a ride request', () => {
-    cy.log('🚀 INICIANDO SESIÓN COMO PASAJERO (María)...');
-    cy.visit('/login');
-    cy.wait(1500);
-
-    cy.get('input[type="email"]')
-      .should('be.visible')
-      .type('maria.rodriguez@uride.edu.ec');
-    cy.wait(500);
-
-    cy.get('input[type="password"]')
-      .should('be.visible')
-      .type('Test1234!');
-    cy.wait(500);
-
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .click();
-    cy.wait(3000);
-
-    cy.url().should('include', '/dashboard');
-    cy.wait(1000);
-
-    cy.log('🔍 Navegando a buscar viajes...');
-    cy.contains('a', 'Viajes')
-      .should('be.visible')
-      .click();
-    cy.wait(2000);
-    cy.url().should('include', '/rides');
-
-    // Visualizar detalles del viaje de Diego (Izamba)
-    cy.log('👀 Visualizando viaje desde Izamba...');
-    cy.contains('.shadow-uber-sm', 'Izamba')
-      .should('be.visible')
-      .click();
-    cy.wait(1500);
-
-    // Solicitar unirme al viaje (Reservar)
-    cy.log('✍️ Reservando/solicitando viaje...');
-    cy.contains('button', 'Solicitar unirme al viaje')
-      .should('be.visible')
-      .click();
-    cy.wait(1000);
-
-    // Seleccionar método de pago: Efectivo
-    cy.contains('button', 'Efectivo')
-      .should('be.visible')
-      .click();
-    cy.wait(500);
-
-    // Escribir mensaje opcional
-    cy.get('input[placeholder*="Escribe un mensaje"]')
-      .should('be.visible')
-      .type('Hola Diego, voy con una mochila mediana.');
-    cy.wait(500);
-
-    cy.contains('button', 'Confirmar y Solicitar')
-      .should('be.visible')
-      .click();
-    cy.wait(2500);
-
-    cy.contains('¡Solicitud enviada con éxito!').should('be.visible');
-    cy.wait(1000);
-
-    // Cancelar la solicitud desde Mis Solicitudes
-    cy.log('🧹 Cancelando solicitud enviada...');
-    cy.get('#profile-dropdown-trigger').click();
-    cy.wait(500);
-    cy.contains('a', 'Solicitudes').click();
-    cy.wait(2000);
-    cy.url().should('include', '/my-requests');
-
-    cy.contains('.shadow-uber-sm', 'Izamba')
-      .should('be.visible')
-      .within(() => {
-        cy.contains('button', 'Cancelar solicitud').click();
-      });
-    cy.wait(1000);
-
-    cy.contains('button', 'Confirmar y Retirar')
-      .should('be.visible')
-      .click();
-    cy.wait(2500);
-
-    cy.contains('Solicitud cancelada con éxito').should('be.visible');
-    
-    // Verificar estado es Cancelada
-    cy.contains('.shadow-uber-sm', 'Izamba')
-      .within(() => {
-        cy.contains('Cancelada').should('be.visible');
-      });
-    cy.wait(1000);
-    cy.log('✅✅✅ PRUEBA 2 PASADA CON ÉXITO ✅✅✅');
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PRUEBA 3: SOLICITUD DE PASAJERO Y ACEPTACIÓN POR PARTE DEL CONDUCTOR
-  // ═══════════════════════════════════════════════════════════════════════════
-  it('handles passenger requesting and driver accepting the ride', () => {
-    cy.log('🚀 PASAJERO (María) INICIA SESIÓN...');
-    cy.visit('/login');
-    cy.wait(1500);
-
-    cy.get('input[type="email"]').type('maria.rodriguez@uride.edu.ec');
-    cy.get('input[type="password"]').type('Test1234!');
-    cy.get('button[type="submit"]').click();
-    cy.wait(3000);
-
-    cy.contains('a', 'Viajes').click();
-    cy.wait(2000);
-
-    // Reservar el viaje de Andrés López (Centro)
-    cy.contains('.shadow-uber-sm', 'Centro').click();
-    cy.wait(1500);
-    cy.contains('button', 'Solicitar unirme al viaje').click();
-    cy.wait(1000);
-    cy.contains('button', 'Efectivo').click();
-    cy.wait(500);
-    cy.contains('button', 'Confirmar y Solicitar').click();
-    cy.wait(2500);
-    cy.contains('¡Solicitud enviada con éxito!').should('be.visible');
-
-    // Cerrar sesión
-    cy.get('#profile-dropdown-trigger').click();
-    cy.wait(500);
-    cy.contains('button', 'Cerrar sesión').click();
-    cy.wait(2000);
-
-    cy.log('🚀 CONDUCTOR (Andrés) INICIA SESIÓN PARA ACEPTAR...');
-    cy.visit('/login');
-    cy.wait(1500);
-
-    cy.get('input[type="email"]').type('andres.lopez@uride.edu.ec');
-    cy.get('input[type="password"]').type('Test1234!');
-    cy.get('button[type="submit"]').click();
-    cy.wait(3000);
-
-    cy.contains('a', 'Mis viajes').click();
-    cy.wait(2000);
-
-    // Expandir solicitudes
-    cy.get('.shadow-uber-sm')
-      .filter(':contains("Centro")')
-      .filter(':contains("Disponible")')
-      .first()
-      .within(() => {
-        cy.contains('button', 'SOLICITUDES').click();
-      });
-    cy.wait(1500);
-
-    // Clickear Aceptar en la solicitud de María
-    cy.get('.shadow-uber-sm')
-      .filter(':contains("Centro")')
-      .filter(':contains("Disponible")')
-      .first()
-      .within(() => {
-        cy.contains('button', 'ACEPTAR').click();
-      });
-    cy.wait(2500);
-
-    cy.contains('Solicitud aceptada con éxito').should('be.visible');
-
-    // Verificar que el estado cambie a Aceptado
-    cy.get('.shadow-uber-sm')
-      .filter(':contains("Centro")')
-      .filter(':contains("Disponible")')
-      .first()
-      .within(() => {
-        cy.contains('Aceptado').should('be.visible');
-      });
-    cy.wait(1000);
-    cy.log('✅✅✅ PRUEBA 3 PASADA CON ÉXITO ✅✅✅');
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PRUEBA 4: SOLICITUD DE PASAJERO Y RECHAZO POR PARTE DEL CONDUCTOR
-  // ═══════════════════════════════════════════════════════════════════════════
-  it('handles passenger requesting and driver rejecting the ride', () => {
-    cy.log('🚀 PASAJERO (Laura) INICIA SESIÓN...');
-    cy.visit('/login');
-    cy.wait(1500);
-
-    cy.get('input[type="email"]').type('laura.gonzalez@uride.edu.ec');
-    cy.get('input[type="password"]').type('Test1234!');
-    cy.get('button[type="submit"]').click();
-    cy.wait(3000);
-
-    cy.contains('a', 'Viajes').click();
-    cy.wait(2000);
-
-    // Reservar el viaje de Diego Herrera (Izamba)
-    cy.contains('.shadow-uber-sm', 'Izamba').click();
-    cy.wait(1500);
-    cy.contains('button', 'Solicitar unirme al viaje').click();
-    cy.wait(1000);
-    cy.contains('button', 'Efectivo').click();
-    cy.wait(500);
-    cy.contains('button', 'Confirmar y Solicitar').click();
-    cy.wait(2500);
-    cy.contains('¡Solicitud enviada con éxito!').should('be.visible');
-
-    // Cerrar sesión
-    cy.get('#profile-dropdown-trigger').click();
-    cy.wait(500);
-    cy.contains('button', 'Cerrar sesión').click();
-    cy.wait(2000);
-
-    cy.log('🚀 CONDUCTOR (Diego) INICIA SESIÓN PARA RECHAZAR...');
-    cy.visit('/login');
-    cy.wait(1500);
-
-    cy.get('input[type="email"]').type('diego.herrera@uride.edu.ec');
-    cy.get('input[type="password"]').type('Test1234!');
-    cy.get('button[type="submit"]').click();
-    cy.wait(3000);
-
-    cy.contains('a', 'Mis viajes').click();
-    cy.wait(2000);
-
-    // Expandir solicitudes
-    cy.get('.shadow-uber-sm')
-      .filter(':contains("Izamba")')
-      .filter(':contains("Disponible")')
-      .first()
-      .within(() => {
-        cy.contains('button', 'SOLICITUDES').click();
-      });
-    cy.wait(1500);
-
-    // Clickear Rechazar
-    cy.get('.shadow-uber-sm')
-      .filter(':contains("Izamba")')
-      .filter(':contains("Disponible")')
-      .first()
-      .within(() => {
-        cy.contains('button', 'RECHAZAR').click();
-      });
-    cy.wait(1500);
-
-    // Escribir motivo del rechazo en el textarea del modal y enviar
-    cy.get('textarea[placeholder*="Ej: Lo siento"]')
-      .should('be.visible')
-      .type('Lo siento, ruta modificada temporalmente.');
-    cy.wait(500);
-
-    cy.contains('button', 'Enviar y Rechazar').click();
-    cy.wait(2500);
-
-    cy.contains('Solicitud rechazada con éxito').should('be.visible');
-
-    // Verificar que el estado cambie a Rechazado
-    cy.get('.shadow-uber-sm')
-      .filter(':contains("Izamba")')
-      .filter(':contains("Disponible")')
-      .first()
-      .within(() => {
-        cy.contains('Rechazado').should('be.visible');
-      });
-    cy.wait(1000);
-    cy.log('✅✅✅ PRUEBA 4 PASADA CON ÉXITO ✅✅✅');
   });
 });
