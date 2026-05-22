@@ -52,6 +52,8 @@ export const MyRidesPage: React.FC = () => {
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [hasVehicles, setHasVehicles] = useState<boolean>(false);
+  const [acceptedUsers, setAcceptedUsers] = useState<UserProfile[]>([]);
+  const [loadingAccepted, setLoadingAccepted] = useState(false);
 
   // Custom Modal States
   const [cancelRideId, setCancelRideId] = useState<string | null>(null);
@@ -95,6 +97,32 @@ export const MyRidesPage: React.FC = () => {
   useEffect(() => {
     setShowCreate(searchParams.get('create') === 'true');
   }, [searchParams]);
+
+  useEffect(() => {
+    const fetchAccepted = async () => {
+      if (!viewRide) {
+        setAcceptedUsers([]);
+        return;
+      }
+      setLoadingAccepted(true);
+      try {
+        const res = await api.rideRequests.passengers(viewRide.id);
+        const accepted: RideRequest[] = res.data || [];
+        const profiles: UserProfile[] = [];
+        for (const req of accepted) {
+          try {
+            const userRes = await api.users.getProfile(req.passengerId);
+            if (userRes.data) profiles.push(userRes.data);
+          } catch {}
+        }
+        setAcceptedUsers(profiles);
+      } catch {
+        setAcceptedUsers([]);
+      }
+      setLoadingAccepted(false);
+    };
+    fetchAccepted();
+  }, [viewRide]);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -828,7 +856,8 @@ export const MyRidesPage: React.FC = () => {
             return (
               <div
                 key={ride.id}
-                className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col animate-fade-in"
+                onClick={() => setViewRide(ride)}
+                className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 cursor-pointer flex flex-col group relative animate-fade-in"
               >
                 {/* Route Header with dots */}
                 <div className="flex items-start justify-between gap-4 mb-4">
@@ -878,7 +907,7 @@ export const MyRidesPage: React.FC = () => {
                 </div>
 
                 {/* Actions bottom strip */}
-                <div className="mt-auto pt-4 border-t border-uber-gray-100 flex flex-wrap items-center gap-2">
+                <div className="mt-auto pt-4 border-t border-uber-gray-100 flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                   {/* Start / Cancel actions */}
                   {(ride.status === 'PUBLISHED' || ride.status === 'FULL') && (
                     <>
@@ -954,7 +983,7 @@ export const MyRidesPage: React.FC = () => {
 
                 {/* Expanded Requests Section */}
                 {expanded && (
-                  <div className="mt-4 pt-4 border-t border-uber-gray-100 space-y-2 animate-fade-in">
+                  <div className="mt-4 pt-4 border-t border-uber-gray-100 space-y-2 animate-fade-in" onClick={e => e.stopPropagation()}>
                     <span className="block text-[10px] font-bold text-uber-gray-400 uppercase tracking-wider mb-2">
                       Solicitudes de pasajeros
                     </span>
@@ -1113,6 +1142,227 @@ export const MyRidesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ═══ VIEW RIDE MODAL ═══ */}
+      {viewRide && (() => {
+        const originLat = viewRide.originLat ?? ZONE_COORDINATES[viewRide.originZone]?.lat;
+        const originLng = viewRide.originLng ?? ZONE_COORDINATES[viewRide.originZone]?.lng;
+        const destLat = viewRide.destinationLat ?? ZONE_COORDINATES[viewRide.destinationZone]?.lat;
+        const destLng = viewRide.destinationLng ?? ZONE_COORDINATES[viewRide.destinationZone]?.lng;
+
+        const mapOrigin = originLat && originLng ? { lat: originLat, lng: originLng, label: viewRide.originZone } : null;
+        const mapDest = destLat && destLng ? { lat: destLat, lng: destLng, label: viewRide.destinationZone } : null;
+
+        // Buscar vehículo asociado
+        const sv = vehicles.find(v => v.id === viewRide.vehicleId);
+
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setViewRide(null)}
+          >
+            <div
+              className="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile max-h-[90vh] flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="bg-black text-white px-6 py-5 flex items-center justify-between shrink-0">
+                <div>
+                  <h2 className="text-lg font-bold">Detalle del viaje</h2>
+                  <p className="text-xs text-uber-gray-400 mt-0.5">Ruta de transporte universitario (Tu viaje)</p>
+                </div>
+                <button
+                  onClick={() => setViewRide(null)}
+                  className="text-uber-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer p-1.5 rounded-full hover:bg-white/10 text-xl font-medium"
+                >✕</button>
+              </div>
+
+              {/* Modal Scrollable Body */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1">
+                {/* Conductor y Vehículo Info Card */}
+                <div className="bg-uber-gray-50 rounded-2xl p-4 border border-uber-gray-100 shadow-uber-sm space-y-3">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    {/* Foto del conductor */}
+                    {myProfile?.photoUrl ? (
+                      <img
+                        src={myProfile.photoUrl}
+                        alt={myProfile.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-bold text-base border-2 border-white shadow-sm shrink-0">
+                        {myProfile?.name?.[0].toUpperCase() || '?'}
+                      </div>
+                    )}
+                    {/* Detalles del conductor */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-extrabold text-black truncate">{myProfile?.name} (Tú)</span>
+                        {myProfile?.isVerified && (
+                          <span className="text-uber-green inline-flex shrink-0" title="Perfil verificado">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-uber-gray-500 truncate mt-0.5">
+                        {myProfile?.career || 'Conductor Universitario'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Vehículo del viaje */}
+                  {sv && (
+                    <div className="flex items-center gap-3 pt-3 border-t border-uber-gray-200/60">
+                      <div className="w-8 h-8 rounded-full border-2 border-white shadow-sm shrink-0" style={{ background: sv.color || '#1a1a1a' }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-black truncate">
+                          Vehículo: {[sv.brand, sv.model].filter(Boolean).join(' ')}{sv.year ? ` (${sv.year})` : ''}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {sv.plate && <span className="text-[9px] font-bold text-uber-gray-500 bg-uber-gray-100 border border-uber-gray-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{sv.plate}</span>}
+                          <span className="text-[10px] text-uber-gray-400 font-medium">{sv.capacity} asientos totales</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Route segment */}
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full bg-black" />
+                    <div className="w-0.5 h-12 bg-uber-gray-200" />
+                    <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-uber-gray-400 font-bold uppercase tracking-wider">Origen</span>
+                    <h4 className="text-sm font-bold text-black leading-tight">{viewRide.originZone}</h4>
+                    {viewRide.originDetail && (
+                      <p className="text-xs text-uber-gray-500 mt-0.5">{viewRide.originDetail}</p>
+                    )}
+
+                    <div className="h-4" />
+
+                    <span className="text-[10px] text-uber-gray-400 font-bold uppercase tracking-wider">Destino</span>
+                    <h4 className="text-sm font-bold text-black leading-tight">{viewRide.destinationZone}</h4>
+                    {viewRide.destinationDetail && (
+                      <p className="text-xs text-uber-gray-500 mt-0.5">{viewRide.destinationDetail}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ride details parameters */}
+                <div className="grid grid-cols-3 gap-4 py-3.5 border-t border-b border-uber-gray-100 text-center">
+                  <div>
+                    <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider mb-1">Salida</span>
+                    <span className="text-xs font-extrabold text-black block">{viewRide.departureDate}</span>
+                    <span className="text-[10px] text-uber-gray-500 font-medium block mt-0.5">{viewRide.departureTime}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider mb-1">Disponibilidad</span>
+                    <span className="text-xs font-extrabold text-black block">{viewRide.availableSeats} asientos</span>
+                    <span className="text-[10px] text-uber-gray-500 font-medium block mt-0.5">libres</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider mb-1">Costo</span>
+                    <span className="text-xs font-extrabold text-black block">
+                      {viewRide.pricePerSeat > 0 ? `$${viewRide.pricePerSeat.toLocaleString()}` : 'Gratis'}
+                    </span>
+                    <span className="text-[10px] text-uber-gray-500 font-medium block mt-0.5">Por pasajero</span>
+                  </div>
+                </div>
+
+                {/* Note / rules row */}
+                {(viewRide.notes || viewRide.rules) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {viewRide.notes && (
+                      <div className="p-3.5 bg-uber-gray-50 rounded-2xl border border-uber-gray-100 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-uber-gray-100 flex items-center justify-center shrink-0 text-uber-gray-700 border border-uber-gray-200/50">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider">Notas del viaje</span>
+                          <p className="text-xs text-uber-gray-700 font-semibold mt-1 leading-relaxed">{viewRide.notes}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {viewRide.rules && (
+                      <div className="p-3.5 bg-uber-gray-50 rounded-2xl border border-uber-gray-100 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0 text-uber-red border border-red-100/50">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider">Reglas</span>
+                          <p className="text-xs text-uber-gray-700 font-semibold mt-1 leading-relaxed">{viewRide.rules}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Map visualization */}
+                {mapOrigin && (
+                  <div className="rounded-2xl overflow-hidden border border-uber-gray-200 shadow-uber-sm relative">
+                    <div className="absolute top-3 left-3 z-10 bg-black/85 text-white text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1.5 rounded-lg shadow-sm">
+                      Ruta del viaje en mapa
+                    </div>
+                    <LiveMap
+                      origin={mapOrigin}
+                      destination={mapDest}
+                      height="200px"
+                    />
+                  </div>
+                )}
+
+                {/* Passenger list */}
+                <div className="space-y-3 pt-1">
+                  <span className="block text-[10px] font-bold text-uber-gray-400 tracking-wider uppercase">
+                    Pasajeros aceptados
+                  </span>
+                  {loadingAccepted ? (
+                    <div className="h-8 bg-uber-gray-50 rounded-xl animate-pulse w-full" />
+                  ) : acceptedUsers.length === 0 ? (
+                    <p className="text-xs text-uber-gray-400 pl-1 font-medium italic">Ningún pasajero aceptado aún</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {acceptedUsers.map(u => (
+                        <div key={u.userId} className="flex items-center gap-3 px-3 py-2 bg-uber-gray-50 rounded-xl border border-uber-gray-100/60 hover:bg-uber-gray-100 transition-colors">
+                          {u.photoUrl ? (
+                            <img
+                              src={u.photoUrl}
+                              alt={u.name}
+                              className="w-8 h-8 rounded-full object-cover border border-white shadow-xs shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                              {u.name?.[0]?.toUpperCase() || '?'}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-black truncate leading-tight">{u.name}</p>
+                            {u.career && <p className="text-[9px] text-uber-gray-400 truncate mt-0.5 leading-none">{u.career}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal footer (Actions) */}
+              <div className="p-6 border-t border-uber-gray-100 bg-uber-gray-50 shrink-0">
+                <button
+                  onClick={() => setViewRide(null)}
+                  className="uber-btn-secondary w-full py-3 text-xs font-bold tracking-wider"
+                >
+                  CERRAR
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
