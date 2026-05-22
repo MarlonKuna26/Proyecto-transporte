@@ -9,6 +9,8 @@
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
     "test:watch": "pnpm -r --parallel run test:watch",
+    "test:e2e": "pnpm --filter @u-ride/tests test:e2e",
+    "cypress:open": "pnpm --filter @u-ride/tests cypress:open",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format",
     "clean": "pnpm -r run clean && rm -rf node_modules pnpm-lock.yaml",
