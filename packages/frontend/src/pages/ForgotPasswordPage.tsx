@@ -1,32 +1,40 @@
 import React, { FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 export const ForgotPasswordPage: React.FC = () => {
   const { requestPasswordReset } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
   const [devHint, setDevHint] = useState('');
+
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setDevHint('');
     setLoading(true);
 
     try {
       const result = await requestPasswordReset(email.trim().toLowerCase());
-      setSuccess('Si el correo existe, enviaremos un enlace de recuperación.');
+      addToast('Si el correo existe, enviaremos un enlace de recuperación.', 'success');
       if (result?.resetUrl) {
         setDevHint(`Enlace (dev): ${result.resetUrl}`);
       } else if (result?.resetToken) {
         setDevHint(`Token (dev): ${result.resetToken}`);
       }
     } catch (err: any) {
-      setError(err.message || 'No se pudo solicitar la recuperación');
+      addToast(err.message || 'No se pudo solicitar la recuperación', 'error');
     } finally {
       setLoading(false);
     }
@@ -34,6 +42,9 @@ export const ForgotPasswordPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-50 font-sans selection:bg-black selection:text-white">
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
+
       <div className="w-full max-w-[420px] space-y-6">
         
         {/* Logo / Header */}
@@ -61,27 +72,6 @@ export const ForgotPasswordPage: React.FC = () => {
               Ingresa tu correo institucional y te enviaremos las instrucciones de recuperación.
             </p>
           </div>
-
-          {error && (
-            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 border border-red-100/60 animate-fade-in">
-              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span className="font-semibold leading-relaxed">{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-zinc-50 text-black border border-zinc-200/80 animate-fade-in">
-              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-              <span className="font-semibold leading-relaxed">{success}</span>
-            </div>
-          )}
 
           {devHint && (
             <div className="p-3.5 text-xs rounded-xl bg-amber-50 text-amber-800 border border-amber-100/60 break-all font-mono leading-relaxed space-y-1">

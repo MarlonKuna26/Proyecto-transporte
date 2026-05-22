@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '@/services/api';
-import type { Ride, RideRequest, UserProfile } from '@/types';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
+import type { Ride, RideRequest, UserProfile, Vehicle } from '@/types';
 import { LiveMap } from '@/components/LiveMap';
 import { ZONE_COORDINATES } from '@/constants';
 
 export const MyRidesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [rides, setRides] = useState<Ride[]>([]);
   const [requests, setRequests] = useState<Record<string, RideRequest[]>>({});
   const [viewRide, setViewRide] = useState<Ride | null>(null);
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
+  const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [hasVehicles, setHasVehicles] = useState<boolean>(false);
 
   // Custom Modal States
   const [cancelRideId, setCancelRideId] = useState<string | null>(null);
@@ -18,16 +23,43 @@ export const MyRidesPage: React.FC = () => {
   const [rejectRideId, setRejectRideId] = useState<string | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState('');
 
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
         const res = await api.rides.myRides({});
         setRides(res.data || []);
       } catch { }
+      
+      // Cargar vehículos del usuario
+      try {
+        const vehiclesRes = await api.users.getVehicles();
+        const list: Vehicle[] = vehiclesRes.data || [];
+        setVehicles(list);
+        setHasVehicles(list.length > 0);
+      } catch { }
+
       setLoading(false);
     };
     load();
   }, []);
+
+  const handlePublishRide = () => {
+    if (!hasVehicles) {
+      addToast('Debes registrar un vehículo en tu perfil antes de publicar un viaje.', 'error');
+      return;
+    }
+    navigate('/rides?create=true');
+  };
 
   const loadRequests = async (rideId: string) => {
     if (requests[rideId]) {
@@ -39,7 +71,7 @@ export const MyRidesPage: React.FC = () => {
       return;
     }
     try {
-      const res = await api.rideRequests.byRide(rideId);
+      const res = await api.rideRequests.passengers(rideId);
       setRequests(prev => ({ ...prev, [rideId]: res.data || [] }));
     } catch { }
   };
@@ -48,11 +80,10 @@ export const MyRidesPage: React.FC = () => {
     if (action === 'accept') {
       try {
         await api.rideRequests.accept(requestId);
-        setFeedback(`Solicitud aceptada con éxito`);
+        addToast('Solicitud aceptada con éxito', 'success');
         loadRequests(rideId);
-        setTimeout(() => setFeedback(''), 3000);
       } catch (err: any) {
-        setFeedback(err.message);
+        addToast(err.message, 'error');
       }
     } else {
       // Trigger custom rejection modal instead of raw window.prompt
@@ -70,14 +101,13 @@ export const MyRidesPage: React.FC = () => {
     }
     try {
       await api.rideRequests.reject(rejectReqId, { rejectReason: rejectReasonInput });
-      setFeedback(`Solicitud rechazada con éxito`);
+      addToast('Solicitud rechazada con éxito', 'success');
       loadRequests(rejectRideId);
       setRejectReqId(null);
       setRejectRideId(null);
       setRejectReasonInput('');
-      setTimeout(() => setFeedback(''), 3000);
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -86,11 +116,10 @@ export const MyRidesPage: React.FC = () => {
     try {
       await api.rides.cancel(cancelRideId);
       setRides(prev => prev.map(r => r.id === cancelRideId ? { ...r, status: 'CANCELLED' as const } : r));
-      setFeedback('Viaje cancelado con éxito');
+      addToast('Viaje cancelado con éxito', 'success');
       setCancelRideId(null);
-      setTimeout(() => setFeedback(''), 3000);
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -98,10 +127,9 @@ export const MyRidesPage: React.FC = () => {
     try {
       await api.tracking.startRide(rideId);
       setRides(prev => prev.map(r => r.id === rideId ? { ...r, status: 'IN_PROGRESS' as const } : r));
-      setFeedback('¡Viaje iniciado! Redirigiendo al seguimiento...');
-      setTimeout(() => setFeedback(''), 3000);
+      addToast('¡Viaje iniciado! Redirigiendo al seguimiento...', 'success');
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -109,10 +137,9 @@ export const MyRidesPage: React.FC = () => {
     try {
       await api.tracking.completeRide(rideId);
       setRides(prev => prev.map(r => r.id === rideId ? { ...r, status: 'COMPLETED' as const } : r));
-      setFeedback('¡Viaje completado!');
-      setTimeout(() => setFeedback(''), 3000);
+      addToast('¡Viaje completado!', 'success');
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -145,23 +172,17 @@ export const MyRidesPage: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/rides?create=true"
+        <button
+          onClick={handlePublishRide}
           className="uber-btn-primary self-start sm:self-center inline-flex items-center gap-2"
-          style={{ textDecoration: 'none' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Publicar nuevo viaje
-        </Link>
+        </button>
       </div>
 
-      {/* ═══ FEEDBACK NOTIFICATIONS ═══ */}
-      {feedback && (
-        <div className="flex items-center gap-3 px-4 py-3 text-sm rounded-xl border border-green-200 bg-green-50 text-uber-green animate-fade-in">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          <span className="font-semibold">{feedback}</span>
-        </div>
-      )}
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* ═══ RIDES LIST SECTION ═══ */}
       {loading ? (
@@ -193,14 +214,13 @@ export const MyRidesPage: React.FC = () => {
           <p className="text-sm text-uber-gray-500 mb-6 max-w-sm mx-auto">
             Publica tus rutas de ida o regreso al campus para compartir tu auto con otros compañeros de la UTA.
           </p>
-          <Link
-            to="/rides?create=true"
+          <button
+            onClick={handlePublishRide}
             className="uber-btn-primary inline-flex items-center gap-2"
-            style={{ textDecoration: 'none' }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Publicar mi primer viaje
-          </Link>
+          </button>
         </div>
       ) : (
         /* Rides Grid */

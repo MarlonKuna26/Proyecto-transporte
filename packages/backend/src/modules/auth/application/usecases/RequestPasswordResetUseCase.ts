@@ -11,8 +11,7 @@ interface RequestPasswordResetInput {
 interface RequestPasswordResetOutput {
   requested: boolean;
   expiresInMinutes: number;
-  resetUrl?: string;
-  resetToken?: string;
+  code?: string; // Solo en dev mode
 }
 
 export class RequestPasswordResetUseCase implements IUseCase<RequestPasswordResetInput, RequestPasswordResetOutput> {
@@ -23,9 +22,10 @@ export class RequestPasswordResetUseCase implements IUseCase<RequestPasswordRese
     await pool.query(`
       CREATE TABLE IF NOT EXISTS recuperaciones_contrasena (
         correo character varying(255) PRIMARY KEY,
-        token_hash character varying(255) NOT NULL,
+        codigo character varying(6) NOT NULL,
         expira_en timestamp without time zone NOT NULL,
-        usado boolean NOT NULL DEFAULT false,
+        intentos_fallidos integer NOT NULL DEFAULT 0,
+        bloqueado_hasta timestamp without time zone,
         creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
         actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP
       );
@@ -36,8 +36,8 @@ export class RequestPasswordResetUseCase implements IUseCase<RequestPasswordRese
     return process.env.EMAIL_DEV_MODE === 'true';
   }
 
-  private static hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
+  private static generateCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   async execute(input: RequestPasswordResetInput): Promise<RequestPasswordResetOutput> {
@@ -46,34 +46,31 @@ export class RequestPasswordResetUseCase implements IUseCase<RequestPasswordRese
     const normalizedEmail = input.email.trim().toLowerCase();
     const user = await this.userRepository.findByEmail(normalizedEmail);
 
-    const expiresInMinutes = 30;
+    const expiresInMinutes = 15;
 
     if (!user) {
       return { requested: true, expiresInMinutes };
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = RequestPasswordResetUseCase.hashToken(resetToken);
+    const resetCode = RequestPasswordResetUseCase.generateCode();
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
     const pool = DatabaseConnection.getInstance();
     await pool.query(
       `INSERT INTO recuperaciones_contrasena (
-         correo, token_hash, expira_en, usado, actualizado_en
-       ) VALUES ($1, $2, $3, false, NOW())
+         correo, codigo, expira_en, intentos_fallidos, actualizado_en
+       ) VALUES ($1, $2, $3, 0, NOW())
        ON CONFLICT (correo)
        DO UPDATE SET
-         token_hash = EXCLUDED.token_hash,
+         codigo = EXCLUDED.codigo,
          expira_en = EXCLUDED.expira_en,
-         usado = false,
+         intentos_fallidos = 0,
+         bloqueado_hasta = NULL,
          actualizado_en = NOW()`,
-      [normalizedEmail, tokenHash, expiresAt],
+      [normalizedEmail, resetCode, expiresAt],
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-
-    await EmailService.sendPasswordResetEmail(normalizedEmail, resetUrl);
+    await EmailService.sendPasswordResetCode(normalizedEmail, resetCode);
 
     const output: RequestPasswordResetOutput = {
       requested: true,
@@ -81,8 +78,7 @@ export class RequestPasswordResetUseCase implements IUseCase<RequestPasswordRese
     };
 
     if (RequestPasswordResetUseCase.isDevMode()) {
-      output.resetToken = resetToken;
-      output.resetUrl = resetUrl;
+      output.code = resetCode;
     }
 
     return output;

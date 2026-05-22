@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/services/api';
 import type { Ride, UserProfile } from '@/types';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -11,7 +12,17 @@ export const DashboardPage: React.FC = () => {
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
   const [hasVehicles, setHasVehicles] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
+
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -28,21 +39,14 @@ export const DashboardPage: React.FC = () => {
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    if (feedback) {
-      const timer = setTimeout(() => setFeedback(''), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [feedback]);
-
   const handleCreateRide = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
-      setFeedback('¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.');
+      addToast('¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', 'error');
       return;
     }
     if (!hasVehicles) {
-      setFeedback('Debes registrar un vehículo en tu perfil antes de publicar un viaje.');
+      addToast('Debes registrar un vehículo en tu perfil antes de publicar un viaje.', 'error');
       return;
     }
     navigate('/rides?create=true');
@@ -59,13 +63,8 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-      {/* ═══ FEEDBACK ALERT ═══ */}
-      {feedback && (
-        <div className="mx-4 md:mx-8 mt-4 flex items-center gap-3 px-4 py-3 text-sm rounded-xl bg-red-50 text-uber-red border border-red-100 animate-fade-in">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11900" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span>{feedback}</span>
-        </div>
-      )}
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* ═══ HERO SECTION — "Consigue un viaje" (Uber Main UI) ═══ */}
       <div className="px-4 md:px-8 pt-6 md:pt-8 pb-6">

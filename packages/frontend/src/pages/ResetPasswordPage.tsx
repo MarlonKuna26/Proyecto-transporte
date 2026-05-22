@@ -1,6 +1,7 @@
 import React, { FormEvent, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 export const ResetPasswordPage: React.FC = () => {
   const { resetPassword } = useAuth();
@@ -12,8 +13,17 @@ export const ResetPasswordPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
+
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
 
   const passwordHint = 'Mínimo 8 caracteres, con mayúscula, minúscula y número.';
 
@@ -23,31 +33,29 @@ export const ResetPasswordPage: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     if (!token.trim()) {
-      setError('El token de recuperación es obligatorio');
+      addToast('El token de recuperación es obligatorio', 'error');
       return;
     }
 
     if (!isStrongPassword) {
-      setError('La contraseña no cumple con los requisitos mínimos de seguridad');
+      addToast('La contraseña no cumple con los requisitos mínimos de seguridad', 'error');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      addToast('Las contraseñas no coinciden', 'error');
       return;
     }
 
     setLoading(true);
     try {
       await resetPassword(token.trim(), password);
-      setSuccess('Contraseña actualizada con éxito. Redirigiendo...');
+      addToast('Contraseña actualizada con éxito. Redirigiendo...', 'success');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err: any) {
-      setError(err.message || 'No se pudo actualizar la contraseña');
+      addToast(err.message || 'No se pudo actualizar la contraseña', 'error');
     } finally {
       setLoading(false);
     }
@@ -55,6 +63,9 @@ export const ResetPasswordPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-50 font-sans selection:bg-black selection:text-white">
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
+
       <div className="w-full max-w-[420px] space-y-6">
         
         {/* Logo / Header */}
@@ -82,27 +93,6 @@ export const ResetPasswordPage: React.FC = () => {
               Completa los campos a continuación para configurar tu nueva contraseña de acceso.
             </p>
           </div>
-
-          {error && (
-            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 border border-red-100/60 animate-fade-in">
-              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span className="font-semibold leading-relaxed">{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-zinc-50 text-black border border-zinc-200/80 animate-fade-in">
-              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-              <span className="font-semibold leading-relaxed">{success}</span>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">

@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { api } from '@/services/api';
 import type { RideRequest, Ride } from '@/types';
 import { Link } from 'react-router-dom';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 export const MyRequestsPage: React.FC = () => {
   const [requests, setRequests] = useState<RideRequest[]>([]);
   const [ridesMap, setRidesMap] = useState<Record<string, Ride>>({});
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   // FILTROS
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -51,6 +52,16 @@ export const MyRequestsPage: React.FC = () => {
     load();
   }, []);
 
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   const executeCancelRequest = async () => {
     if (!cancelRequestId) return;
 
@@ -65,44 +76,11 @@ export const MyRequestsPage: React.FC = () => {
         )
       );
 
-      setFeedback('Solicitud cancelada con éxito');
+      addToast('Solicitud cancelada con éxito', 'success');
       setCancelRequestId(null);
-
-      setTimeout(() => setFeedback(''), 3000);
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
       setCancelRequestId(null);
-    }
-  };
-
-  const handleRegisterPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRequestForPay) return;
-    const ride = rides[selectedRequestForPay.rideId];
-    if (!ride) return;
-
-    setSubmittingPayment(true);
-    setPaymentFeedback('');
-    try {
-      await api.payments.create({
-        rideRequestId: selectedRequestForPay.id,
-        amount: ride.pricePerSeat,
-        paymentMethod,
-        reference: paymentMethod === 'CASH' ? undefined : paymentReference,
-      });
-
-      setFeedback('Pago registrado exitosamente');
-      setShowPayModal(false);
-      setSelectedRequestForPay(null);
-      setPaymentReference('');
-      setPaymentMethod('CASH');
-
-      // Reload
-      await loadData();
-    } catch (err: any) {
-      setPaymentFeedback(err.message || 'Error al registrar el pago');
-    } finally {
-      setSubmittingPayment(false);
     }
   };
 
@@ -216,16 +194,8 @@ export const MyRequestsPage: React.FC = () => {
 </div>
 
 
-      {/* ═══ FEEDBACK NOTIFICATION ═══ */}
-      {feedback && (
-        <div className="flex items-center gap-3 px-4 py-3 text-sm rounded-xl border border-green-200 bg-green-50 text-uber-green animate-fade-in">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-
-          <span className="font-semibold">{feedback}</span>
-        </div>
-      )}
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* ═══ REQUESTS LIST ═══ */}
       {loading ? (

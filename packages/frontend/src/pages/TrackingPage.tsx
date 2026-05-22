@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '@/services/api';
 import { LiveMap } from '@/components/LiveMap';
 import { useAuth } from '@/context/AuthContext';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 import type { Ride, TrackingPoint, TrackingHistoryPoint, RideEvent } from '@/types';
 
 export const TrackingPage: React.FC = () => {
@@ -15,9 +16,19 @@ export const TrackingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isDriver, setIsDriver] = useState(false);
   const [gpsActive, setGpsActive] = useState(false);
-  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const watchRef = useRef<number>();
+
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
 
   useEffect(() => {
     if (!rideId) return;
@@ -58,7 +69,7 @@ export const TrackingPage: React.FC = () => {
   };
 
   const startGPS = () => {
-    if (!navigator.geolocation) { setFeedback('GPS no disponible en este navegador'); return; }
+    if (!navigator.geolocation) { addToast('GPS no disponible en este navegador', 'error'); return; }
     setGpsActive(true);
     watchRef.current = navigator.geolocation.watchPosition(
       async (pos) => {
@@ -71,7 +82,7 @@ export const TrackingPage: React.FC = () => {
           });
         } catch { }
       },
-      (err) => { setFeedback('Error GPS: ' + err.message); },
+      (err) => { addToast('Error GPS: ' + err.message, 'error'); },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 },
     );
   };
@@ -84,19 +95,19 @@ export const TrackingPage: React.FC = () => {
   const handleStartRide = async () => {
     try {
       await api.tracking.startRide(rideId!);
-      setFeedback('¡Viaje iniciado!');
+      addToast('¡Viaje iniciado!', 'success');
       loadData();
       startGPS();
-    } catch (err: any) { setFeedback(err.message); }
+    } catch (err: any) { addToast(err.message || 'Error al iniciar el viaje', 'error'); }
   };
 
   const handleCompleteRide = async () => {
     try {
       stopGPS();
       await api.tracking.completeRide(rideId!);
-      setFeedback('¡Viaje completado!');
+      addToast('¡Viaje completado!', 'success');
       loadData();
-    } catch (err: any) { setFeedback(err.message); }
+    } catch (err: any) { addToast(err.message || 'Error al completar el viaje', 'error'); }
   };
 
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
@@ -170,13 +181,7 @@ export const TrackingPage: React.FC = () => {
       </div>
 
       {/* Feedback */}
-      {feedback && (
-        <div className="flex items-center gap-3 px-4 py-3 text-sm rounded-xl border border-green-200 bg-green-50 text-uber-green animate-fade-in">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          <span className="font-semibold">{feedback}</span>
-          <button onClick={() => setFeedback('')} className="ml-auto bg-transparent border-none cursor-pointer text-current opacity-60 hover:opacity-100 text-base">✕</button>
-        </div>
-      )}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* Map */}
       <div className="bg-white rounded-2xl border border-uber-gray-100 shadow-uber-sm overflow-hidden animate-fade-in">

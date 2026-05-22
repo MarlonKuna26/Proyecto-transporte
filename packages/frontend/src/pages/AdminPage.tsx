@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import type { Report } from '@/types';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 export const AdminPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -8,7 +9,17 @@ export const AdminPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [tab, setTab] = useState<'stats' | 'users' | 'reports'>('stats');
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
+
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -29,18 +40,16 @@ export const AdminPage: React.FC = () => {
     try {
       await api.admin.suspendUser(id, { reason, days: 7 });
       setUsers(prev => prev.map(u => u.id === id ? { ...u, is_suspended: true } : u));
-      setFeedback('Usuario suspendido');
-      setTimeout(() => setFeedback(''), 3000);
-    } catch (err: any) { setFeedback(err.message); }
+      addToast('Usuario suspendido', 'success');
+    } catch (err: any) { addToast(err.message, 'error'); }
   };
 
   const unsuspendUser = async (id: string) => {
     try {
       await api.admin.unsuspendUser(id);
       setUsers(prev => prev.map(u => u.id === id ? { ...u, is_suspended: false } : u));
-      setFeedback('Usuario reactivado');
-      setTimeout(() => setFeedback(''), 3000);
-    } catch (err: any) { setFeedback(err.message); }
+      addToast('Usuario reactivado', 'success');
+    } catch (err: any) { addToast(err.message, 'error'); }
   };
 
   const resolveReport = async (id: string, status: 'RESOLVED' | 'DISMISSED') => {
@@ -49,9 +58,8 @@ export const AdminPage: React.FC = () => {
     try {
       await api.reports.resolve(id, { status, adminNotes: notes });
       setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-      setFeedback('Reporte resuelto');
-      setTimeout(() => setFeedback(''), 3000);
-    } catch (err: any) { setFeedback(err.message); }
+      addToast('Reporte resuelto', 'success');
+    } catch (err: any) { addToast(err.message, 'error'); }
   };
 
   const tabs = [
@@ -104,12 +112,8 @@ export const AdminPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-black">Panel de administración</h1>
       </div>
 
-      {feedback && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-emerald-600"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>{feedback}</span>
-        </div>
-      )}
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* Tabs */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">

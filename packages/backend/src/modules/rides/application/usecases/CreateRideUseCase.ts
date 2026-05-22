@@ -1,5 +1,6 @@
 import { IUseCase } from '@shared/types';
 import { IRideRepository } from '../../domain/interfaces/IRideRepository';
+import { IVehicleRepository } from '@modules/users/domain/interfaces/IVehicleRepository';
 import { Ride } from '../../domain/entities/Ride';
 import { CreateRideDTO } from '../dtos/RideDTO';
 import { ValidationError } from '@shared/errors/AppError';
@@ -10,9 +11,18 @@ interface CreateRideInput {
 }
 
 export class CreateRideUseCase implements IUseCase<CreateRideInput, Ride> {
-  constructor(private rideRepository: IRideRepository) {}
+  constructor(
+    private rideRepository: IRideRepository,
+    private vehicleRepository: IVehicleRepository,
+  ) {}
 
 async execute(input: CreateRideInput): Promise<Ride> {
+    // 0. Validar que el conductor tenga al menos un vehículo registrado
+    const driverVehicles = await this.vehicleRepository.findByOwnerId(input.driverId);
+    if (driverVehicles.length === 0) {
+      throw new ValidationError('Debes registrar un vehículo antes de publicar un viaje');
+    }
+
     // 1. Obtenemos solo la parte del día de la fecha de salida (input format YYYY-MM-DD)
     const [year, month, day] = input.data.departureDate.split('-').map(Number);
     const departureDateOnly = new Date(year, month - 1, day);

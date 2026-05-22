@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 import type { Ride, RideRequest, UserProfile, Vehicle } from '@/types';
 import { ZONAS_AMBATO, CAMPUS_UTA, ZONE_COORDINATES } from '@/constants';
 
@@ -34,7 +35,7 @@ export const RidesPage: React.FC = () => {
 
   const [requestMsg, setRequestMsg] = useState('');
   const [filters, setFilters] = useState({ originZone: '', destinationZone: '', departureDate: '' });
-  const [feedback, setFeedback] = useState({ msg: '', type: '' });
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
   const [selectMode, setSelectMode] = useState<'origin' | 'destination' | null>(null);
   const [autoLocate, setAutoLocate] = useState(true);
 
@@ -57,9 +58,20 @@ export const RidesPage: React.FC = () => {
   const [hasVehicles, setHasVehicles] = useState<boolean>(false);
   const [myRequests, setMyRequests] = useState<RideRequest[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
- const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const [selectedRules, setSelectedRules] = useState<string[]>([]);
+  const [customRule, setCustomRule] = useState<string>('');
 
   /* ===== LOAD ===== */
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   const loadRides = async () => {
     setLoading(true);
     try {
@@ -68,15 +80,6 @@ export const RidesPage: React.FC = () => {
     } catch { }
     setLoading(false);
   };
-
-  useEffect(() => {
-    if (feedback.msg) {
-      const timer = setTimeout(() => {
-        setFeedback({ msg: '', type: '' });
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [feedback]);
 
   useEffect(() => {
     loadRides();
@@ -135,28 +138,28 @@ export const RidesPage: React.FC = () => {
     e.preventDefault();
 
     if (!hasVehicles) {
-      setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
+      addToast('Debes registrar un vehículo en tu perfil antes de publicar un viaje.', 'error');
       return;
     }
 
     if (!selectedVehicleId) {
-  setFeedback({ msg: 'Selecciona el vehículo que usarás en este viaje.', type: 'error' });
+  addToast('Selecciona el vehículo que usarás en este viaje.', 'error');
   return;
 }
 
     const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
     if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
-      setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de publicarlo.', type: 'error' });
+      addToast('Por favor, completa todos los datos del viaje antes de publicarlo.', 'error');
       return;
     }
 
     // Validación: Mismo origen y destino
     if (formData.originZone === formData.destinationZone) {
-      setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
+      addToast('El destino no puede ser el mismo que el origen', 'error');
       return;
     }
 if (!formData.pricePerSeat || parseFloat(formData.pricePerSeat) <= 0) {
-  setFeedback({ msg: 'El precio por persona debe ser mayor a $0.', type: 'error' });
+  addToast('El precio por persona debe ser mayor a $0.', 'error');
   return;
 }
     try {
@@ -166,13 +169,13 @@ if (!formData.pricePerSeat || parseFloat(formData.pricePerSeat) <= 0) {
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
-      setFeedback({ msg: '¡Viaje publicado con éxito!', type: 'success' });
+      addToast('¡Viaje publicado con éxito!', 'success');
       resetForm(
         
       );
       loadRides();
     } catch (err: any) {
-      setFeedback({ msg: err.message, type: 'error' });
+      addToast(err.message, 'error');
     }
   };
 
@@ -180,18 +183,18 @@ if (!formData.pricePerSeat || parseFloat(formData.pricePerSeat) <= 0) {
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
 if (!selectedVehicleId) {
-  setFeedback({ msg: 'Selecciona el vehículo que usarás en este viaje.', type: 'error' });
+  addToast('Selecciona el vehículo que usarás en este viaje.', 'error');
   return;
 }
     const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
     if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
-      setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de actualizarlo.', type: 'error' });
+      addToast('Por favor, completa todos los datos del viaje antes de actualizarlo.', 'error');
       return;
     }
 
     // Validación: Mismo origen y destino
     if (formData.originZone === formData.destinationZone) {
-      setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
+      addToast('El destino no puede ser el mismo que el origen', 'error');
       return;
     }
 
@@ -203,11 +206,11 @@ if (!selectedVehicleId) {
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
-      setFeedback({ msg: '¡Viaje actualizado con éxito!', type: 'success' });
+      addToast('¡Viaje actualizado con éxito!', 'success');
       resetForm();
       loadRides();
     } catch (err: any) {
-      setFeedback({ msg: err.message, type: 'error' });
+      addToast(err.message, 'error');
     }
   };
 
@@ -269,13 +272,13 @@ if (!selectedVehicleId) {
 
   const handleRequestJoin = async (rideId: string) => {
     if (!myProfile || !myProfile.career || !myProfile.phone) {
-      setFeedback({ msg: 'Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', type: 'error' });
+      addToast('Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', 'error');
       return;
     }
 
     try {
       await api.rideRequests.create({ rideId, message: requestMsg || null, seatsRequested: 1 });
-      setFeedback({ msg: '¡Solicitud enviada con éxito!', type: 'success' });
+      addToast('¡Solicitud enviada con éxito!', 'success');
 
       if (user?.id) {
         api.rideRequests.myRequests().then(res => setMyRequests(res.data || [])).catch();
@@ -285,9 +288,9 @@ if (!selectedVehicleId) {
       setRequestMsg('');
     } catch (err: any) {
       if (err.message && err.message.toLowerCase().includes('already have a pending or accepted')) {
-        setFeedback({ msg: 'Ya tienes una solicitud pendiente o aceptada para este viaje.', type: 'error' });
+        addToast('Ya tienes una solicitud pendiente o aceptada para este viaje.', 'error');
       } else {
-        setFeedback({ msg: err.message || 'Error al solicitar viaje.', type: 'error' });
+        addToast(err.message || 'Error al solicitar viaje.', 'error');
       }
     }
   };
@@ -295,12 +298,12 @@ if (!selectedVehicleId) {
   const handleDeleteRide = async (rideId: string) => {
     try {
       await api.rides.cancel(rideId);
-      setFeedback({ msg: 'Viaje eliminado correctamente.', type: 'success' });
+      addToast('Viaje eliminado correctamente.', 'success');
       setConfirmDelete(null);
       setViewRide(null);
       loadRides();
     } catch (err: any) {
-      setFeedback({ msg: err.message || 'Error al eliminar el viaje.', type: 'error' });
+      addToast(err.message || 'Error al eliminar el viaje.', 'error');
       setConfirmDelete(null);
     }
   };
@@ -343,11 +346,11 @@ if (!selectedVehicleId) {
               resetForm();
             } else {
               if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
-                setFeedback({ msg: '¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', type: 'error' });
+                addToast('¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', 'error');
                 return;
               }
               if (!hasVehicles) {
-                setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
+                addToast('Debes registrar un vehículo en tu perfil antes de publicar un viaje.', 'error');
                 return;
               }
               setShowCreate(true);
@@ -369,28 +372,8 @@ if (!selectedVehicleId) {
         </button>
       </div>
 
-      {/* ═══ FEEDBACK NOTIFICATIONS ═══ */}
-      {feedback.msg && (
-        <div
-          className={`flex items-center gap-3 px-4 py-3 text-sm rounded-xl border animate-fade-in`}
-          style={{
-            background: feedback.type === 'success' ? '#E6F4EA' : '#FDECEA',
-            borderColor: feedback.type === 'success' ? '#C2EAD0' : '#FAD4D0',
-            color: feedback.type === 'success' ? '#06C167' : '#E11900',
-          }}
-        >
-          {feedback.type === 'success' ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          )}
-          <span className="font-medium">{feedback.msg}</span>
-          <button
-            onClick={() => setFeedback({ msg: '', type: '' })}
-            className="ml-auto bg-transparent border-none cursor-pointer text-current opacity-60 hover:opacity-100 font-semibold"
-          >✕</button>
-        </div>
-      )}
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* ═══ SEARCH & FILTERS BAR (Uber aesthetic) ═══ */}
       {!showCreate && (
@@ -858,11 +841,11 @@ if (!selectedVehicleId) {
             <button
               onClick={() => {
                 if (!myProfile || !myProfile.phone || !myProfile.emergencyContact || !myProfile.emergencyPhone) {
-                  setFeedback({ msg: '¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', type: 'error' });
+                  addToast('¡Alto ahí! Debes completar tu perfil (teléfono, contacto de emergencia) antes de publicar un viaje.', 'error');
                   return;
                 }
                 if (!hasVehicles) {
-                  setFeedback({ msg: 'Debes registrar un vehículo en tu perfil antes de publicar un viaje.', type: 'error' });
+                  addToast('Debes registrar un vehículo en tu perfil antes de publicar un viaje.', 'error');
                   return;
                 }
                 setShowCreate(true);
