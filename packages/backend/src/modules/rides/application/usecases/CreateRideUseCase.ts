@@ -23,6 +23,26 @@ async execute(input: CreateRideInput): Promise<Ride> {
       throw new ValidationError('Debes registrar un vehículo antes de publicar un viaje');
     }
 
+    const existingRides = await this.rideRepository.findByDriverId(input.driverId);
+
+    // 0.1. Validar que no tenga un viaje en curso (IN_PROGRESS)
+    const hasInProgress = existingRides.some(r => r.status === 'IN_PROGRESS');
+    if (hasInProgress) {
+      throw new ValidationError('No puedes publicar un nuevo viaje si ya tienes un viaje en curso');
+    }
+
+    // 0.2. Validar que no tenga un viaje al mismo destino en la misma fecha y hora
+    const hasDuplicate = existingRides.some(r =>
+      r.status !== 'CANCELLED' &&
+      r.status !== 'COMPLETED' &&
+      r.destinationZone.toLowerCase() === input.data.destinationZone.toLowerCase() &&
+      r.departureDate === input.data.departureDate &&
+      r.departureTime === input.data.departureTime
+    );
+    if (hasDuplicate) {
+      throw new ValidationError('Ya tienes publicado un viaje al mismo destino para la misma fecha y hora');
+    }
+
     // 1. Obtenemos solo la parte del día de la fecha de salida (input format YYYY-MM-DD)
     const [year, month, day] = input.data.departureDate.split('-').map(Number);
     const departureDateOnly = new Date(year, month - 1, day);

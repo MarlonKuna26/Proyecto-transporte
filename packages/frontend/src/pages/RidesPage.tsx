@@ -163,16 +163,16 @@ if (!formData.pricePerSeat || parseFloat(formData.pricePerSeat) <= 0) {
   return;
 }
     try {
+      const combinedRules = [...selectedRules, customRule].map(r => r.trim()).filter(Boolean).join(', ');
       await api.rides.create({
         ...formData,
-         vehicleId: selectedVehicleId,
+        rules: combinedRules,
+        vehicleId: selectedVehicleId,
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
       addToast('¡Viaje publicado con éxito!', 'success');
-      resetForm(
-        
-      );
+      resetForm();
       loadRides();
     } catch (err: any) {
       addToast(err.message, 'error');
@@ -200,8 +200,10 @@ if (!selectedVehicleId) {
 
     if (!editRideId) return;
     try {
+      const combinedRules = [...selectedRules, customRule].map(r => r.trim()).filter(Boolean).join(', ');
       await api.rides.update(editRideId, {
         ...formData,
+        rules: combinedRules,
         vehicleId: selectedVehicleId,
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
@@ -218,14 +220,23 @@ if (!selectedVehicleId) {
   const handleEdit = (ride: Ride) => {
     const rulesStr = ride.rules || '';
     const parts = rulesStr.split(',').map(s => s.trim()).filter(Boolean);
-    const predefined = parts.filter(p => ['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p));
-    const custom = parts.filter(p => !['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p)).join(', ');
+    
+    // Normalizar antiguas reglas a las nuevas
+    const normalizedParts = parts.map(p => {
+      if (p === 'No llevar mascotas') return 'Sin mascotas';
+      return p;
+    });
+
+    const predefinedList = ['Puntualidad', 'Sin mascotas', 'No tomar', 'No fumar'];
+    const predefined = normalizedParts.filter(p => predefinedList.includes(p));
+    const custom = normalizedParts.filter(p => !predefinedList.includes(p)).join(', ');
     
     setSelectedRules(predefined);
     setCustomRule(custom);
 
     setEditRideId(ride.id);
     setShowCreate(true);
+    setSelectedVehicleId(ride.vehicleId || '');
     
     setFormData({
       originZone: ride.originZone,
@@ -723,27 +734,48 @@ if (!selectedVehicleId) {
 
               {/* Seats */}
               <div>
-  <label className="block text-[11px] font-bold text-uber-gray-500 tracking-wider uppercase mb-1.5">
-    Asientos disponibles *
-    {selectedVehicleId && <span className="ml-2 normal-case text-[10px] font-medium text-uber-gray-400">(definido por el vehículo)</span>}
-  </label>
-  {selectedVehicleId ? (
-    <div className="w-full px-4 py-3 bg-uber-gray-100 rounded-xl text-sm font-extrabold text-black border border-uber-gray-200 flex items-center gap-3 cursor-not-allowed select-none">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2" strokeLinecap="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <span>{formData.availableSeats}</span>
-      <span className="text-uber-gray-400 font-normal text-xs">asientos</span>
-      <div className="ml-auto flex items-center gap-1.5 text-[10px] text-uber-gray-400 font-medium bg-uber-gray-200 px-2.5 py-1 rounded-lg">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Solo lectura
-      </div>
-    </div>
-  ) : (
-    <input type="number" min="1" max="8" className="w-full px-4 py-3 bg-uber-gray-50 rounded-xl text-sm text-black border-none outline-none focus:bg-uber-gray-100 focus:ring-2 focus:ring-black/10" required value={formData.availableSeats} onChange={e => setFormData({ ...formData, availableSeats: e.target.value })} />
-  )}
-</div>
+                <label className="block text-[11px] font-bold text-uber-gray-500 tracking-wider uppercase mb-1.5">
+                  Asientos disponibles *
+                  {selectedVehicleId && (() => {
+                    const vehicle = vehicles.find(v => v.id === selectedVehicleId);
+                    return vehicle ? (
+                      <span className="ml-2 normal-case text-[10px] font-medium text-uber-gray-400">
+                        (máx. {vehicle.capacity} por el vehículo)
+                      </span>
+                    ) : null;
+                  })()}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max={(() => {
+                    const vehicle = vehicles.find(v => v.id === selectedVehicleId);
+                    return vehicle ? vehicle.capacity : 8;
+                  })()}
+                  className="w-full px-4 py-3 bg-uber-gray-50 rounded-xl text-sm text-black border-none outline-none focus:bg-uber-gray-100 focus:ring-2 focus:ring-black/10 font-medium"
+                  required
+                  value={formData.availableSeats}
+                  onChange={e => {
+                    const valStr = e.target.value;
+                    if (valStr === '') {
+                      setFormData(prev => ({ ...prev, availableSeats: '' }));
+                      return;
+                    }
+                    const val = parseInt(valStr, 10);
+                    if (!isNaN(val)) {
+                      const vehicle = vehicles.find(v => v.id === selectedVehicleId);
+                      const maxSeats = vehicle ? vehicle.capacity : 8;
+                      if (val > maxSeats) {
+                        setFormData(prev => ({ ...prev, availableSeats: String(maxSeats) }));
+                      } else if (val < 1) {
+                        setFormData(prev => ({ ...prev, availableSeats: '1' }));
+                      } else {
+                        setFormData(prev => ({ ...prev, availableSeats: String(val) }));
+                      }
+                    }
+                  }}
+                />
+              </div>
 
               {/* Price */}
               <div>
@@ -774,11 +806,47 @@ if (!selectedVehicleId) {
             </div>
             <div>
               <label className="block text-[11px] font-bold text-uber-gray-500 tracking-wider uppercase mb-1.5">Reglas del viaje</label>
-              <textarea
-                placeholder="Ej: Prohibido fumar, no comer en el auto, uso obligatorio de mascarilla..."
-                className="w-full px-4 py-3 bg-uber-gray-50 rounded-xl text-sm text-black placeholder-uber-gray-400 border-none outline-none focus:bg-uber-gray-100 focus:ring-2 focus:ring-black/10 resize-none h-20"
-                value={formData.rules}
-                onChange={e => setFormData({ ...formData, rules: e.target.value })}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {[
+                  { id: 'puntualidad', label: 'Puntualidad', icon: '⏱️' },
+                  { id: 'sin_mascotas', label: 'Sin mascotas', icon: '🐾' },
+                  { id: 'no_tomar', label: 'No tomar', icon: '🚫🍺' },
+                  { id: 'no_fumar', label: 'No fumar', icon: '🚭' }
+                ].map(rule => {
+                  const isChecked = selectedRules.includes(rule.label);
+                  return (
+                    <label
+                      key={rule.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all select-none ${
+                        isChecked
+                          ? 'bg-black text-white border-black shadow-sm'
+                          : 'bg-uber-gray-50 text-uber-gray-700 border-uber-gray-200 hover:bg-uber-gray-100'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={isChecked}
+                        onChange={() => {
+                          if (isChecked) {
+                            setSelectedRules(prev => prev.filter(r => r !== rule.label));
+                          } else {
+                            setSelectedRules(prev => [...prev, rule.label]);
+                          }
+                        }}
+                      />
+                      <span>{rule.icon}</span>
+                      <span>{rule.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <input
+                type="text"
+                placeholder="Ej: No comer en el auto, uso de mascarilla..."
+                className="w-full px-4 py-3 bg-uber-gray-50 rounded-xl text-sm text-black placeholder-uber-gray-400 border-none outline-none focus:bg-uber-gray-100 focus:ring-2 focus:ring-black/10"
+                value={customRule}
+                onChange={e => setCustomRule(e.target.value)}
               />
             </div>
           </div>

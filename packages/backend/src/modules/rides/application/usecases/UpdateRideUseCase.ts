@@ -21,6 +21,31 @@ export class UpdateRideUseCase implements IUseCase<UpdateRideInput, Ride> {
       throw new ValidationError('Cannot update a completed or cancelled ride');
     }
 
+    const existingRides = await this.rideRepository.findByDriverId(input.driverId);
+
+    // 1. Validar que no tenga OTRO viaje en curso (IN_PROGRESS)
+    const hasInProgress = existingRides.some(r => r.id !== input.rideId && r.status === 'IN_PROGRESS');
+    if (hasInProgress) {
+      throw new ValidationError('No puedes modificar viajes si tienes otro viaje en curso');
+    }
+
+    // 2. Validar duplicados de destino, fecha y hora excluyendo el viaje actual
+    const newDest = input.data.destinationZone || ride.destinationZone;
+    const newDate = input.data.departureDate || ride.departureDate;
+    const newTime = input.data.departureTime || ride.departureTime;
+
+    const hasDuplicate = existingRides.some(r =>
+      r.id !== input.rideId &&
+      r.status !== 'CANCELLED' &&
+      r.status !== 'COMPLETED' &&
+      r.destinationZone.toLowerCase() === newDest.toLowerCase() &&
+      r.departureDate === newDate &&
+      r.departureTime === newTime
+    );
+    if (hasDuplicate) {
+      throw new ValidationError('Ya tienes publicado otro viaje al mismo destino para la misma fecha y hora');
+    }
+
     return this.rideRepository.update(input.rideId, input.data as any);
   }
 }
