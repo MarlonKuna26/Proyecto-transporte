@@ -18,102 +18,208 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #ffffff;
+    color: #000000;
   }
 
   #root { height: 100%; }
 }
 
 @layer components {
+  /* ── Legacy classes (backward compat for other pages) ── */
   .glass-card {
     @apply bg-white border border-primary-100/60 rounded-2xl shadow-card;
   }
-
   .glass-card-dark {
     @apply bg-navy-950 border border-navy-800 rounded-2xl shadow-card;
   }
-
   .btn-primary {
     @apply bg-primary-500 text-white font-semibold rounded-xl
            px-6 py-3 transition-all duration-300 hover:bg-primary-600
            hover:shadow-blue active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
-
   .btn-secondary {
     @apply bg-white text-navy-700 font-semibold rounded-xl px-6 py-3
            border border-primary-200 transition-all duration-300
            hover:bg-primary-50 active:scale-[0.98];
   }
-
   .btn-accent {
     @apply bg-navy-500 text-white font-semibold rounded-xl
            px-6 py-3 transition-all duration-300 hover:bg-navy-600
            active:scale-[0.98];
   }
-
   .btn-danger {
     @apply bg-red-500 text-white font-semibold rounded-xl
            px-6 py-3 transition-all duration-300 hover:bg-red-600
            active:scale-[0.98];
   }
-
   .input-field {
     @apply w-full px-4 py-3 bg-white border border-primary-200 rounded-xl text-navy-900
            placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40
            focus:border-primary-500 transition-all duration-300;
   }
-
   .input-field-light {
     @apply w-full px-4 py-3 bg-dark-50 border border-dark-200 rounded-xl text-dark-900
            placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40
            focus:border-primary-500 transition-all duration-300;
   }
-
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
   }
-
   .badge-success {
     @apply badge bg-primary-50 text-primary-700;
   }
-
   .badge-warning {
     @apply badge bg-amber-50 text-amber-700;
   }
-
   .badge-danger {
     @apply badge bg-red-50 text-red-700;
   }
-
   .badge-info {
     @apply badge bg-navy-50 text-navy-700;
   }
-
   .page-gradient {
     @apply min-h-screen bg-gradient-to-br from-navy-950 via-navy-900 to-primary-950;
   }
-
   .page-gradient-light {
     @apply min-h-screen bg-gradient-to-br from-white via-primary-50 to-white;
   }
-
   .card-hover {
     @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1;
   }
-
   .nav-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-navy-300 font-medium
            transition-all duration-200 hover:bg-white/10 hover:text-white;
   }
-
   .nav-link-active {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium
            bg-primary-500/20 border border-primary-500/30;
   }
-
   .stat-card {
     @apply glass-card p-6 animate-fade-in;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     UBER DESIGN SYSTEM
+     ═══════════════════════════════════════════════════════ */
+
+  /* Top Navbar */
+  .uber-navbar {
+    @apply sticky top-0 z-50 bg-white flex items-center justify-between h-16 px-6;
+    border-bottom: 1px solid #E2E2E2;
+  }
+
+  /* Nav tabs (desktop) */
+  .uber-nav-tab {
+    @apply relative flex items-center gap-2 px-4 h-16 text-sm font-medium text-uber-gray-600
+           transition-colors duration-200 cursor-pointer;
+    text-decoration: none;
+  }
+  .uber-nav-tab:hover {
+    @apply text-uber-black;
+  }
+  .uber-nav-tab-active {
+    @apply relative flex items-center gap-2 px-4 h-16 text-sm font-medium text-uber-black
+           cursor-pointer;
+    text-decoration: none;
+  }
+  .uber-nav-tab-active::after {
+    content: '';
+    @apply absolute bottom-0 left-2 right-2 h-[3px] bg-uber-black rounded-t-full;
+  }
+
+  /* Profile Dropdown */
+  .uber-dropdown {
+    @apply absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl py-4 animate-dropdown-in;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16);
+    z-index: 100;
+  }
+  .uber-dropdown-item {
+    @apply flex items-center gap-4 px-6 py-3 text-sm text-uber-gray-700 font-medium
+           transition-colors duration-150 cursor-pointer;
+    text-decoration: none;
+  }
+  .uber-dropdown-item:hover {
+    @apply bg-uber-gray-50;
+  }
+
+  /* Uber Buttons */
+  .uber-btn-primary {
+    @apply bg-uber-black text-white font-semibold rounded-lg
+           px-6 py-3 text-sm transition-all duration-200 hover:bg-uber-gray-800
+           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .uber-btn-secondary {
+    @apply bg-uber-gray-50 text-uber-black font-semibold rounded-lg
+           px-6 py-3 text-sm transition-all duration-200 hover:bg-uber-gray-100
+           active:scale-[0.98];
+  }
+
+  /* Uber Cards */
+  .uber-card {
+    @apply bg-white rounded-2xl p-6 transition-all duration-200;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .uber-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  .uber-card-flat {
+    @apply bg-uber-gray-50 rounded-2xl p-6 transition-all duration-200;
+  }
+  .uber-card-flat:hover {
+    @apply bg-uber-gray-100;
+  }
+
+  /* Uber Inputs */
+  .uber-input {
+    @apply w-full px-4 py-3 bg-uber-gray-50 rounded-lg text-uber-black text-sm
+           placeholder-uber-gray-400 border-none outline-none
+           transition-all duration-200;
+  }
+  .uber-input:focus {
+    @apply bg-uber-gray-100 ring-2 ring-uber-black/10;
+  }
+
+  /* Bottom Tab Bar (Mobile) */
+  .uber-bottom-bar {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-white flex items-center justify-around
+           h-16 px-2;
+    border-top: 1px solid #E2E2E2;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .uber-bottom-tab {
+    @apply flex flex-col items-center justify-center gap-0.5 flex-1 py-2
+           text-uber-gray-400 transition-colors duration-200 cursor-pointer;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .uber-bottom-tab-active {
+    @apply flex flex-col items-center justify-center gap-0.5 flex-1 py-2
+           text-uber-black transition-colors duration-200 cursor-pointer;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* Status badges - Uber style */
+  .uber-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+  .uber-badge-available {
+    @apply uber-badge bg-green-50 text-uber-green;
+  }
+  .uber-badge-full {
+    @apply uber-badge bg-amber-50 text-amber-600;
+  }
+  .uber-badge-progress {
+    @apply uber-badge bg-blue-50 text-uber-blue;
+  }
+  .uber-badge-done {
+    @apply uber-badge bg-uber-gray-100 text-uber-gray-600;
+  }
+  .uber-badge-cancel {
+    @apply uber-badge bg-red-50 text-uber-red;
   }
 }
 

@@ -35,7 +35,9 @@ export function createRideRequestRoutes(): Router {
 
   // Mis solicitudes (como pasajero)
   router.get('/my-requests', authenticateToken, (req, res) => controller.listMyRequests(req, res));
-
+router.get('/ride/:rideId/passengers', authenticateToken, (req, res) => 
+  controller.getAcceptedPassengers(req, res)
+);
   // Solicitudes de un viaje (para conductor)
   router.get('/ride/:rideId', authenticateToken, (req, res) => controller.listByRide(req, res));
 
@@ -43,6 +45,7 @@ export function createRideRequestRoutes(): Router {
   router.put('/:id/accept', authenticateToken, (req, res) => controller.accept(req, res));
   router.put('/:id/reject', authenticateToken, (req, res) => controller.reject(req, res));
   router.put('/:id/cancel', authenticateToken, (req, res) => controller.cancel(req, res));
+// Pasajeros aceptados de un viaje (cualquier usuario autenticado)
 
   return router;
 }

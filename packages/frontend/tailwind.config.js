@@ -43,9 +43,31 @@ export default {
           900: '#0f172a',
           950: '#020617',
         },
+        // Uber Design System Colors
+        uber: {
+          black: '#000000',
+          white: '#ffffff',
+          green: '#06C167',
+          blue: '#276EF1',
+          red: '#E11900',
+          orange: '#FF6937',
+        },
+        'uber-gray': {
+          50: '#F6F6F6',
+          100: '#EEEEEE',
+          200: '#E2E2E2',
+          300: '#CBCBCB',
+          400: '#AFAFAF',
+          500: '#757575',
+          600: '#545454',
+          700: '#333333',
+          800: '#1F1F1F',
+          900: '#141414',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        uber: ['Inter', 'UberMove', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
         'glass': '0 8px 32px 0 rgba(10, 32, 92, 0.15)',
@@ -53,12 +75,18 @@ export default {
         'card-hover': '0 12px 40px -8px rgba(10, 32, 92, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.06)',
         'glow': '0 0 24px rgba(26, 86, 219, 0.25)',
         'blue': '0 4px 14px rgba(26, 86, 219, 0.2)',
+        'uber-sm': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'uber-md': '0 4px 16px rgba(0, 0, 0, 0.12)',
+        'uber-lg': '0 8px 30px rgba(0, 0, 0, 0.12)',
+        'uber-dropdown': '0 4px 24px rgba(0, 0, 0, 0.16)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-in': 'slideIn 0.3s ease-out',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'dropdown-in': 'dropdownIn 0.2s ease-out',
+        'slide-up-mobile': 'slideUpMobile 0.3s ease-out',
       },
       keyframes: {
         fadeIn: {
@@ -72,6 +100,14 @@ export default {
         slideIn: {
           '0%': { opacity: '0', transform: 'translateX(-10px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        dropdownIn: {
+          '0%': { opacity: '0', transform: 'translateY(-8px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        slideUpMobile: {
+          '0%': { opacity: '0', transform: 'translateY(100%)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
       backgroundImage: {

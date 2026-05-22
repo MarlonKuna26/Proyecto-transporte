@@ -12,9 +12,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="page-gradient min-h-screen flex items-center justify-center">
-      <div className="text-center animate-pulse">
-        <div className="text-5xl mb-4">🚗</div>
-        <p className="text-navy-300 font-medium">Cargando...</p>
+      <div className="text-center">
+        <div className="relative w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+          <div className="absolute inset-0 border-4 border-zinc-100/20 rounded-full" />
+          <div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="text-white/80 font-semibold tracking-wide text-xs uppercase">Cargando...</p>
       </div>
     </div>
   );
@@ -63,9 +66,15 @@ function App() {
           <Route path="*" element={
             <div className="page-gradient min-h-screen flex items-center justify-center">
               <div className="text-center">
-                <p className="text-6xl mb-4">🗺️</p>
+                <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center text-white">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polygon points="1 6 8 2 15 6 22 2 22 18 15 22 8 18 1 22" />
+                    <line x1="8" y1="2" x2="8" y2="18" />
+                    <line x1="15" y1="6" x2="15" y2="22" />
+                  </svg>
+                </div>
                 <h1 className="text-2xl font-bold text-white mb-2">Página no encontrada</h1>
-                <a href="/dashboard" className="text-primary-300 hover:text-primary-200 font-medium">← Volver al inicio</a>
+                <a href="/dashboard" className="text-white/70 hover:text-white font-medium underline">← Volver al inicio</a>
               </div>
             </div>
           } />
