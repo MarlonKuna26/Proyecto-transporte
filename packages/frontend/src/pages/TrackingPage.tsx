@@ -21,6 +21,7 @@ export const TrackingPage: React.FC = () => {
   // ETA States
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const [elapsedMinutes, setElapsedMinutes] = useState<number>(0);
+  const [totalDistance, setTotalDistance] = useState<number | null>(null);
 
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const watchRef = useRef<number>();
@@ -75,24 +76,36 @@ export const TrackingPage: React.FC = () => {
 
   // ETA Calculation
   useEffect(() => {
-    if (ride?.originLat && ride?.originLng && ride?.destinationLat && ride?.destinationLng) {
+    if (!ride) return;
+    
+    // Always set default values first
+    setTotalDistance(15);
+    setEtaMinutes(25);
+
+    // If we have coordinates, calculate better estimate
+    if (ride.originLat && ride.originLng && ride.destinationLat && ride.destinationLng) {
+      const distance = getDistanceFromLatLonInKm(ride.originLat, ride.originLng, ride.destinationLat, ride.destinationLng);
+      setTotalDistance(distance);
+      setEtaMinutes(Math.max(5, Math.ceil((distance / 40) * 60)));
+
+      // Try OSRM for even better estimate
       const url = `https://router.project-osrm.org/route/v1/driving/${ride.originLng},${ride.originLat};${ride.destinationLng},${ride.destinationLat}?overview=false`;
-      fetch(url)
+      
+      fetch(url, { timeout: 5000 })
         .then(res => res.json())
         .then(data => {
-          if (data.code === 'Ok' && data.routes && data.routes[0]) {
+          if (data.code === 'Ok' && data.routes?.[0]) {
             const durationSec = data.routes[0].duration;
+            const distanceM = data.routes[0].distance;
             setEtaMinutes(Math.max(1, Math.ceil(durationSec / 60)));
-          } else {
-             // Fallback
-             const distance = getDistanceFromLatLonInKm(ride.originLat!, ride.originLng!, ride.destinationLat!, ride.destinationLng!);
-             setEtaMinutes(Math.max(5, Math.ceil((distance / 30) * 60))); // ~30km/h avg city speed
+            setTotalDistance(distanceM / 1000);
           }
         })
-        .catch(() => {
-             const distance = getDistanceFromLatLonInKm(ride.originLat!, ride.originLng!, ride.destinationLat!, ride.destinationLng!);
-             setEtaMinutes(Math.max(5, Math.ceil((distance / 30) * 60)));
+        .catch(err => {
+          console.log('OSRM failed, using Haversine estimate');
         });
+    } else {
+      console.log('Coordinates not available, using default estimate');
     }
   }, [ride]);
 
@@ -248,27 +261,79 @@ export const TrackingPage: React.FC = () => {
       {/* Map */}
       <div className="bg-white rounded-2xl border border-uber-gray-100 shadow-uber-sm overflow-hidden animate-fade-in relative">
         <LiveMap
-          origin={ride.originLat && ride.originLng ? { lat: ride.originLat, lng: ride.originLng, label: ride.originZone } : null}
-          destination={ride.destinationLat && ride.destinationLng ? { lat: ride.destinationLat, lng: ride.destinationLng, label: ride.destinationZone } : null}
+          origin={
+            ride.originLat && ride.originLng 
+              ? { lat: ride.originLat, lng: ride.originLng, label: ride.originZone } 
+              : { lat: -1.2491, lng: -78.6167, label: ride.originZone }
+          }
+          destination={
+            ride.destinationLat && ride.destinationLng 
+              ? { lat: ride.destinationLat, lng: ride.destinationLng, label: ride.destinationZone } 
+              : { lat: -1.2491, lng: -78.6167, label: ride.destinationZone }
+          }
           currentPosition={currentPos ? { lat: Number(currentPos.latitud_actual), lng: Number(currentPos.longitud_actual) } : null}
           trackingPath={history.map(h => ({ lat: h.lat, lng: h.lng }))}
           height="450px"
         />
 
         {/* ETA Overlay Card */}
-        {ride.status === 'IN_PROGRESS' && etaMinutes !== null && (
-          <div className="absolute top-4 left-4 z-[400] bg-white/95 backdrop-blur shadow-uber-md border border-uber-gray-100 rounded-2xl p-4 flex flex-col min-w-[140px]">
-            <span className="text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider">Progreso de Viaje</span>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="text-3xl font-black text-black">{Math.max(0, etaMinutes - elapsedMinutes)}</span>
-              <span className="text-sm font-bold text-uber-gray-500">min. rest.</span>
+        {ride.status === 'IN_PROGRESS' && (
+          <div className="absolute top-4 left-4 z-[400] bg-white shadow-uber-md border border-uber-gray-100 rounded-2xl p-5 flex flex-col min-w-[260px]">
+            <span className="text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider">Seguimiento en vivo</span>
+            
+            {/* Origin and Destination */}
+            <div className="mt-3 space-y-2 pb-3 border-b border-uber-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span className="text-xs font-semibold text-black truncate">{ride.originZone}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-blue-500" style={{ borderRadius: '2px' }} />
+                <span className="text-xs font-semibold text-black truncate">{ride.destinationZone}</span>
+              </div>
             </div>
-            <div className="w-full bg-uber-gray-200 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div 
-                className="bg-uber-blue h-full transition-all duration-1000 ease-out rounded-full" 
-                style={{ width: `${Math.min(100, (elapsedMinutes / Math.max(1, etaMinutes)) * 100)}%` }} 
-              />
-            </div>
+
+            {/* Main Time Display */}
+            {etaMinutes !== null ? (
+              <>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-black">{Math.max(0, etaMinutes - elapsedMinutes)}</span>
+                  <span className="text-xs font-bold text-uber-gray-500">min</span>
+                  {totalDistance !== null && (
+                    <span className="text-xs font-bold text-uber-gray-400 ml-2">{totalDistance.toFixed(1)} km</span>
+                  )}
+                </div>
+
+                {/* Sub info - Total time and elapsed */}
+                <div className="mt-2 text-[11px] text-uber-gray-600 font-medium space-y-1">
+                  <div className="flex justify-between">
+                    <span>Total:</span>
+                    <span className="font-bold text-black">{etaMinutes} min</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Transcurrido:</span>
+                    <span className="font-bold text-black">{elapsedMinutes} min</span>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full bg-uber-gray-200 h-2 rounded-full mt-3 overflow-hidden">
+                  <div 
+                    className="bg-blue-500 h-full transition-all duration-1000 ease-out rounded-full" 
+                    style={{ width: `${Math.min(100, (elapsedMinutes / Math.max(1, etaMinutes)) * 100)}%` }} 
+                  />
+                </div>
+
+                {/* Progress percentage */}
+                <div className="mt-2 text-[10px] font-semibold text-uber-gray-600 text-center">
+                  {Math.round(Math.min(100, (elapsedMinutes / Math.max(1, etaMinutes)) * 100))}% completado
+                </div>
+              </>
+            ) : (
+              <div className="mt-3 text-xs text-uber-gray-500 font-medium animate-pulse">
+                Calculando...
+              </div>
+            )}
           </div>
         )}
       </div>
