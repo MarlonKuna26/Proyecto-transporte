@@ -130,6 +130,7 @@ CREATE TABLE public.pagos (
     metodo_pago character varying(50) DEFAULT 'CASH'::character varying,
     estado character varying(20) DEFAULT 'PENDING'::character varying,
     referencia_transaccion character varying(255),
+    comprobante_url text,
     creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pagos_estado_check CHECK (((estado)::text = ANY (ARRAY[('PENDING'::character varying)::text, ('COMPLETED'::character varying)::text, ('REFUNDED'::character varying)::text, ('FAILED'::character varying)::text]))),

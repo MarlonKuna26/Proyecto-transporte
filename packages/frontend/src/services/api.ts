@@ -127,7 +127,7 @@ export const api = {
 
   // =================== PAYMENTS ===================
   payments: {
-    create: (data: { rideRequestId: string; amount: number; paymentMethod?: string; reference?: string }) =>
+    create: (data: { rideRequestId: string; amount: number; paymentMethod?: string; reference?: string; comprobanteUrl?: string }) =>
       request<any>('/payments', { method: 'POST', body: JSON.stringify(data) }),
     myPayments: () => request<any>('/payments/my-payments'),
     received: () => request<any>('/payments/received'),

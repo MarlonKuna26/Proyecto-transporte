@@ -56,6 +56,13 @@ console.log("DB_USER =", process.env.DB_USER);
         console.error('❌ SQL Migration failed:', migrationError);
       }
 
+      try {
+        await client.query('ALTER TABLE public.pagos ADD COLUMN IF NOT EXISTS comprobante_url text;');
+        console.log('✅ SQL Migration: comprobante_url column verified/added successfully');
+      } catch (migrationError) {
+        console.error('❌ SQL Migration failed for comprobante_url:', migrationError);
+      }
+
       client.release();
     } catch (error) {
       console.error('❌ Database connection failed:', error);
