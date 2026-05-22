@@ -65,6 +65,7 @@ export interface Ride {
   destinationLng: number | null;
   actualStart: string | null;
   actualEnd: string | null;
+  hasRequests?: boolean;
 }
 
 export interface RideRequest {

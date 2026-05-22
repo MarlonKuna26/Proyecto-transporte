@@ -22,6 +22,7 @@ export class Ride {
   readonly rules: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly hasRequests?: boolean;
 
   constructor(
     driverId: string,
@@ -40,6 +41,7 @@ export class Ride {
     id: string = uuidv4(),
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
+    hasRequests?: boolean,
   ) {
     this.id = id;
     this.driverId = driverId;
@@ -57,6 +59,7 @@ export class Ride {
     this.rules = rules;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.hasRequests = hasRequests;
   }
 
   isAvailable(): boolean {

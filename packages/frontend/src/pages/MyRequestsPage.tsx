@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { api } from '@/services/api';
-import type { RideRequest, Ride } from '@/types';
+import type { RideRequest, Ride, UserProfile } from '@/types';
 import { Link } from 'react-router-dom';
 import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
@@ -17,12 +17,48 @@ export const MyRequestsPage: React.FC = () => {
   // Custom Modal State for Cancellation
   const [cancelRequestId, setCancelRequestId] = useState<string | null>(null);
 
+  // States for Rating
+  const [ratingRide, setRatingRide] = useState<Ride | null>(null);
+  const [ratingScore, setRatingScore] = useState<number>(5);
+  const [ratingComment, setRatingComment] = useState<string>('');
+  const [submittingRating, setSubmittingRating] = useState<boolean>(false);
+  const [givenRatings, setGivenRatings] = useState<any[]>([]);
+  const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
+
+  const hasAlreadyRated = (rideId: string) => {
+    return givenRatings.some(r => r.rideId === rideId);
+  };
+
+  useEffect(() => {
+    if (ratingRide) {
+      api.users.getProfile(ratingRide.driverId)
+        .then(res => {
+          if (res.data) {
+            setDriverProfile(res.data);
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching driver profile', err);
+        });
+    } else {
+      setDriverProfile(null);
+    }
+  }, [ratingRide]);
+
   useEffect(() => {
     const load = async () => {
       try {
         const res = await api.rideRequests.myRequests();
         const requestList: RideRequest[] = res.data || [];
         setRequests(requestList);
+
+        // Fetch given ratings
+        try {
+          const ratingsRes = await api.ratings.getGiven();
+          setGivenRatings(ratingsRes.data || []);
+        } catch (err) {
+          console.error('Error fetching given ratings', err);
+        }
 
         // Fetch ride details for unique ride IDs
         const uniqueRideIds = Array.from(new Set(requestList.map(r => r.rideId)));
@@ -81,6 +117,26 @@ export const MyRequestsPage: React.FC = () => {
     } catch (err: any) {
       addToast(err.message, 'error');
       setCancelRequestId(null);
+    }
+  };
+
+  const handleSendRating = async () => {
+    if (!ratingRide) return;
+    setSubmittingRating(true);
+    try {
+      await api.ratings.create({
+        rideId: ratingRide.id,
+        ratedId: ratingRide.driverId,
+        score: ratingScore,
+        comment: ratingComment.trim() || null
+      });
+      setGivenRatings(prev => [...prev, { rideId: ratingRide.id }]);
+      addToast('¡Calificación enviada con éxito!', 'success');
+      setRatingRide(null);
+    } catch (err: any) {
+      addToast(err.message || 'Error al enviar calificación', 'error');
+    } finally {
+      setSubmittingRating(false);
     }
   };
 
@@ -348,6 +404,33 @@ export const MyRequestsPage: React.FC = () => {
                         Cancelar solicitud
                       </button>
                     )}
+
+                    {/* CALIFICAR VIAJE */}
+                    {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && !hasAlreadyRated(ride.id) && (
+                      <button
+                        onClick={() => {
+                          setRatingRide(ride);
+                          setRatingScore(5);
+                          setRatingComment('');
+                        }}
+                        className="px-4 py-2.5 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 hover:border-amber-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        Calificar conductor
+                      </button>
+                    )}
+
+                    {/* YA CALIFICADO */}
+                    {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && hasAlreadyRated(ride.id) && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl self-start md:self-auto">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        Calificado
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -430,6 +513,141 @@ export const MyRequestsPage: React.FC = () => {
                 </button>
 
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ RATING MODAL ═══ */}
+      {ratingRide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile">
+            
+            {/* Modal Header */}
+            <div className="bg-black text-white px-6 py-5 flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-lg font-bold">Calificar viaje</h3>
+                <p className="text-xs text-uber-gray-400 mt-0.5">
+                  Comparte tu experiencia para ayudar a la comunidad
+                </p>
+              </div>
+              <button 
+                onClick={() => setRatingRide(null)}
+                className="text-white hover:text-uber-gray-300 transition-colors bg-transparent border-none cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              
+              {/* Driver info */}
+              <div className="flex items-center gap-3.5 p-3 bg-uber-gray-50 rounded-2xl border border-uber-gray-100">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-uber-gray-200 shrink-0 border border-white shadow-sm flex items-center justify-center">
+                  {driverProfile?.photoUrl ? (
+                    <img 
+                      src={driverProfile.photoUrl} 
+                      alt={driverProfile.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg font-bold text-uber-gray-600">
+                      {driverProfile?.name ? driverProfile.name.charAt(0).toUpperCase() : 'C'}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs text-uber-gray-400 font-bold uppercase tracking-wider leading-none">
+                    Conductor
+                  </div>
+                  <div className="font-bold text-black text-sm truncate mt-1">
+                    {driverProfile?.name || 'Cargando...'}
+                  </div>
+                  <div className="text-xs text-uber-gray-500 mt-0.5">
+                    {ratingRide.originZone} → {ratingRide.destinationZone}
+                  </div>
+                </div>
+              </div>
+
+              {/* Star selector */}
+              <div className="space-y-2 text-center">
+                <label className="block text-xs font-bold text-uber-gray-400 uppercase tracking-wider">
+                  Tu Calificación
+                </label>
+                <div className="flex justify-center gap-1.5 py-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isSelected = star <= ratingScore;
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRatingScore(star)}
+                        className="p-1 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer"
+                      >
+                        <svg 
+                          width="36" 
+                          height="36" 
+                          viewBox="0 0 24 24" 
+                          fill={isSelected ? '#FFC000' : 'none'} 
+                          stroke={isSelected ? '#FFC000' : '#CBCBCB'} 
+                          strokeWidth="1.5"
+                          style={{ filter: isSelected ? 'drop-shadow(0 0 2px rgba(255, 192, 0, 0.4))' : 'none' }}
+                        >
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="text-xs font-bold text-black">
+                  {ratingScore === 5 && '¡Excelente servicio! 🌟'}
+                  {ratingScore === 4 && 'Muy buen viaje 👍'}
+                  {ratingScore === 3 && 'Aceptable 😐'}
+                  {ratingScore === 2 && 'Malo, mejorable 👎'}
+                  {ratingScore === 1 && 'Muy malo 😡'}
+                </div>
+              </div>
+
+              {/* Comment field */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-uber-gray-400 uppercase tracking-wider">
+                  Comentario (opcional)
+                </label>
+                <textarea
+                  value={ratingComment}
+                  onChange={(e) => setRatingComment(e.target.value)}
+                  placeholder="Escribe tu opinión sobre el viaje o el conductor..."
+                  rows={3}
+                  maxLength={200}
+                  className="w-full px-4 py-3 rounded-xl border border-uber-gray-200 outline-none focus:border-black text-sm resize-none"
+                />
+                <div className="text-[10px] text-right text-uber-gray-400">
+                  {ratingComment.length}/200 caracteres
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-uber-gray-100">
+                <button
+                  onClick={handleSendRating}
+                  disabled={submittingRating}
+                  className="flex-1 py-3 text-sm font-bold text-white bg-black hover:bg-uber-gray-800 disabled:bg-uber-gray-200 disabled:text-uber-gray-400 transition-colors rounded-xl border-none cursor-pointer flex items-center justify-center"
+                >
+                  {submittingRating ? 'Enviando...' : 'Enviar calificación'}
+                </button>
+                <button
+                  onClick={() => setRatingRide(null)}
+                  disabled={submittingRating}
+                  className="flex-1 py-3 text-sm font-semibold bg-uber-gray-50 hover:bg-uber-gray-100 text-black border border-uber-gray-200 rounded-xl transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

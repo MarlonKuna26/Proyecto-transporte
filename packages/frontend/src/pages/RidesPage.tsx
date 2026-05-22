@@ -969,9 +969,15 @@ if (!selectedVehicleId) {
                     {ride.driverId === user?.id && (
                       <div className="flex gap-1.5 mt-2">
                         <button
+                          disabled={ride.hasRequests}
                           onClick={() => handleEdit(ride)}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-uber-gray-50 border border-uber-gray-200 text-uber-gray-700 hover:bg-uber-gray-100 hover:text-black transition-colors"
-                          style={{ cursor: 'pointer' }}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+                            ride.hasRequests
+                              ? 'bg-uber-gray-100 border-uber-gray-200 text-uber-gray-400 cursor-not-allowed'
+                              : 'bg-uber-gray-50 border-uber-gray-200 text-uber-gray-700 hover:bg-uber-gray-100 hover:text-black'
+                          }`}
+                          style={{ cursor: ride.hasRequests ? 'not-allowed' : 'pointer' }}
+                          title={ride.hasRequests ? "No puedes editar el viaje si ya tiene pasajeros solicitando unirse o aceptados" : "Editar este viaje"}
                         >
                           Editar
                         </button>

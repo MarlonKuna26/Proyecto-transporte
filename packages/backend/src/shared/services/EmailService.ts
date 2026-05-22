@@ -96,8 +96,27 @@ export class EmailService {
         <h2>Recuperación de contraseña</h2>
         <p>Tu código de verificación es:</p>
         <h1 style="font-size: 32px; letter-spacing: 4px; color: #000;">${code}</h1>
-        <p>Expira en 15 minutos</p>
+        <p>Expira en 15 minutes</p>
         <p style="color: #999; font-size: 12px;">Si no solicitaste cambiar tu contraseña, ignora este correo.</p>
+      `,
+    });
+  }
+
+  static async sendRideCancellationEmail(to: string, details: { origin: string; destination: string; date: string; time: string }) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: 'Viaje Cancelado 🚗',
+      html: `
+        <h2>El conductor ha cancelado el viaje</h2>
+        <p>Lamentamos informarte que el viaje programado ha sido cancelado por el conductor:</p>
+        <ul>
+          <li><strong>Origen:</strong> ${details.origin}</li>
+          <li><strong>Destino:</strong> ${details.destination}</li>
+          <li><strong>Fecha:</strong> ${details.date}</li>
+          <li><strong>Hora:</strong> ${details.time}</li>
+        </ul>
+        <p>Puedes calificar al conductor para dejar un comentario sobre esta cancelación ingresando a la sección "Mis solicitudes".</p>
       `,
     });
   }

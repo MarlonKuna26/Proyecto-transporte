@@ -26,6 +26,7 @@ interface RideRow {
   longitud_destino: number | null;
   inicio_real: Date | null;
   fin_real: Date | null;
+  tiene_solicitudes?: boolean;
 }
 
 export class RideRepository implements IRideRepository {
@@ -49,12 +50,22 @@ export class RideRepository implements IRideRepository {
   }
 
   async findById(id: string): Promise<Ride | null> {
-    const result = await this.pool.query('SELECT * FROM viajes WHERE id = $1', [id]);
+    const result = await this.pool.query(
+      `SELECT *, EXISTS(
+        SELECT 1 FROM solicitudes_viaje 
+        WHERE viaje_id = viajes.id AND estado IN ('PENDING', 'ACCEPTED')
+      ) AS tiene_solicitudes FROM viajes WHERE id = $1`, [id]
+    );
     return result.rows[0] ? this.mapRow(result.rows[0]) : null;
   }
 
   async findAll(filters?: RideFilters, limit: number = 20, offset: number = 0): Promise<Ride[]> {
-    let query = 'SELECT * FROM viajes WHERE 1=1';
+    let query = `
+      SELECT *, EXISTS(
+        SELECT 1 FROM solicitudes_viaje 
+        WHERE viaje_id = viajes.id AND estado IN ('PENDING', 'ACCEPTED')
+      ) AS tiene_solicitudes FROM viajes WHERE 1=1
+    `;
     const values: any[] = [];
     let idx = 1;
 
@@ -122,7 +133,10 @@ export class RideRepository implements IRideRepository {
 
   async findByDriverId(driverId: string): Promise<Ride[]> {
     const result = await this.pool.query(
-      'SELECT * FROM viajes WHERE conductor_id = $1 ORDER BY fecha_salida DESC, hora_salida DESC',
+      `SELECT *, EXISTS(
+        SELECT 1 FROM solicitudes_viaje 
+        WHERE viaje_id = viajes.id AND estado IN ('PENDING', 'ACCEPTED')
+      ) AS tiene_solicitudes FROM viajes WHERE conductor_id = $1 ORDER BY fecha_salida DESC, hora_salida DESC`,
       [driverId],
     );
     return result.rows.map((row: RideRow) => this.mapRow(row));
@@ -163,7 +177,9 @@ export class RideRepository implements IRideRepository {
     const query = `UPDATE viajes SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
     if (!result.rows[0]) throw new NotFoundError('Ride not found');
-    return this.mapRow(result.rows[0]);
+    const updatedRide = await this.findById(id);
+    if (!updatedRide) throw new NotFoundError('Ride not found');
+    return updatedRide;
   }
 
   async updateSeats(id: string, seatsDelta: number): Promise<Ride> {
@@ -197,6 +213,7 @@ export class RideRepository implements IRideRepository {
       row.vehiculo_id, row.detalle_origen, row.detalle_destino,
       row.notas, row.reglas, row.estado, row.id,
       new Date(row.creado_en), new Date(row.actualizado_en),
+      row.tiene_solicitudes,
     );
     // Attach coordinate fields
     (ride as any).originLat = row.latitud_origen ? parseFloat(String(row.latitud_origen)) : null;

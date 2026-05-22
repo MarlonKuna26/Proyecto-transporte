@@ -71,7 +71,7 @@ export const MyRidesPage: React.FC = () => {
       return;
     }
     try {
-      const res = await api.rideRequests.passengers(rideId);
+      const res = await api.rideRequests.byRide(rideId);
       setRequests(prev => ({ ...prev, [rideId]: res.data || [] }));
     } catch { }
   };
