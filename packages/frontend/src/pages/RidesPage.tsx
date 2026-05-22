@@ -3,8 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { LiveMap } from '@/components/LiveMap';
-import type { Ride, RideRequest, UserProfile } from '@/types';
+import type { Ride, RideRequest, UserProfile, Vehicle } from '@/types';
 import { ZONAS_AMBATO, CAMPUS_UTA, ZONE_COORDINATES } from '@/constants';
+
 
 const findNearestZone = (lat: number, lng: number): string => {
   let nearestZone = '';
@@ -55,6 +56,8 @@ export const RidesPage: React.FC = () => {
 
   const [hasVehicles, setHasVehicles] = useState<boolean>(false);
   const [myRequests, setMyRequests] = useState<RideRequest[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+ const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
 
   /* ===== LOAD ===== */
   const loadRides = async () => {
@@ -79,7 +82,11 @@ export const RidesPage: React.FC = () => {
     loadRides();
     if (user?.id) {
       api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
-      api.users.getVehicles().then(res => setHasVehicles(res.data && res.data.length > 0)).catch();
+      api.users.getVehicles().then(res => {
+  const list: Vehicle[] = res.data || [];
+  setVehicles(list);
+  setHasVehicles(list.length > 0);
+}).catch();
       api.rideRequests.myRequests().then(res => setMyRequests(res.data || [])).catch();
     }
   }, [user?.id]);
@@ -132,6 +139,11 @@ export const RidesPage: React.FC = () => {
       return;
     }
 
+    if (!selectedVehicleId) {
+  setFeedback({ msg: 'Selecciona el vehículo que usarás en este viaje.', type: 'error' });
+  return;
+}
+
     const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
     if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
       setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de publicarlo.', type: 'error' });
@@ -143,15 +155,21 @@ export const RidesPage: React.FC = () => {
       setFeedback({ msg: 'El destino no puede ser el mismo que el origen', type: 'error' });
       return;
     }
-
+if (!formData.pricePerSeat || parseFloat(formData.pricePerSeat) <= 0) {
+  setFeedback({ msg: 'El precio por persona debe ser mayor a $0.', type: 'error' });
+  return;
+}
     try {
       await api.rides.create({
         ...formData,
+         vehicleId: selectedVehicleId,
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
       setFeedback({ msg: '¡Viaje publicado con éxito!', type: 'success' });
-      resetForm();
+      resetForm(
+        
+      );
       loadRides();
     } catch (err: any) {
       setFeedback({ msg: err.message, type: 'error' });
@@ -161,7 +179,10 @@ export const RidesPage: React.FC = () => {
   /* ===== UPDATE ===== */
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
-
+if (!selectedVehicleId) {
+  setFeedback({ msg: 'Selecciona el vehículo que usarás en este viaje.', type: 'error' });
+  return;
+}
     const { originZone, destinationZone, departureDate, departureTime, availableSeats } = formData;
     if (!originZone || !destinationZone || !departureDate || !departureTime || !availableSeats) {
       setFeedback({ msg: 'Por favor, completa todos los datos del viaje antes de actualizarlo.', type: 'error' });
@@ -178,6 +199,7 @@ export const RidesPage: React.FC = () => {
     try {
       await api.rides.update(editRideId, {
         ...formData,
+        vehicleId: selectedVehicleId,
         availableSeats: parseInt(formData.availableSeats),
         pricePerSeat: parseFloat(formData.pricePerSeat),
       });
@@ -193,6 +215,7 @@ export const RidesPage: React.FC = () => {
   const handleEdit = (ride: Ride) => {
     setEditRideId(ride.id);
     setShowCreate(true);
+    
     setFormData({
       originZone: ride.originZone,
       originDetail: ride.originDetail || '',
@@ -215,6 +238,7 @@ export const RidesPage: React.FC = () => {
   const resetForm = () => {
     setEditRideId(null);
     setShowCreate(false);
+    setSelectedVehicleId('');
     setFormData({
       originZone: '', originDetail: '', destinationZone: '', destinationDetail: '',
       departureDate: '', departureTime: '', availableSeats: '3', pricePerSeat: '0',
@@ -223,6 +247,15 @@ export const RidesPage: React.FC = () => {
       destinationLat: null, destinationLng: null,
     });
   };
+
+  const handleVehicleChange = (vehicleId: string) => {
+  setSelectedVehicleId(vehicleId);
+  if (!vehicleId) return;
+  const vehicle = vehicles.find(v => v.id === vehicleId);
+  if (vehicle) {
+    setFormData(prev => ({ ...prev, availableSeats: String(vehicle.capacity) }));
+  }
+};
 
   const handleRequestJoin = async (rideId: string) => {
     if (!myProfile || !myProfile.career || !myProfile.phone) {
@@ -428,6 +461,62 @@ export const RidesPage: React.FC = () => {
       {showCreate && (
         <form onSubmit={isEditing ? handleUpdate : handleCreate} className="bg-white rounded-2xl p-6 md:p-8 border border-uber-gray-100 shadow-uber-sm space-y-6 animate-fade-in">
           {/* Form Header */}
+          {/* ── Selector de vehículo ── */}
+<div className="bg-uber-gray-50 rounded-2xl p-4 border border-uber-gray-100 space-y-3">
+  <label className="block text-[11px] font-bold text-uber-gray-500 tracking-wider uppercase">
+    Vehículo del viaje *
+  </label>
+  <div className="relative">
+    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-uber-gray-500">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1l3-4h8l3 4h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/>
+        <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+      </svg>
+    </div>
+    <select
+      className="w-full pl-10 pr-10 py-3 bg-white rounded-xl border border-uber-gray-200 text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black appearance-none"
+      value={selectedVehicleId}
+      onChange={e => handleVehicleChange(e.target.value)}
+      required
+    >
+      <option value="">— Selecciona un vehículo —</option>
+      {vehicles.map(v => (
+        <option key={v.id} value={v.id}>
+          {[v.brand, v.model, v.year].filter(Boolean).join(' ')}
+          {v.plate ? ` · ${v.plate}` : ''}
+          {v.color ? ` · ${v.color}` : ''}
+        </option>
+      ))}
+    </select>
+    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-uber-gray-400">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  {/* Badge del vehículo seleccionado */}
+  {selectedVehicleId && vehicles.find(v => v.id === selectedVehicleId) && (() => {
+    const sv = vehicles.find(v => v.id === selectedVehicleId)!;
+    return (
+      <div className="flex items-center gap-3 px-4 py-3 bg-white border border-uber-gray-200 rounded-xl">
+        <div className="w-8 h-8 rounded-full border-2 border-white shadow-sm shrink-0" style={{ background: sv.color || '#1a1a1a' }} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-extrabold text-black truncate">
+            {[sv.brand, sv.model].filter(Boolean).join(' ')}{sv.year ? ` (${sv.year})` : ''}
+          </p>
+          <div className="flex items-center gap-3 mt-0.5">
+            {sv.plate && <span className="text-[10px] font-bold text-uber-gray-500 bg-uber-gray-100 border border-uber-gray-200 px-2 py-0.5 rounded-md tracking-widest uppercase">{sv.plate}</span>}
+            <span className="text-[10px] text-uber-gray-500 font-medium">
+  {sv.capacity} asientos en total
+</span>
+          </div>
+        </div>
+        <div className="w-7 h-7 rounded-full bg-green-50 border border-green-200 flex items-center justify-center shrink-0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#06C167" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+    );
+  })()}
+</div>
           <div className="pb-4 border-b border-uber-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-black flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
@@ -641,17 +730,27 @@ export const RidesPage: React.FC = () => {
 
               {/* Seats */}
               <div>
-                <label className="block text-[11px] font-bold text-uber-gray-500 tracking-wider uppercase mb-1.5">Asientos disponibles *</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="8"
-                  className="w-full px-4 py-3 bg-uber-gray-50 rounded-xl text-sm text-black border-none outline-none focus:bg-uber-gray-100 focus:ring-2 focus:ring-black/10"
-                  required
-                  value={formData.availableSeats}
-                  onChange={e => setFormData({ ...formData, availableSeats: e.target.value })}
-                />
-              </div>
+  <label className="block text-[11px] font-bold text-uber-gray-500 tracking-wider uppercase mb-1.5">
+    Asientos disponibles *
+    {selectedVehicleId && <span className="ml-2 normal-case text-[10px] font-medium text-uber-gray-400">(definido por el vehículo)</span>}
+  </label>
+  {selectedVehicleId ? (
+    <div className="w-full px-4 py-3 bg-uber-gray-100 rounded-xl text-sm font-extrabold text-black border border-uber-gray-200 flex items-center gap-3 cursor-not-allowed select-none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2" strokeLinecap="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <span>{formData.availableSeats}</span>
+      <span className="text-uber-gray-400 font-normal text-xs">asientos</span>
+      <div className="ml-auto flex items-center gap-1.5 text-[10px] text-uber-gray-400 font-medium bg-uber-gray-200 px-2.5 py-1 rounded-lg">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Solo lectura
+      </div>
+    </div>
+  ) : (
+    <input type="number" min="1" max="8" className="w-full px-4 py-3 bg-uber-gray-50 rounded-xl text-sm text-black border-none outline-none focus:bg-uber-gray-100 focus:ring-2 focus:ring-black/10" required value={formData.availableSeats} onChange={e => setFormData({ ...formData, availableSeats: e.target.value })} />
+  )}
+</div>
 
               {/* Price */}
               <div>

@@ -4,6 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import type { UserProfile, Vehicle, Rating } from '@/types';
 import { ESTRUCTURA_UTA, ZONAS_AMBATO, VEHICULO_DATA } from '@/constants';
 
+const MAX_VEHICLES = 2;
+
 export const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -20,7 +22,6 @@ export const ProfilePage: React.FC = () => {
   const [facultadSeleccionada, setFacultadSeleccionada] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  // Calcula el porcentaje de completitud del perfil en base a campos clave
   const calculateCompletion = () => {
     if (!profile) return 0;
     const fields = [
@@ -39,10 +40,8 @@ export const ProfilePage: React.FC = () => {
   const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let onlyNums = value.replace(/[^0-9]/g, '');
-    
     if (onlyNums.length > 0 && !onlyNums.startsWith('0')) onlyNums = '0' + onlyNums;
     if (onlyNums.length > 1 && !onlyNums.startsWith('09')) onlyNums = '09' + onlyNums.substring(2);
-    
     const finalValue = onlyNums.slice(0, 10);
     setEditData({ ...editData, [name]: finalValue });
   };
@@ -50,12 +49,10 @@ export const ProfilePage: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 2 * 1024 * 1024) {
       setFeedback('La imagen es muy pesada (máximo 2MB)');
       return;
     }
-
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -120,7 +117,6 @@ export const ProfilePage: React.FC = () => {
 
   const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault();
-    
     const phoneRegex = /^09\d{8}$/;
     if (editData.phone && !phoneRegex.test(editData.phone)) {
       setFeedback('El teléfono personal debe ser un número válido de Ecuador (10 dígitos, empieza con 09)');
@@ -130,7 +126,6 @@ export const ProfilePage: React.FC = () => {
       setFeedback('El teléfono de emergencia debe ser un número válido de Ecuador (10 dígitos, empieza con 09)');
       return;
     }
-
     try {
       const res = await api.users.updateProfile(editData);
       setProfile(res.data);
@@ -162,16 +157,55 @@ export const ProfilePage: React.FC = () => {
   const handleVehicleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    // ── 1. Campos obligatorios ───────────────────────────────────────────────
+    if (!vehicleForm.plate.trim()) {
+      setFeedback('La placa es obligatoria');
+      return;
+    }
+    if (!vehicleForm.brand.trim()) {
+      setFeedback('La marca es obligatoria');
+      return;
+    }
+    if (!vehicleForm.model.trim()) {
+      setFeedback('El modelo es obligatorio');
+      return;
+    }
+    if (!vehicleForm.color.trim()) {
+      setFeedback('El color es obligatorio');
+      return;
+    }
+    if (!vehicleForm.capacity || parseInt(vehicleForm.capacity) < 1) {
+      setFeedback('La capacidad de asientos es obligatoria');
+      return;
+    }
+
+    // ── 2. Formato de placa ──────────────────────────────────────────────────
     const plateRegex = /^[A-Z]{3}-\d{3,4}$/;
     if (!plateRegex.test(vehicleForm.plate)) {
       setFeedback('La placa no es válida (ej: ABC-1234)');
       return;
     }
 
+    // ── 3. Placa duplicada ───────────────────────────────────────────────────
+    const plateAlreadyExists = vehicles.some(
+      v => v.plate.toUpperCase() === vehicleForm.plate.toUpperCase() && v.id !== editingVehicleId
+    );
+    if (plateAlreadyExists) {
+      setFeedback('Ya tienes un vehículo registrado con esa placa');
+      return;
+    }
+
+    // ── 4. Límite de vehículos (solo al crear, no al editar) ─────────────────
+    if (!editingVehicleId && vehicles.length >= MAX_VEHICLES) {
+      setFeedback(`Solo puedes registrar un máximo de ${MAX_VEHICLES} vehículos`);
+      return;
+    }
+
+    // ── 5. Año lógico (si se provee) ─────────────────────────────────────────
     const year = parseInt(vehicleForm.year);
     const currentYear = new Date().getFullYear();
     if (vehicleForm.year && (year < 1950 || year > currentYear + 1)) {
-      setFeedback('El año del vehículo no es lógico');
+      setFeedback('El año del vehículo no es válido');
       return;
     }
 
@@ -251,10 +285,11 @@ export const ProfilePage: React.FC = () => {
   );
 
   const completionPercent = calculateCompletion();
+  const vehicleLimitReached = vehicles.length >= MAX_VEHICLES;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* ═══ FEEDBACK ALERTS (Premium Toast style) ═══ */}
+      {/* ═══ FEEDBACK TOAST ═══ */}
       {feedback && (
         <div
           className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium shadow-sm mb-6 border transition-all`}
@@ -276,10 +311,8 @@ export const ProfilePage: React.FC = () => {
       {/* ═══ PROFILE HEADER & BANNER ═══ */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden mb-6">
         <div className="h-32 bg-gradient-to-r from-black to-zinc-800 relative" />
-        
         <div className="px-6 pb-6 pt-0 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-5">
-            {/* Circular Avatar */}
             <div className="relative -mt-12 shrink-0 z-10">
               <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-zinc-200 flex items-center justify-center">
                 {photoPreview ? (
@@ -297,26 +330,21 @@ export const ProfilePage: React.FC = () => {
                 </label>
               )}
             </div>
-
-            {/* Profile Summary info */}
             <div className="min-w-0">
               <h1 className="text-2xl font-extrabold text-black tracking-tight flex items-center gap-2">
                 {profile?.name}
               </h1>
               <p className="text-sm text-zinc-500 mt-0.5">{profile?.email}</p>
-              
               <div className="flex flex-wrap items-center gap-2.5 mt-2">
                 <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 bg-zinc-100 text-zinc-800 rounded">
                   {profile?.role === 'ADMIN' ? 'Administrador' : 'Estudiante'}
                 </span>
-                
                 {profile?.isVerified && (
                   <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded flex items-center gap-1">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                     Verificado
                   </span>
                 )}
-                
                 <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-100/50 px-2.5 py-0.5 rounded">
                   {renderStars(profile?.reputation || 5)}
                   <span className="text-[11px] font-bold text-amber-700">({ratings?.count || 0})</span>
@@ -324,13 +352,11 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Toggle Edit Button */}
           <button
             onClick={() => setEditMode(!editMode)}
             className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-150 shrink-0 ${
-              editMode 
-                ? 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200' 
+              editMode
+                ? 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
                 : 'bg-black text-white hover:bg-zinc-800 active:scale-[0.98]'
             }`}
           >
@@ -339,7 +365,7 @@ export const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══ PROFILE PROGRESS BAR (Wow factor) ═══ */}
+      {/* ═══ PROFILE PROGRESS BAR ═══ */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-5 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
           <div>
@@ -349,8 +375,8 @@ export const ProfilePage: React.FC = () => {
           <span className="text-sm font-extrabold text-black shrink-0">{completionPercent}%</span>
         </div>
         <div className="w-full bg-zinc-100 h-2.5 rounded-full overflow-hidden">
-          <div 
-            className="h-full rounded-full transition-all duration-500 ease-out" 
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
             style={{ width: `${completionPercent}%`, backgroundColor: completionPercent === 100 ? '#10B981' : '#000000' }}
           />
         </div>
@@ -358,128 +384,60 @@ export const ProfilePage: React.FC = () => {
 
       {/* ═══ TWO-COLUMN CONTENT GRID ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* LEFT COLUMN: Personal Info or Edit Form (span 2) */}
+
+        {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* Edit Form */}
           {editMode ? (
             <form onSubmit={handleSaveProfile} className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-6 space-y-5">
               <div className="border-b border-zinc-100 pb-4">
                 <h2 className="text-lg font-bold text-black">Editar Información Personal</h2>
                 <p className="text-xs text-zinc-400 mt-0.5">Mantén tus datos escolares y de contacto actualizados.</p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nombre */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Nombre</label>
-                  <input
-                    type="text"
-                    className={inputClass}
-                    value={editData.name || ''}
-                    onChange={e => setEditData({ ...editData, name: e.target.value })}
-                    required
-                  />
+                  <input type="text" className={inputClass} value={editData.name || ''} onChange={e => setEditData({ ...editData, name: e.target.value })} required />
                 </div>
-
-                {/* Facultad */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Facultad</label>
-                  <select
-                    className={inputClass}
-                    value={facultadSeleccionada}
-                    onChange={(e) => {
-                      const nuevaFacultad = e.target.value;
-                      setFacultadSeleccionada(nuevaFacultad);
-                      setEditData({ ...editData, faculty: nuevaFacultad, career: '' });
-                    }}
-                  >
+                  <select className={inputClass} value={facultadSeleccionada} onChange={(e) => { const f = e.target.value; setFacultadSeleccionada(f); setEditData({ ...editData, faculty: f, career: '' }); }}>
                     <option value="">Selecciona Facultad</option>
                     {Object.keys(ESTRUCTURA_UTA).map(f => <option key={f} value={f}>{f}</option>)}
                   </select>
                 </div>
-
-                {/* Carrera (Anidado) */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Carrera</label>
-                  <select
-                    className={inputClass}
-                    disabled={!facultadSeleccionada}
-                    value={editData.career || ''}
-                    onChange={e => setEditData({ ...editData, career: e.target.value })}
-                  >
+                  <select className={inputClass} disabled={!facultadSeleccionada} value={editData.career || ''} onChange={e => setEditData({ ...editData, career: e.target.value })}>
                     <option value="">Selecciona Carrera</option>
                     {facultadSeleccionada && ESTRUCTURA_UTA[facultadSeleccionada as keyof typeof ESTRUCTURA_UTA].map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
-
-                {/* Zona de Residencia */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Zona de Residencia</label>
-                  <select
-                    className={inputClass}
-                    value={editData.zone || ''}
-                    onChange={e => setEditData({ ...editData, zone: e.target.value })}
-                  >
+                  <select className={inputClass} value={editData.zone || ''} onChange={e => setEditData({ ...editData, zone: e.target.value })}>
                     <option value="">¿Por dónde vives?</option>
                     {ZONAS_AMBATO.map(z => <option key={z} value={z}>{z}</option>)}
                   </select>
                 </div>
-
-                {/* Barrio */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Barrio / Sector</label>
-                  <input
-                    type="text"
-                    className={inputClass}
-                    placeholder="Ej: Ficoa Las Palmas"
-                    value={editData.neighborhood || ''}
-                    onChange={e => setEditData({ ...editData, neighborhood: e.target.value })}
-                  />
+                  <input type="text" className={inputClass} placeholder="Ej: Ficoa Las Palmas" value={editData.neighborhood || ''} onChange={e => setEditData({ ...editData, neighborhood: e.target.value })} />
                 </div>
-
-                {/* Teléfono Personal */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Teléfono Personal (Ecuador)</label>
-                  <input
-                    name="phone"
-                    type="text"
-                    className={inputClass}
-                    placeholder="Ej: 0991234567"
-                    value={editData.phone || ''}
-                    onChange={handlePhoneInputChange}
-                  />
+                  <input name="phone" type="text" className={inputClass} placeholder="Ej: 0991234567" value={editData.phone || ''} onChange={handlePhoneInputChange} />
                 </div>
-
-                {/* Contacto Emergencia */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Contacto de Emergencia (Nombre)</label>
-                  <input
-                    type="text"
-                    className={inputClass}
-                    placeholder="Ej: Madre / Padre"
-                    value={editData.emergencyContact || ''}
-                    onChange={e => setEditData({ ...editData, emergencyContact: e.target.value })}
-                  />
+                  <input type="text" className={inputClass} placeholder="Ej: Madre / Padre" value={editData.emergencyContact || ''} onChange={e => setEditData({ ...editData, emergencyContact: e.target.value })} />
                 </div>
-
-                {/* Teléfono Emergencia */}
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Teléfono Emergencia (Ecuador)</label>
-                  <input
-                    name="emergencyPhone"
-                    type="text"
-                    className={inputClass}
-                    placeholder="Ej: 0991234567"
-                    value={editData.emergencyPhone || ''}
-                    onChange={handlePhoneInputChange}
-                  />
+                  <input name="emergencyPhone" type="text" className={inputClass} placeholder="Ej: 0991234567" value={editData.emergencyPhone || ''} onChange={handlePhoneInputChange} />
                 </div>
               </div>
-
               <div className="pt-2">
                 <button type="submit" className="w-full bg-black text-white hover:bg-zinc-800 text-sm font-semibold py-2.5 px-4 rounded-lg active:scale-[0.99] transition-all duration-150">
                   Guardar Cambios
@@ -487,54 +445,26 @@ export const ProfilePage: React.FC = () => {
               </div>
             </form>
           ) : (
-            /* Personal Info Display */
             <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-6 space-y-6">
               <div className="border-b border-zinc-100 pb-4">
                 <h2 className="text-lg font-bold text-black">Información de la Cuenta</h2>
                 <p className="text-xs text-zinc-400 mt-0.5">Datos académicos y de contacto registrados.</p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  {
-                    label: 'Carrera Universitaria',
-                    value: profile?.career,
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-                  },
-                  {
-                    label: 'Celular de Contacto',
-                    value: profile?.phone,
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                  },
-                  {
-                    label: 'Zona de Residencia',
-                    value: profile?.zone,
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  },
-                  {
-                    label: 'Barrio / Sector',
-                    value: profile?.neighborhood,
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                  },
-                  {
-                    label: 'Contacto de Emergencia',
-                    value: profile?.emergencyContact,
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  },
-                  {
-                    label: 'Tel. de Emergencia',
-                    value: profile?.emergencyPhone,
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  }
+                  { label: 'Carrera Universitaria', value: profile?.career, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg> },
+                  { label: 'Celular de Contacto', value: profile?.phone, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> },
+                  { label: 'Zona de Residencia', value: profile?.zone, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+                  { label: 'Barrio / Sector', value: profile?.neighborhood, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> },
+                  { label: 'Contacto de Emergencia', value: profile?.emergencyContact, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
+                  { label: 'Tel. de Emergencia', value: profile?.emergencyPhone, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-3 items-start p-3 rounded-xl hover:bg-zinc-50 transition-colors duration-150">
                     <div className="shrink-0 text-zinc-400 mt-0.5">{item.icon}</div>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{item.label}</p>
                       <p className="text-sm font-semibold text-black mt-1">
-                        {item.value || (
-                          <span className="text-zinc-300 italic font-normal">Sin registrar</span>
-                        )}
+                        {item.value || <span className="text-zinc-300 italic font-normal">Sin registrar</span>}
                       </p>
                     </div>
                   </div>
@@ -542,10 +472,9 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
           )}
-
         </div>
 
-        {/* RIGHT COLUMN: Vehicles & Ratings (span 1) */}
+        {/* RIGHT COLUMN */}
         <div className="space-y-6">
 
           {/* ═══ VEHICLES SECTION ═══ */}
@@ -553,31 +482,67 @@ export const ProfilePage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
               <div>
                 <h2 className="text-base font-extrabold text-black">Mis Vehículos</h2>
-                <p className="text-[10px] text-zinc-400">Registrados para ofertar viajes.</p>
+                {/* ── Contador de slots ── */}
+                <p className="text-[10px] text-zinc-400 mt-0.5 flex items-center gap-1">
+                  <span
+                    className={`font-bold ${vehicleLimitReached ? 'text-red-500' : 'text-black'}`}
+                  >
+                    {vehicles.length}/{MAX_VEHICLES}
+                  </span>
+                  {vehicleLimitReached ? 'límite alcanzado' : 'registrados'}
+                </p>
               </div>
-              <button
-                onClick={() => setShowVehicleForm(!showVehicleForm)}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all duration-150 ${
-                  showVehicleForm
-                    ? 'bg-zinc-50 border-zinc-200 text-zinc-800'
-                    : 'bg-black border-black text-white hover:bg-zinc-800'
-                }`}
-              >
-                {showVehicleForm ? '✕ Cancelar' : '+ Agregar'}
-              </button>
+
+              {/* Botón bloqueado si se llegó al límite y NO estamos editando */}
+              {vehicleLimitReached && !showVehicleForm ? (
+                <div
+                  className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg border bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed select-none"
+                  title={`Máximo ${MAX_VEHICLES} vehículos permitidos`}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Límite
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowVehicleForm(!showVehicleForm);
+                    if (showVehicleForm) {
+                      setEditingVehicleId(null);
+                      setVehicleForm({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
+                      setVehiclePhotoPreview(null);
+                    }
+                  }}
+                  className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all duration-150 ${
+                    showVehicleForm
+                      ? 'bg-zinc-50 border-zinc-200 text-zinc-800'
+                      : 'bg-black border-black text-white hover:bg-zinc-800'
+                  }`}
+                >
+                  {showVehicleForm ? '✕ Cancelar' : '+ Agregar'}
+                </button>
+              )}
             </div>
 
-            {/* Vehicle Registration Form */}
+            {/* Banner informativo cuando se llega al límite */}
+            {vehicleLimitReached && !showVehicleForm && (
+              <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 mb-4 text-xs text-amber-700 font-medium">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Solo puedes tener hasta {MAX_VEHICLES} vehículos. Elimina uno para agregar otro.
+              </div>
+            )}
+
+            {/* Vehicle Form */}
             {showVehicleForm && (
               <form onSubmit={handleVehicleSubmit} className="bg-zinc-50 border border-zinc-100 rounded-xl p-4 mb-4 space-y-3.5 animate-fade-in">
                 <p className="text-xs font-bold text-black mb-1 border-b border-zinc-200/60 pb-1">
                   {editingVehicleId ? 'Editar Vehículo' : 'Nuevo Vehículo'}
                 </p>
-
                 <div className="grid grid-cols-2 gap-3">
                   {/* Placa */}
                   <div className="col-span-1">
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">Placa (ABC-1234)</label>
+                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">
+                      Placa (ABC-1234) <span className="text-red-400">*</span>
+                    </label>
                     <input
                       name="plate"
                       className={inputClass}
@@ -587,53 +552,38 @@ export const ProfilePage: React.FC = () => {
                       onChange={handleVehicleInputChange}
                     />
                   </div>
-
                   {/* Marca */}
                   <div className="col-span-1">
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">Marca</label>
-                    <select
-                      name="brand"
-                      className={inputClass}
-                      required
-                      value={vehicleForm.brand}
-                      onChange={handleVehicleInputChange}
-                    >
+                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">
+                      Marca <span className="text-red-400">*</span>
+                    </label>
+                    <select name="brand" className={inputClass} required value={vehicleForm.brand} onChange={handleVehicleInputChange}>
                       <option value="">Selecciona</option>
                       {VEHICULO_DATA.marcas.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
-
                   {/* Modelo */}
                   <div className="col-span-1">
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">Modelo</label>
-                    <input
-                      name="model"
-                      className={inputClass}
-                      placeholder="Ej: Aveo"
-                      required
-                      value={vehicleForm.model}
-                      onChange={handleVehicleInputChange}
-                    />
+                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">
+                      Modelo <span className="text-red-400">*</span>
+                    </label>
+                    <input name="model" className={inputClass} placeholder="Ej: Aveo" required value={vehicleForm.model} onChange={handleVehicleInputChange} />
                   </div>
-
                   {/* Color */}
                   <div className="col-span-1">
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">Color</label>
-                    <select
-                      name="color"
-                      className={inputClass}
-                      required
-                      value={vehicleForm.color}
-                      onChange={handleVehicleInputChange}
-                    >
+                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">
+                      Color <span className="text-red-400">*</span>
+                    </label>
+                    <select name="color" className={inputClass} required value={vehicleForm.color} onChange={handleVehicleInputChange}>
                       <option value="">Selecciona</option>
                       {VEHICULO_DATA.colores.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
-
                   {/* Capacidad */}
                   <div className="col-span-1">
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">Asientos (Máx 45)</label>
+                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">
+                      Asientos <span className="text-red-400">*</span>
+                    </label>
                     <input
                       name="capacity"
                       type="number"
@@ -649,21 +599,12 @@ export const ProfilePage: React.FC = () => {
                       }}
                     />
                   </div>
-
                   {/* Año */}
                   <div className="col-span-1">
                     <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1 ml-0.5">Año</label>
-                    <input
-                      name="year"
-                      type="number"
-                      className={inputClass}
-                      placeholder="2024"
-                      value={vehicleForm.year}
-                      onChange={handleVehicleInputChange}
-                    />
+                    <input name="year" type="number" className={inputClass} placeholder="2024" value={vehicleForm.year} onChange={handleVehicleInputChange} />
                   </div>
                 </div>
-
                 <button type="submit" className="w-full bg-black text-white hover:bg-zinc-800 text-xs font-semibold py-2 px-3 rounded-lg transition-all duration-150">
                   {editingVehicleId ? 'Guardar Cambios' : 'Registrar Vehículo'}
                 </button>
@@ -681,28 +622,21 @@ export const ProfilePage: React.FC = () => {
                 {vehicles.map(v => (
                   <div key={v.id} className="border border-zinc-200/80 rounded-xl p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-zinc-300 transition-colors duration-150">
                     <div className="flex items-center gap-3">
-                      {/* Premium Realistic Car Plate Visual */}
                       <div className="relative shrink-0 w-24 h-12 bg-white border-2 border-zinc-400 rounded-md shadow-sm overflow-hidden flex items-center justify-center">
-                        {/* Plate Blue Indicator Band (realistic detail) */}
                         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-600 flex flex-col items-center justify-between py-0.5">
                           <span className="text-[3px] text-white font-bold tracking-tighter leading-none select-none">EC</span>
                         </div>
-                        {/* Plate alphanumeric text */}
                         <span className="text-xs font-mono font-extrabold text-zinc-800 pl-1.5 tracking-wider select-none">
                           {v.plate}
                         </span>
                       </div>
-
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-black truncate">
-                          {v.brand} {v.model}
-                        </p>
+                        <p className="text-xs font-bold text-black truncate">{v.brand} {v.model}</p>
                         <p className="text-[10px] text-zinc-400 mt-0.5">
                           {v.color} · {v.capacity} asientos {v.year ? `· ${v.year}` : ''}
                         </p>
                       </div>
                     </div>
-
                     <div className="flex gap-1.5 justify-end shrink-0">
                       <button
                         onClick={() => handleEditVehicle(v)}
@@ -729,14 +663,9 @@ export const ProfilePage: React.FC = () => {
               <h2 className="text-base font-extrabold text-black border-b border-zinc-100 pb-4 mb-4">
                 Calificaciones Recibidas
               </h2>
-
-              {/* Score summary panel */}
               <div className="flex items-center gap-4 p-4 bg-zinc-50 border border-zinc-100 rounded-xl mb-4">
                 <span className="text-3xl font-black text-black tracking-tighter">
-                  {(() => {
-                    const avg = parseFloat(ratings.average as any);
-                    return isNaN(avg) ? '5.0' : avg.toFixed(1);
-                  })()}
+                  {(() => { const avg = parseFloat(ratings.average as any); return isNaN(avg) ? '5.0' : avg.toFixed(1); })()}
                 </span>
                 <div>
                   <div className="flex items-center">{renderStars(ratings.average)}</div>
@@ -745,8 +674,6 @@ export const ProfilePage: React.FC = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Ratings Feed */}
               <div className="space-y-3 max-h-[250px] overflow-y-auto scrollbar-hide pr-1">
                 {ratings.ratings.slice(0, 8).map(r => (
                   <div key={r.id} className="border border-zinc-100 rounded-xl p-3 bg-zinc-50/50 space-y-1.5">
@@ -757,9 +684,7 @@ export const ProfilePage: React.FC = () => {
                       <div className="flex items-center">{renderStars(r.score)}</div>
                     </div>
                     {r.comment && (
-                      <p className="text-xs text-zinc-600 font-medium italic leading-relaxed">
-                        "{r.comment}"
-                      </p>
+                      <p className="text-xs text-zinc-600 font-medium italic leading-relaxed">"{r.comment}"</p>
                     )}
                     <p className="text-[9px] text-zinc-400 text-right">
                       {new Date(r.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -771,7 +696,6 @@ export const ProfilePage: React.FC = () => {
           )}
 
         </div>
-
       </div>
     </div>
   );
