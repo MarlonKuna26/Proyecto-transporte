@@ -3,6 +3,7 @@ import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import type { UserProfile, Vehicle, Rating } from '@/types';
 import { ESTRUCTURA_UTA, ZONAS_AMBATO, VEHICULO_DATA } from '@/constants';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 const MAX_VEHICLES = 2;
 
@@ -15,12 +16,22 @@ export const ProfilePage: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
   const [editData, setEditData] = useState<any>({});
   const [vehicleForm, setVehicleForm] = useState({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
   const [vehiclePhotoPreview, setVehiclePhotoPreview] = useState<string | null>(null);
   const [facultadSeleccionada, setFacultadSeleccionada] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
 
   const calculateCompletion = () => {
     if (!profile) return 0;
@@ -50,7 +61,7 @@ export const ProfilePage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      setFeedback('La imagen es muy pesada (máximo 2MB)');
+      addToast('La imagen es muy pesada (máximo 2MB)', 'error');
       return;
     }
     const reader = new FileReader();
@@ -119,11 +130,11 @@ export const ProfilePage: React.FC = () => {
     e.preventDefault();
     const phoneRegex = /^09\d{8}$/;
     if (editData.phone && !phoneRegex.test(editData.phone)) {
-      setFeedback('El teléfono personal debe ser un número válido de Ecuador (10 dígitos, empieza con 09)');
+      addToast('El teléfono personal debe ser un número válido de Ecuador (10 dígitos, empieza con 09)', 'error');
       return;
     }
     if (editData.emergencyPhone && !phoneRegex.test(editData.emergencyPhone)) {
-      setFeedback('El teléfono de emergencia debe ser un número válido de Ecuador (10 dígitos, empieza con 09)');
+      addToast('El teléfono de emergencia debe ser un número válido de Ecuador (10 dígitos, empieza con 09)', 'error');
       return;
     }
     try {
@@ -131,10 +142,9 @@ export const ProfilePage: React.FC = () => {
       setProfile(res.data);
       await refreshUser();
       setEditMode(false);
-      setFeedback('Perfil actualizado');
-      setTimeout(() => setFeedback(''), 3000);
+      addToast('Perfil actualizado', 'success');
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -142,7 +152,7 @@ export const ProfilePage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      setFeedback('La imagen es muy pesada (máximo 2MB)');
+      addToast('La imagen es muy pesada (máximo 2MB)', 'error');
       return;
     }
     const reader = new FileReader();
@@ -159,30 +169,30 @@ export const ProfilePage: React.FC = () => {
 
     // ── 1. Campos obligatorios ───────────────────────────────────────────────
     if (!vehicleForm.plate.trim()) {
-      setFeedback('La placa es obligatoria');
+      addToast('La placa es obligatoria', 'error');
       return;
     }
     if (!vehicleForm.brand.trim()) {
-      setFeedback('La marca es obligatoria');
+      addToast('La marca es obligatoria', 'error');
       return;
     }
     if (!vehicleForm.model.trim()) {
-      setFeedback('El modelo es obligatorio');
+      addToast('El modelo es obligatorio', 'error');
       return;
     }
     if (!vehicleForm.color.trim()) {
-      setFeedback('El color es obligatorio');
+      addToast('El color es obligatorio', 'error');
       return;
     }
     if (!vehicleForm.capacity || parseInt(vehicleForm.capacity) < 1) {
-      setFeedback('La capacidad de asientos es obligatoria');
+      addToast('La capacidad de asientos es obligatoria', 'error');
       return;
     }
 
     // ── 2. Formato de placa ──────────────────────────────────────────────────
     const plateRegex = /^[A-Z]{3}-\d{3,4}$/;
     if (!plateRegex.test(vehicleForm.plate)) {
-      setFeedback('La placa no es válida (ej: ABC-1234)');
+      addToast('La placa no es válida (ej: ABC-1234)', 'error');
       return;
     }
 
@@ -191,13 +201,13 @@ export const ProfilePage: React.FC = () => {
       v => v.plate.toUpperCase() === vehicleForm.plate.toUpperCase() && v.id !== editingVehicleId
     );
     if (plateAlreadyExists) {
-      setFeedback('Ya tienes un vehículo registrado con esa placa');
+      addToast('Ya tienes un vehículo registrado con esa placa', 'error');
       return;
     }
 
     // ── 4. Límite de vehículos (solo al crear, no al editar) ─────────────────
     if (!editingVehicleId && vehicles.length >= MAX_VEHICLES) {
-      setFeedback(`Solo puedes registrar un máximo de ${MAX_VEHICLES} vehículos`);
+      addToast(`Solo puedes registrar un máximo de ${MAX_VEHICLES} vehículos`, 'error');
       return;
     }
 
@@ -205,7 +215,7 @@ export const ProfilePage: React.FC = () => {
     const year = parseInt(vehicleForm.year);
     const currentYear = new Date().getFullYear();
     if (vehicleForm.year && (year < 1950 || year > currentYear + 1)) {
-      setFeedback('El año del vehículo no es válido');
+      addToast('El año del vehículo no es válido', 'error');
       return;
     }
 
@@ -222,10 +232,10 @@ export const ProfilePage: React.FC = () => {
 
       if (editingVehicleId) {
         await api.users.updateVehicle(editingVehicleId, payload);
-        setFeedback('Vehículo actualizado');
+        addToast('Vehículo actualizado', 'success');
       } else {
         await api.users.createVehicle(payload);
-        setFeedback('Vehículo registrado');
+        addToast('Vehículo registrado', 'success');
       }
 
       const res = await api.users.getVehicles();
@@ -234,9 +244,8 @@ export const ProfilePage: React.FC = () => {
       setVehicleForm({ plate: '', brand: '', model: '', color: '', capacity: '4', year: '', photoUrl: '' });
       setVehiclePhotoPreview(null);
       setEditingVehicleId(null);
-      setTimeout(() => setFeedback(''), 3000);
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -244,10 +253,9 @@ export const ProfilePage: React.FC = () => {
     try {
       await api.users.deleteVehicle(id);
       setVehicles(prev => prev.filter(v => v.id !== id));
-      setFeedback('Vehículo eliminado');
-      setTimeout(() => setFeedback(''), 3000);
+      addToast('Vehículo eliminado', 'success');
     } catch (err: any) {
-      setFeedback(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -289,24 +297,8 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* ═══ FEEDBACK TOAST ═══ */}
-      {feedback && (
-        <div
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium shadow-sm mb-6 border transition-all`}
-          style={{
-            background: feedback.includes('actualizado') || feedback.includes('registrado') || feedback.includes('eliminado') ? '#ECFDF5' : '#FEF2F2',
-            borderColor: feedback.includes('actualizado') || feedback.includes('registrado') || feedback.includes('eliminado') ? '#A7F3D0' : '#FCA5A5',
-            color: feedback.includes('actualizado') || feedback.includes('registrado') || feedback.includes('eliminado') ? '#047857' : '#B91C1C'
-          }}
-        >
-          {feedback.includes('actualizado') || feedback.includes('registrado') || feedback.includes('eliminado') ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          )}
-          <span>{feedback}</span>
-        </div>
-      )}
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* ═══ PROFILE HEADER & BANNER ═══ */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden mb-6">
@@ -700,3 +692,4 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 };
+

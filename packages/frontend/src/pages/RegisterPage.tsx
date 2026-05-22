@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,29 +13,38 @@ export const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [messages, setMessages] = useState<ToastMessage[]>([]);
   const [hint, setHint] = useState('');
   const [expiresInMinutes, setExpiresInMinutes] = useState<number | null>(null);
   const institutionalEmailRegex = /^[a-z0-9._%+-]+@uta\.edu\.ec$/;
   const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
+  // ===== TOAST FUNCTIONS =====
+  const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setMessages(prev => [...prev, { id, msg, type, duration }]);
+  };
+
+  const removeToast = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!institutionalEmailRegex.test(normalizedEmail)) {
-      setError('Solo se permiten correos institucionales @uta.edu.ec');
+      addToast('Solo se permiten correos institucionales @uta.edu.ec', 'error');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      addToast('Las contraseñas no coinciden', 'error');
       return;
     }
 
     if (!strongPasswordRegex.test(password)) {
-      setError('La contraseña debe tener al menos 8 caracteres e incluir mayúscula, minúscula y número');
+      addToast('La contraseña debe tener al menos 8 caracteres e incluir mayúscula, minúscula y número', 'error');
       return;
     }
 
@@ -48,7 +58,7 @@ export const RegisterPage: React.FC = () => {
       }
       setStep('verify');
     } catch (err: any) {
-      setError(err.message || 'Error al registrar');
+      addToast(err.message || 'Error al registrar', 'error');
     } finally {
       setLoading(false);
     }
@@ -56,13 +66,12 @@ export const RegisterPage: React.FC = () => {
 
   const handleVerify = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       await verifyEmail(email, code);
       navigate('/login');
     } catch (err: any) {
-      setError(err.message || 'Código inválido');
+      addToast(err.message || 'Código inválido', 'error');
     } finally {
       setLoading(false);
     }
@@ -70,6 +79,9 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-zinc-50 font-sans selection:bg-black selection:text-white">
+      {/* ═══ TOAST NOTIFICATIONS ═══ */}
+      <ToastContainer messages={messages} onClose={removeToast} />
+
       <div className="w-full max-w-[420px] space-y-6">
         
         {/* Logo / Header */}
@@ -104,17 +116,6 @@ export const RegisterPage: React.FC = () => {
               {step === 'register' ? 'Completa los campos para crear tu cuenta institucional.' : 'Ingresa el código enviado a tu correo institucional.'}
             </p>
           </div>
-
-          {error && (
-            <div className="flex items-start gap-3 p-3.5 text-xs rounded-xl bg-red-50 text-red-600 border border-red-100/60 animate-fade-in">
-              <svg className="shrink-0 w-4 h-4 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span className="font-semibold leading-relaxed">{error}</span>
-            </div>
-          )}
 
           {hint && (
             <div className="p-3.5 text-xs rounded-xl bg-amber-50 text-amber-800 border border-amber-100/60 break-all font-mono leading-relaxed space-y-1 animate-fade-in">

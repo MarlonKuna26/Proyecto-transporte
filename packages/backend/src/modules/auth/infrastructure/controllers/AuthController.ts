@@ -113,13 +113,13 @@ export class AuthController {
 
   async resetPassword(req: Request, res: Response): Promise<void> {
     try {
-      const { token, newPassword } = req.body;
+      const { email, code, newPassword } = req.body;
 
-      if (!token || !newPassword) {
-        throw new ValidationError('Token and new password are required');
+      if (!email || !code || !newPassword) {
+        throw new ValidationError('Email, code, and new password are required');
       }
 
-      const result = await this.resetPasswordUseCase.execute({ token, newPassword });
+      const result = await this.resetPasswordUseCase.execute({ email, code, newPassword });
 
       this.logger.info('Password reset completed', 'AUTH_CONTROLLER');
       res.status(200).json({

@@ -42,6 +42,13 @@ export class RatingRepository implements IRatingRepository {
     return result.rows.map((r: RatingRow) => this.mapRow(r));
   }
 
+  async findByRaterId(raterId: string): Promise<Rating[]> {
+    const result = await this.pool.query(
+      'SELECT * FROM calificaciones WHERE calificador_id = $1 ORDER BY creado_en DESC', [raterId],
+    );
+    return result.rows.map((r: RatingRow) => this.mapRow(r));
+  }
+
   async findByRaterAndRide(raterId: string, rideId: string, ratedId: string): Promise<Rating | null> {
     const result = await this.pool.query(
       'SELECT * FROM calificaciones WHERE calificador_id = $1 AND viaje_id = $2 AND calificado_id = $3',

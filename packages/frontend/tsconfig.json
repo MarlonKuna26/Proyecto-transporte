@@ -2,12 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "baseUrl": "./src",
     "module": "ES2022",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
+     "types": ["cypress", "node"],
     "paths": {
       "@/*": ["./*"],
       "@components/*": ["./components/*"],
@@ -30,7 +31,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src"],
+  "include": ["src","cypress"],
   "exclude": ["node_modules", "dist", "build"]
 }
 

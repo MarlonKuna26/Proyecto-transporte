@@ -5,6 +5,7 @@ import { RideRepository } from '@modules/rides/infrastructure/repositories/RideR
 import { UserRepository } from '@modules/auth/infrastructure/repositories/UserRepository';
 import { CreateRatingUseCase } from './application/usecases/CreateRatingUseCase';
 import { GetUserRatingsUseCase } from './application/usecases/GetUserRatingsUseCase';
+import { GetGivenRatingsUseCase } from './application/usecases/GetGivenRatingsUseCase';
 import { RatingController } from './infrastructure/controllers/RatingController';
 
 export function createRatingRoutes(): Router {
@@ -16,10 +17,16 @@ export function createRatingRoutes(): Router {
 
   const createRatingUseCase = new CreateRatingUseCase(ratingRepo, rideRepo, userRepo);
   const getUserRatingsUseCase = new GetUserRatingsUseCase(ratingRepo);
+  const getGivenRatingsUseCase = new GetGivenRatingsUseCase(ratingRepo);
 
-  const controller = new RatingController(createRatingUseCase, getUserRatingsUseCase);
+  const controller = new RatingController(
+    createRatingUseCase,
+    getUserRatingsUseCase,
+    getGivenRatingsUseCase,
+  );
 
   router.post('/', authenticateToken, (req, res) => controller.create(req, res));
+  router.get('/given', authenticateToken, (req, res) => controller.getGiven(req, res));
   router.get('/user/:userId', authenticateToken, (req, res) => controller.getUserRatings(req, res));
 
   return router;

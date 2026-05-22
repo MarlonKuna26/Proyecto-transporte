@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CreateRatingUseCase } from '../../application/usecases/CreateRatingUseCase';
 import { GetUserRatingsUseCase } from '../../application/usecases/GetUserRatingsUseCase';
+import { GetGivenRatingsUseCase } from '../../application/usecases/GetGivenRatingsUseCase';
 import { CreateRatingDTO } from '../../application/dtos/RatingDTO';
 import { AppError } from '@shared/errors/AppError';
 import { Logger } from '@config/logger';
@@ -11,6 +12,7 @@ export class RatingController {
   constructor(
     private createRatingUseCase: CreateRatingUseCase,
     private getUserRatingsUseCase: GetUserRatingsUseCase,
+    private getGivenRatingsUseCase: GetGivenRatingsUseCase,
   ) {}
 
   async create(req: Request, res: Response): Promise<void> {
@@ -31,6 +33,16 @@ export class RatingController {
       res.status(200).json({ success: true, data: result });
     } catch (error: unknown) {
       this.handleError(error, res, 'get_ratings');
+    }
+  }
+
+  async getGiven(req: Request, res: Response): Promise<void> {
+    try {
+      const raterId = req.user!.userId;
+      const result = await this.getGivenRatingsUseCase.execute(raterId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'get_given_ratings');
     }
   }
 

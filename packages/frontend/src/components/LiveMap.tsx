@@ -46,27 +46,34 @@ const createColorIcon = (color: string) => {
 const carIcon = L.divIcon({
   html: `
     <div style="
-      width: 36px;
-      height: 36px;
-      background: #000000;
-      border: 2.5px solid #ffffff;
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #276EF1 0%, #1e40af 100%);
+      border: 3px solid #ffffff;
       border-radius: 50%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+      box-shadow: 0 4px 12px rgba(39, 110, 241, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
+      animation: pulse 2s infinite;
     ">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="7" width="20" height="8" rx="1"/>
         <path d="M5 7V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/>
         <circle cx="6" cy="18" r="2"/>
         <circle cx="18" cy="18" r="2"/>
       </svg>
     </div>
+    <style>
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 4px 12px rgba(39, 110, 241, 0.4); }
+        50% { box-shadow: 0 4px 20px rgba(39, 110, 241, 0.8); }
+      }
+    </style>
   `,
   className: 'car-marker',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
+  iconSize: [44, 44],
+  iconAnchor: [22, 22],
 });
 
 export const LiveMap: React.FC<LiveMapProps> = ({

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
 import { RideRepository } from './infrastructure/repositories/RideRepository';
+import { VehicleRepository } from '@modules/users/infrastructure/repositories/VehicleRepository';
 import { CreateRideUseCase } from './application/usecases/CreateRideUseCase';
 import { ListRidesUseCase } from './application/usecases/ListRidesUseCase';
 import { GetRideByIdUseCase } from './application/usecases/GetRideByIdUseCase';
@@ -12,7 +13,8 @@ export function createRideRoutes(): Router {
   const router = Router();
 
   const rideRepository = new RideRepository();
-  const createRideUseCase = new CreateRideUseCase(rideRepository);
+  const vehicleRepository = new VehicleRepository();
+  const createRideUseCase = new CreateRideUseCase(rideRepository, vehicleRepository);
   const listRidesUseCase = new ListRidesUseCase(rideRepository);
   const getRideByIdUseCase = new GetRideByIdUseCase(rideRepository);
   const updateRideUseCase = new UpdateRideUseCase(rideRepository);
