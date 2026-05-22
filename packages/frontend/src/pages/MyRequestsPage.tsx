@@ -439,7 +439,7 @@ export const MyRequestsPage: React.FC = () => {
                     )}
 
                     {/* CANCEL */}
-                    {req.status === 'PENDING' && (
+                    {(req.status === 'PENDING' || (req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED')) && (
                       <button
                         onClick={() => setCancelRequestId(req.id)}
                         className="px-4 py-2.5 text-xs font-bold text-uber-red bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all self-start md:self-auto cursor-pointer"

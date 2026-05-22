@@ -139,4 +139,23 @@ export class EmailService {
       `,
     });
   }
+
+  static async sendPassengerCancelledRequestEmail(to: string, details: { origin: string; destination: string; date: string; time: string, passengerName?: string }) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: 'Un pasajero ha cancelado su reserva ⚠️',
+      html: `
+        <h2>Cancelación de reserva</h2>
+        <p>El pasajero <strong>${details.passengerName || 'que aceptaste'}</strong> ha cancelado su reserva para el siguiente viaje:</p>
+        <ul>
+          <li><strong>Origen:</strong> ${details.origin}</li>
+          <li><strong>Destino:</strong> ${details.destination}</li>
+          <li><strong>Fecha:</strong> ${details.date}</li>
+          <li><strong>Hora:</strong> ${details.time}</li>
+        </ul>
+        <p>Los asientos que había solicitado han sido restaurados automáticamente a tu viaje.</p>
+      `,
+    });
+  }
 }
