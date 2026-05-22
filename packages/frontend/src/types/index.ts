@@ -120,7 +120,7 @@ export interface Payment {
   pasajero_id?: string;
   conductor_id?: string;
   monto: number;
-  metodo_pago: 'CASH' | 'TRANSFER' | 'WALLET';
+  metodo_pago: 'CASH' | 'TRANSFER' | 'WALLET' | 'PAYPAL';
   estado: 'PENDING' | 'COMPLETED' | 'REFUNDED' | 'FAILED';
   referencia_transaccion: string | null;
   comprobante_url?: string | null;

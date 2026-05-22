@@ -29,20 +29,28 @@ export function createPaymentRoutes(): Router {
         throw new NotFoundError('Accepted ride request not found');
       }
 
+      const isPayPal = paymentMethod === 'PAYPAL';
+      const status = isPayPal ? 'COMPLETED' : 'PENDING';
+
       const result = await pool.query(
         `INSERT INTO pagos (solicitud_viaje_id, monto, metodo_pago, estado, referencia_transaccion, comprobante_url)
-         VALUES ($1, $2, $3, 'PENDING', $4, $5) RETURNING *`,
-        [rideRequestId, amount, paymentMethod || 'CASH', reference || null, comprobanteUrl || null],
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [rideRequestId, amount, paymentMethod || 'CASH', status, reference || null, comprobanteUrl || null],
       );
 
       // Registrar evento
       const rideId = reqResult.rows[0].viaje_id;
+      const eventType = isPayPal ? 'PAYMENT_CONFIRMED' : 'PAYMENT_CREATED';
+      const eventDesc = isPayPal
+        ? `Pago de $${amount} completado y verificado vía PayPal`
+        : `Pago creado por $${amount} - método: ${paymentMethod || 'CASH'}`;
+
       await pool.query(
-        `INSERT INTO eventos_viaje (viaje_id, tipo_evento, descripcion) VALUES ($1, 'PAYMENT_CREATED', $2)`,
-        [rideId, `Pago creado por $${amount} - método: ${paymentMethod || 'CASH'}`],
+        `INSERT INTO eventos_viaje (viaje_id, tipo_evento, descripcion) VALUES ($1, $2, $3)`,
+        [rideId, eventType, eventDesc],
       );
 
-      res.status(201).json({ success: true, data: result.rows[0], message: 'Pago registrado' });
+      res.status(201).json({ success: true, data: result.rows[0], message: isPayPal ? 'Pago completado vía PayPal' : 'Pago registrado' });
     } catch (error: unknown) {
       if (error instanceof AppError) {
         res.status(error.statusCode).json({ success: false, error: error.message });

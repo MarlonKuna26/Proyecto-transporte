@@ -21,7 +21,7 @@ const findNearestZone = (lat: number, lng: number): string => {
 };
 const parseMessage = (msg: string | null) => {
   if (!msg) return { cleanMessage: '', paymentInfo: null };
-  const regex = /\[Pago:\s*(Efectivo|Transferencia)(?:,\s*Ref:\s*([^\]]*))?\]/i;
+  const regex = /\[Pago:\s*(Efectivo|Transferencia|PayPal)(?:,\s*Ref:\s*([^\]]*))?\]/i;
   const match = msg.match(regex);
   if (match) {
     const cleanMessage = msg.replace(regex, '').trim();
@@ -109,6 +109,27 @@ export const MyRidesPage: React.FC = () => {
     if (user?.id) {
       api.users.getProfile(user.id).then(res => setMyProfile(res.data)).catch();
     }
+
+    const interval = setInterval(() => {
+      // Re-fetch my rides silently
+      api.rides.myRides({}).then(res => {
+        if (res.data) setRides(res.data);
+      }).catch();
+      
+      // Re-fetch requests for all expanded rides
+      setRequests(prev => {
+        const keys = Object.keys(prev);
+        keys.forEach(async (rideId) => {
+          try {
+            const res = await api.rideRequests.byRide(rideId);
+            setRequests(current => ({ ...current, [rideId]: res.data || [] }));
+          } catch {}
+        });
+        return prev;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [user?.id]);
 
   useEffect(() => {
@@ -1087,16 +1108,22 @@ export const MyRidesPage: React.FC = () => {
                                   </p>
                                 )}
                                 {paymentInfo && (
-                                  <div className="flex flex-wrap gap-1.5 mt-2">
-                                    <span
-                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                                        paymentInfo.method.toLowerCase() === 'efectivo'
-                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                                          : 'bg-blue-50 text-blue-700 border border-blue-100'
-                                      }`}
-                                    >
-                                      {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia'}
-                                    </span>
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                      <span
+                                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                                          paymentInfo.method.toLowerCase() === 'efectivo'
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                            : paymentInfo.method.toLowerCase() === 'paypal'
+                                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                                            : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                        }`}
+                                      >
+                                        {paymentInfo.method.toLowerCase() === 'efectivo'
+                                          ? '💵 Efectivo'
+                                          : paymentInfo.method.toLowerCase() === 'paypal'
+                                          ? '💳 PayPal'
+                                          : '🏦 Transferencia'}
+                                      </span>
                                     {paymentInfo.reference && paymentInfo.reference !== '-' && (
                                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
                                         Ref: {paymentInfo.reference}

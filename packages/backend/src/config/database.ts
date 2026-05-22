@@ -63,6 +63,14 @@ console.log("DB_USER =", process.env.DB_USER);
         console.error('❌ SQL Migration failed for comprobante_url:', migrationError);
       }
 
+      try {
+        await client.query('ALTER TABLE public.pagos DROP CONSTRAINT IF EXISTS pagos_metodo_pago_check;');
+        await client.query("ALTER TABLE public.pagos ADD CONSTRAINT pagos_metodo_pago_check CHECK (metodo_pago::text = ANY (ARRAY['CASH'::text, 'TRANSFER'::text, 'WALLET'::text, 'PAYPAL'::text]));");
+        console.log('✅ SQL Migration: pagos_metodo_pago_check constraint updated successfully');
+      } catch (migrationError) {
+        console.error('❌ SQL Migration failed for pagos_metodo_pago_check:', migrationError);
+      }
+
       client.release();
     } catch (error) {
       console.error('❌ Database connection failed:', error);

@@ -36,6 +36,10 @@ export const PaymentsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
@@ -89,6 +93,7 @@ export const PaymentsPage: React.FC = () => {
     CASH:     'Efectivo',
     TRANSFER: 'Transferencia',
     WALLET:   'Billetera',
+    PAYPAL:   'PayPal',
   };
 
   const summaryCards = summary ? [

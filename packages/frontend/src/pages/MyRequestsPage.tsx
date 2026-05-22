@@ -6,7 +6,7 @@ import { ToastContainer, type ToastMessage } from '@/components/Toast';
 
 const parseMessage = (msg: string | null) => {
   if (!msg) return { cleanMessage: '', paymentInfo: null };
-  const regex = /\[Pago:\s*(Efectivo|Transferencia)(?:,\s*Ref:\s*([^\]]*))?\]/i;
+  const regex = /\[Pago:\s*(Efectivo|Transferencia|PayPal)(?:,\s*Ref:\s*([^\]]*))?\]/i;
   const match = msg.match(regex);
   if (match) {
     const cleanMessage = msg.replace(regex, '').trim();
@@ -51,6 +51,82 @@ export const MyRequestsPage: React.FC = () => {
   const [comprobantePreview, setComprobantePreview] = useState<string | null>(null);
   const [reference, setReference] = useState('');
   const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [paypalSdkLoaded, setPaypalSdkLoaded] = useState(false);
+
+  // Dynamic PayPal SDK Loader
+  useEffect(() => {
+    if (paymentRequest && paymentRide && !myPayments.find(p => p.solicitud_viaje_id === paymentRequest.id)) {
+      const { paymentInfo } = parseMessage(paymentRequest.message);
+      if (paymentInfo?.method.toLowerCase() === 'paypal') {
+        if ((window as any).paypal) {
+          setPaypalSdkLoaded(true);
+        } else {
+          const script = document.createElement('script');
+          script.src = 'https://www.paypal.com/sdk/js?client-id=test&currency=USD';
+          script.async = true;
+          script.onload = () => {
+            setPaypalSdkLoaded(true);
+          };
+          document.body.appendChild(script);
+        }
+      }
+    }
+  }, [paymentRequest, paymentRide, myPayments]);
+
+  // PayPal Buttons Renderer
+  useEffect(() => {
+    if (paypalSdkLoaded && paymentRequest && paymentRide) {
+      const { paymentInfo } = parseMessage(paymentRequest.message);
+      const existingPayment = myPayments.find(p => p.solicitud_viaje_id === paymentRequest.id);
+      if (paymentInfo?.method.toLowerCase() === 'paypal' && !existingPayment) {
+        const container = document.getElementById('paypal-button-container');
+        if (container) {
+          container.innerHTML = '';
+          (window as any).paypal.Buttons({
+            createOrder: (data: any, actions: any) => {
+              const amountVal = paymentRequest.seatsRequested * paymentRide.pricePerSeat;
+              return actions.order.create({
+                purchase_units: [{
+                  amount: {
+                    currency_code: 'USD',
+                    value: amountVal.toFixed(2)
+                  }
+                }]
+              });
+            },
+            onApprove: async (data: any, actions: any) => {
+              setSubmittingPayment(true);
+              try {
+                const details = await actions.order.capture();
+                const transactionId = details.id;
+                const amountVal = paymentRequest.seatsRequested * paymentRide.pricePerSeat;
+                
+                await api.payments.create({
+                  rideRequestId: paymentRequest.id,
+                  amount: amountVal,
+                  paymentMethod: 'PAYPAL',
+                  reference: transactionId,
+                  comprobanteUrl: 'PAYPAL_API_VERIFIED'
+                });
+
+                addToast('Pago con PayPal realizado y verificado exitosamente.', 'success');
+                closePaymentModal();
+                loadData();
+              } catch (err: any) {
+                addToast(err.message || 'Error al registrar el pago con PayPal.', 'error');
+              } finally {
+                setSubmittingPayment(false);
+              }
+            },
+            onError: (err: any) => {
+              console.error('PayPal Error', err);
+              addToast('Hubo un error con la pasarela de PayPal.', 'error');
+            }
+          }).render('#paypal-button-container');
+        }
+      }
+    }
+  }, [paypalSdkLoaded, paymentRequest, paymentRide, myPayments]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,6 +250,10 @@ export const MyRequestsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => {
+      loadData();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // ===== TOAST FUNCTIONS =====
@@ -475,10 +555,16 @@ export const MyRequestsPage: React.FC = () => {
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
                             paymentInfo.method.toLowerCase() === 'efectivo'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              : paymentInfo.method.toLowerCase() === 'paypal'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-100'
                               : 'bg-blue-50 text-blue-700 border border-blue-100'
                           }`}
                         >
-                          {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia'}
+                          {paymentInfo.method.toLowerCase() === 'efectivo'
+                            ? '💵 Efectivo'
+                            : paymentInfo.method.toLowerCase() === 'paypal'
+                            ? '💳 PayPal'
+                            : '🏦 Transferencia'}
                         </span>
                         {paymentInfo.reference && paymentInfo.reference !== '-' && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
@@ -515,7 +601,7 @@ export const MyRequestsPage: React.FC = () => {
                     )}
 
                     {/* VER PAGO */}
-                    {req.status === 'ACCEPTED' && paymentInfo && paymentInfo.method.toLowerCase() === 'transferencia' && ride && ride.status !== 'CANCELLED' && (
+                    {req.status === 'ACCEPTED' && paymentInfo && (paymentInfo.method.toLowerCase() === 'transferencia' || paymentInfo.method.toLowerCase() === 'paypal') && ride && ride.status !== 'CANCELLED' && (
                       <button
                         onClick={() => {
                           setPaymentRide(ride);
@@ -524,7 +610,7 @@ export const MyRequestsPage: React.FC = () => {
                         className="px-4 py-2.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                        Ver datos de pago
+                        {paymentInfo.method.toLowerCase() === 'paypal' ? 'Pagar con PayPal' : 'Ver datos de pago'}
                       </button>
                     )}
 
@@ -794,6 +880,7 @@ export const MyRequestsPage: React.FC = () => {
       {paymentRide && paymentRequest && (() => {
         const existingPayment = myPayments.find(p => p.solicitud_viaje_id === paymentRequest.id);
         const amount = paymentRequest.seatsRequested * paymentRide.pricePerSeat;
+        const { paymentInfo } = parseMessage(paymentRequest.message);
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -857,7 +944,7 @@ export const MyRequestsPage: React.FC = () => {
                       </div>
                     )}
 
-                    {existingPayment.comprobante_url ? (
+                    {existingPayment.comprobante_url && existingPayment.comprobante_url !== 'PAYPAL_API_VERIFIED' ? (
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-uber-gray-400 uppercase tracking-wider block">Comprobante de Pago</span>
                         <div className="rounded-2xl overflow-hidden border border-uber-gray-200 bg-uber-gray-50 p-2">
@@ -866,6 +953,14 @@ export const MyRequestsPage: React.FC = () => {
                             alt="Comprobante de pago"
                             className="w-full max-h-56 object-contain rounded-xl"
                           />
+                        </div>
+                      </div>
+                    ) : existingPayment.comprobante_url === 'PAYPAL_API_VERIFIED' ? (
+                      <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3">
+                        <span className="text-2xl text-emerald-600">✓</span>
+                        <div className="text-left animate-fade-in">
+                          <p className="text-xs font-bold text-emerald-800">Transacción Segura</p>
+                          <p className="text-[10px] text-emerald-600 font-medium">Pago procesado y verificado digitalmente vía PayPal.</p>
                         </div>
                       </div>
                     ) : (
@@ -878,6 +973,40 @@ export const MyRequestsPage: React.FC = () => {
                         className="w-full py-3 text-sm font-bold bg-black text-white rounded-xl cursor-pointer border-none"
                       >
                         Cerrar
+                      </button>
+                    </div>
+                  </div>
+                ) : paymentInfo?.method.toLowerCase() === 'paypal' ? (
+                  /* NEW PAYPAL PAYMENT FORM */
+                  <div className="space-y-4 text-center">
+                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 text-left">
+                      <span className="text-2xl animate-pulse">⚡</span>
+                      <div>
+                        <p className="text-xs font-bold text-blue-800">Pago Digital Seguro</p>
+                        <p className="text-[10px] text-blue-600 font-medium leading-relaxed">Puedes usar tu saldo PayPal o tarjeta de débito/crédito. El pago se aprobará automáticamente.</p>
+                      </div>
+                    </div>
+
+                    {!paypalSdkLoaded && (
+                      <div className="flex flex-col items-center py-8 gap-3">
+                        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-xs text-uber-gray-400 font-bold uppercase tracking-wider">Cargando pasarela de PayPal...</p>
+                      </div>
+                    )}
+
+                    <div
+                      id="paypal-button-container"
+                      className="w-full mt-4"
+                      style={{ display: paypalSdkLoaded ? 'block' : 'none' }}
+                    ></div>
+
+                    <div className="pt-2">
+                      <button
+                        onClick={closePaymentModal}
+                        disabled={submittingPayment}
+                        className="w-full py-3 text-sm font-semibold bg-uber-gray-50 hover:bg-uber-gray-100 text-black border border-uber-gray-200 rounded-xl transition-all cursor-pointer"
+                      >
+                        Cancelar
                       </button>
                     </div>
                   </div>

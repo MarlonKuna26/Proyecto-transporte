@@ -134,7 +134,7 @@ CREATE TABLE public.pagos (
     creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pagos_estado_check CHECK (((estado)::text = ANY (ARRAY[('PENDING'::character varying)::text, ('COMPLETED'::character varying)::text, ('REFUNDED'::character varying)::text, ('FAILED'::character varying)::text]))),
-    CONSTRAINT pagos_metodo_pago_check CHECK (((metodo_pago)::text = ANY (ARRAY[('CASH'::character varying)::text, ('TRANSFER'::character varying)::text, ('WALLET'::character varying)::text])))
+    CONSTRAINT pagos_metodo_pago_check CHECK (((metodo_pago)::text = ANY (ARRAY[('CASH'::character varying)::text, ('TRANSFER'::character varying)::text, ('WALLET'::character varying)::text, ('PAYPAL'::character varying)::text])))
 );
 
 
