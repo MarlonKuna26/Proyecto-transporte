@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '@/services/api';
-import type { Ride, RideRequest } from '@/types';
+import type { Ride, RideRequest, UserProfile } from '@/types';
+import { LiveMap } from '@/components/LiveMap';
+import { ZONE_COORDINATES } from '@/constants';
 
 export const MyRidesPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [requests, setRequests] = useState<Record<string, RideRequest[]>>({});
+  const [viewRide, setViewRide] = useState<Ride | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState('');
 

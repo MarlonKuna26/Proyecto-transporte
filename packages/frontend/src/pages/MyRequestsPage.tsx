@@ -75,6 +75,37 @@ export const MyRequestsPage: React.FC = () => {
     }
   };
 
+  const handleRegisterPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRequestForPay) return;
+    const ride = rides[selectedRequestForPay.rideId];
+    if (!ride) return;
+
+    setSubmittingPayment(true);
+    setPaymentFeedback('');
+    try {
+      await api.payments.create({
+        rideRequestId: selectedRequestForPay.id,
+        amount: ride.pricePerSeat,
+        paymentMethod,
+        reference: paymentMethod === 'CASH' ? undefined : paymentReference,
+      });
+
+      setFeedback('Pago registrado exitosamente');
+      setShowPayModal(false);
+      setSelectedRequestForPay(null);
+      setPaymentReference('');
+      setPaymentMethod('CASH');
+
+      // Reload
+      await loadData();
+    } catch (err: any) {
+      setPaymentFeedback(err.message || 'Error al registrar el pago');
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
     PENDING: { label: 'Pendiente', bg: '#FFF3E0', color: '#FF6937' },
     ACCEPTED: { label: 'Aceptada', bg: '#E6F4EA', color: '#06C167' },

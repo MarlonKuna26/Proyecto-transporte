@@ -213,6 +213,14 @@ if (!selectedVehicleId) {
 
   /* ===== EDIT ===== */
   const handleEdit = (ride: Ride) => {
+    const rulesStr = ride.rules || '';
+    const parts = rulesStr.split(',').map(s => s.trim()).filter(Boolean);
+    const predefined = parts.filter(p => ['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p));
+    const custom = parts.filter(p => !['No fumar', 'No llevar mascotas', 'Puntualidad'].includes(p)).join(', ');
+    
+    setSelectedRules(predefined);
+    setCustomRule(custom);
+
     setEditRideId(ride.id);
     setShowCreate(true);
     
@@ -236,6 +244,8 @@ if (!selectedVehicleId) {
 
   /* ===== RESET ===== */
   const resetForm = () => {
+    setSelectedRules([]);
+    setCustomRule('');
     setEditRideId(null);
     setShowCreate(false);
     setSelectedVehicleId('');

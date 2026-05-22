@@ -54,6 +54,7 @@ export const VEHICULO_DATA = {
   colores: ["Blanco", "Negro", "Gris", "Plateado", "Rojo", "Azul", "Blanco Perla", "Vino", "Verde", "Amarillo", "Naranja", "Café"],
 };
 
+
 export const ZONE_COORDINATES: Record<string, { lat: number; lng: number }> = {
   // Campus UTA
   "Campus Huachi": { lat: -1.2721, lng: -78.6341 },
@@ -70,5 +71,4 @@ export const ZONE_COORDINATES: Record<string, { lat: number; lng: number }> = {
   "Latacunga": { lat: -0.9333, lng: -78.6167 },
   "Oriente (Av. Bolivariana, Terremoto, Totoras)": { lat: -1.2691, lng: -78.5956 },
   "Oeste (Miraflores, Santa Rosa, San Bartolo)": { lat: -1.2584, lng: -78.6397 }
-};
 
