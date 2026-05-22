@@ -45,6 +45,64 @@ export const MyRequestsPage: React.FC = () => {
 
   // State for Payment Modal
   const [paymentRide, setPaymentRide] = useState<Ride | null>(null);
+  const [paymentRequest, setPaymentRequest] = useState<RideRequest | null>(null);
+  const [myPayments, setMyPayments] = useState<any[]>([]);
+  const [comprobanteFile, setComprobanteFile] = useState<File | null>(null);
+  const [comprobantePreview, setComprobantePreview] = useState<string | null>(null);
+  const [reference, setReference] = useState('');
+  const [submittingPayment, setSubmittingPayment] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        addToast('La imagen no debe superar los 2MB de tamaño.', 'error');
+        return;
+      }
+      setComprobanteFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setComprobantePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRegisterPayment = async () => {
+    if (!paymentRequest || !paymentRide) return;
+    if (!comprobantePreview) {
+      addToast('Por favor, selecciona una foto de tu comprobante de pago.', 'error');
+      return;
+    }
+
+    setSubmittingPayment(true);
+    try {
+      const amount = paymentRequest.seatsRequested * paymentRide.pricePerSeat;
+      await api.payments.create({
+        rideRequestId: paymentRequest.id,
+        amount,
+        paymentMethod: 'TRANSFER',
+        reference: reference.trim() || undefined,
+        comprobanteUrl: comprobantePreview,
+      });
+
+      addToast('Comprobante subido y pago registrado exitosamente.', 'success');
+      closePaymentModal();
+      loadData();
+    } catch (err: any) {
+      addToast(err.message || 'Error al registrar el pago.', 'error');
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
+  const closePaymentModal = () => {
+    setPaymentRide(null);
+    setPaymentRequest(null);
+    setComprobanteFile(null);
+    setComprobantePreview(null);
+    setReference('');
+  };
 
   const hasAlreadyRated = (rideId: string) => {
     return givenRatings.some(r => r.rideId === rideId);
@@ -67,47 +125,55 @@ export const MyRequestsPage: React.FC = () => {
     }
   }, [ratingRide, paymentRide]);
 
-  useEffect(() => {
-    const load = async () => {
+  const loadData = async () => {
+    try {
+      const res = await api.rideRequests.myRequests();
+      const requestList: RideRequest[] = res.data || [];
+      setRequests(requestList);
+
+      // Fetch given ratings
       try {
-        const res = await api.rideRequests.myRequests();
-        const requestList: RideRequest[] = res.data || [];
-        setRequests(requestList);
+        const ratingsRes = await api.ratings.getGiven();
+        setGivenRatings(ratingsRes.data || []);
+      } catch (err) {
+        console.error('Error fetching given ratings', err);
+      }
 
-        // Fetch given ratings
-        try {
-          const ratingsRes = await api.ratings.getGiven();
-          setGivenRatings(ratingsRes.data || []);
-        } catch (err) {
-          console.error('Error fetching given ratings', err);
-        }
+      // Fetch my payments
+      try {
+        const paymentsRes = await api.payments.myPayments();
+        setMyPayments(paymentsRes.data || []);
+      } catch (err) {
+        console.error('Error fetching my payments', err);
+      }
 
-        // Fetch ride details for unique ride IDs
-        const uniqueRideIds = Array.from(new Set(requestList.map(r => r.rideId)));
+      // Fetch ride details for unique ride IDs
+      const uniqueRideIds = Array.from(new Set(requestList.map(r => r.rideId)));
 
-        const map: Record<string, Ride> = {};
+      const map: Record<string, Ride> = {};
 
-        await Promise.all(
-          uniqueRideIds.map(async (rideId) => {
-            try {
-              const rideRes = await api.rides.getById(rideId);
+      await Promise.all(
+        uniqueRideIds.map(async (rideId) => {
+          try {
+            const rideRes = await api.rides.getById(rideId);
 
-              if (rideRes.data) {
-                map[rideId] = rideRes.data;
-              }
-            } catch (err) {
-              console.error('Error fetching ride details', rideId, err);
+            if (rideRes.data) {
+              map[rideId] = rideRes.data;
             }
-          })
-        );
+          } catch (err) {
+            console.error('Error fetching ride details', rideId, err);
+          }
+        })
+      );
 
-        setRidesMap(map);
-      } catch { }
+      setRidesMap(map);
+    } catch { }
 
-      setLoading(false);
-    };
+    setLoading(false);
+  };
 
-    load();
+  useEffect(() => {
+    loadData();
   }, []);
 
   // ===== TOAST FUNCTIONS =====
@@ -449,9 +515,12 @@ export const MyRequestsPage: React.FC = () => {
                     )}
 
                     {/* VER PAGO */}
-                    {req.status === 'ACCEPTED' && paymentInfo && paymentInfo.method.toLowerCase() === 'transferencia' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && (
+                    {req.status === 'ACCEPTED' && paymentInfo && paymentInfo.method.toLowerCase() === 'transferencia' && ride && ride.status !== 'CANCELLED' && (
                       <button
-                        onClick={() => setPaymentRide(ride)}
+                        onClick={() => {
+                          setPaymentRide(ride);
+                          setPaymentRequest(req);
+                        }}
                         className="px-4 py-2.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -722,107 +791,241 @@ export const MyRequestsPage: React.FC = () => {
         </div>
       )}
       {/* ═══ PAYMENT MODAL ═══ */}
-      {paymentRide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile">
-            
-            <div className="bg-black text-white px-6 py-5 flex items-center justify-between shrink-0">
-              <div>
-                <h3 className="text-lg font-bold">Datos para pago</h3>
-                <p className="text-xs text-uber-gray-400 mt-0.5">
-                  Realiza la transferencia al conductor
-                </p>
-              </div>
-              <button 
-                onClick={() => setPaymentRide(null)}
-                className="text-white hover:text-uber-gray-300 transition-colors bg-transparent border-none cursor-pointer"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
+      {paymentRide && paymentRequest && (() => {
+        const existingPayment = myPayments.find(p => p.solicitud_viaje_id === paymentRequest.id);
+        const amount = paymentRequest.seatsRequested * paymentRide.pricePerSeat;
 
-            <div className="p-6 space-y-4">
-              <div className="space-y-3.5 p-4 bg-uber-gray-50 border border-uber-gray-100 rounded-2xl">
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  {/* SVG Mock QR Code */}
-                  <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0">
-                    <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
-                      <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
-                      <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
-                      <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
-                      <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
-                      
-                      <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
-                      
-                      <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
-                      
-                      <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
-
-                      <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
-                      <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
-                      <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
-                      <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
-                      
-                      <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
-                      <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
-                      <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
-                      
-                      <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
-                      <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
-                      <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
-                      <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
-                      <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
-                      
-                      <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
-                      <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
-                      <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
-                      <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
-                      <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
-                      
-                      <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
-                      <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
-                      <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
-                      
-                      <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
-                      <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
-                      <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
-                      <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
-                      
-                      <rect x="42" y="42" width="16" height="16" fill="white"/>
-                      <rect x="45" y="45" width="10" height="10" fill="black"/>
-                      <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
-                    </svg>
-                  </div>
-
-                  <div className="text-xs text-uber-gray-700 space-y-1.5 min-w-0 flex-1">
-                    <p className="font-extrabold text-black">Banco Pichincha (Ahorros)</p>
-                    <p className="font-semibold text-black">Nro: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-uber-gray-200 select-all font-bold">2200123456</span></p>
-                    <p className="font-medium truncate">Titular: {driverProfile?.name || 'Conductor del Viaje'}</p>
-                    <p className="text-[10px] text-uber-gray-400">
-                      Escanea el QR o transfiere a la cuenta mostrada.
-                    </p>
-                  </div>
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile flex flex-col max-h-[90vh]">
+              
+              <div className="bg-black text-white px-6 py-5 flex items-center justify-between shrink-0">
+                <div>
+                  <h3 className="text-lg font-bold">
+                    {existingPayment ? 'Detalles de Pago' : 'Registrar Pago'}
+                  </h3>
+                  <p className="text-xs text-uber-gray-400 mt-0.5">
+                    {existingPayment ? 'Información del pago realizado' : 'Realiza la transferencia al conductor'}
+                  </p>
                 </div>
+                <button 
+                  onClick={closePaymentModal}
+                  className="text-white hover:text-uber-gray-300 transition-colors bg-transparent border-none cursor-pointer"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
 
-              <div className="pt-4 border-t border-uber-gray-100">
-                <button
-                  onClick={() => setPaymentRide(null)}
-                  className="w-full py-3 text-sm font-bold bg-black text-white rounded-xl cursor-pointer border-none"
-                >
-                  Entendido
-                </button>
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                {/* Total amount to pay */}
+                <div className="text-center bg-uber-gray-50 border border-uber-gray-100 rounded-2xl py-4">
+                  <span className="text-[10px] text-uber-gray-400 block font-bold uppercase tracking-wider">Monto a Transferir</span>
+                  <span className="text-3xl font-black text-black block mt-1">${amount.toLocaleString()}</span>
+                </div>
+
+                {existingPayment ? (
+                  /* EXISTING PAYMENT DISPLAY */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-uber-gray-50 rounded-xl border border-uber-gray-100">
+                      <span className="text-xs font-semibold text-uber-gray-500">Estado:</span>
+                      <span
+                        className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
+                        style={{
+                          background:
+                            existingPayment.estado === 'PENDING' ? '#FFF3E0' :
+                            existingPayment.estado === 'COMPLETED' ? '#E6F4EA' :
+                            existingPayment.estado === 'REFUNDED' ? '#E8F0FE' : '#FDECEA',
+                          color:
+                            existingPayment.estado === 'PENDING' ? '#FF6937' :
+                            existingPayment.estado === 'COMPLETED' ? '#06C167' :
+                            existingPayment.estado === 'REFUNDED' ? '#276EF1' : '#E11900'
+                        }}
+                      >
+                        {existingPayment.estado === 'PENDING' ? 'Pendiente de verificación' :
+                         existingPayment.estado === 'COMPLETED' ? 'Completado' :
+                         existingPayment.estado === 'REFUNDED' ? 'Reembolsado' : 'Fallido'}
+                      </span>
+                    </div>
+
+                    {existingPayment.referencia_transaccion && (
+                      <div className="p-3 bg-uber-gray-50 rounded-xl border border-uber-gray-100 flex justify-between items-center text-xs">
+                        <span className="font-semibold text-uber-gray-500">Referencia:</span>
+                        <span className="font-bold text-black">{existingPayment.referencia_transaccion}</span>
+                      </div>
+                    )}
+
+                    {existingPayment.comprobante_url ? (
+                      <div className="space-y-2">
+                        <span className="text-xs font-bold text-uber-gray-400 uppercase tracking-wider block">Comprobante de Pago</span>
+                        <div className="rounded-2xl overflow-hidden border border-uber-gray-200 bg-uber-gray-50 p-2">
+                          <img
+                            src={existingPayment.comprobante_url}
+                            alt="Comprobante de pago"
+                            className="w-full max-h-56 object-contain rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-uber-gray-400 italic">No se adjuntó imagen del comprobante.</p>
+                    )}
+
+                    <div className="pt-4">
+                      <button
+                        onClick={closePaymentModal}
+                        className="w-full py-3 text-sm font-bold bg-black text-white rounded-xl cursor-pointer border-none"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* NEW PAYMENT REGISTER FORM */
+                  <div className="space-y-4">
+                    {/* Bank account details */}
+                    <div className="space-y-3.5 p-4 bg-uber-gray-50 border border-uber-gray-100 rounded-2xl">
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        {/* SVG Mock QR Code */}
+                        <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0">
+                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
+                            <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
+                            <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
+                            <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
+                            <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
+                            
+                            <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                            <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
+                            
+                            <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                            <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
+                            
+                            <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                            <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
+
+                            <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
+                            <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
+                            <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
+                            <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
+                            
+                            <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
+                            <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
+                            <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
+                            
+                            <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
+                            <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
+                            <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
+                            <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
+                            <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
+                            
+                            <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
+                            <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
+                            <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
+                            <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
+                            <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
+                            
+                            <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
+                            <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
+                            <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
+                            
+                            <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
+                            <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
+                            <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
+                            <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
+                            
+                            <rect x="42" y="42" width="16" height="16" fill="white"/>
+                            <rect x="45" y="45" width="10" height="10" fill="black"/>
+                            <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
+                          </svg>
+                        </div>
+
+                        <div className="text-xs text-uber-gray-700 space-y-1.5 min-w-0 flex-1">
+                          <p className="font-extrabold text-black">Banco Pichincha (Ahorros)</p>
+                          <p className="font-semibold text-black">Nro: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-uber-gray-200 select-all font-bold">2200123456</span></p>
+                          <p className="font-medium truncate">Titular: {driverProfile?.name || 'Conductor del Viaje'}</p>
+                          <p className="text-[10px] text-uber-gray-400">
+                            Escanea el QR o transfiere a la cuenta mostrada.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Inputs */}
+                    <div className="space-y-4">
+                      {/* Reference code input */}
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider pl-1">
+                          Referencia de Transacción (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ingresa el número de referencia / transferencia..."
+                          value={reference}
+                          onChange={(e) => setReference(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-uber-gray-200 outline-none focus:border-black text-sm"
+                        />
+                      </div>
+
+                      {/* File selector for comprovante */}
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider pl-1">
+                          Subir Comprobante (requerido)
+                        </label>
+                        
+                        <div className="flex flex-col items-center justify-center border-2 border-dashed border-uber-gray-200 rounded-2xl p-4 bg-uber-gray-50 hover:bg-uber-gray-100 transition-colors cursor-pointer relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          {comprobantePreview ? (
+                            <div className="w-full space-y-2">
+                              <img
+                                src={comprobantePreview}
+                                alt="Vista previa del comprobante"
+                                className="w-full max-h-40 object-contain rounded-lg"
+                              />
+                              <p className="text-[10px] text-center text-uber-green font-bold">¡Imagen seleccionada! Haz clic o arrastra para cambiar</p>
+                            </div>
+                          ) : (
+                            <div className="text-center space-y-1.5 py-3">
+                              <svg className="mx-auto h-8 w-8 text-uber-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <p className="text-xs font-semibold text-black">Selecciona la foto de la transferencia</p>
+                              <p className="text-[9px] text-uber-gray-400">PNG, JPG de hasta 2MB</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-3 pt-4 border-t border-uber-gray-100">
+                      <button
+                        onClick={handleRegisterPayment}
+                        disabled={submittingPayment || !comprobantePreview}
+                        className="flex-1 py-3 text-sm font-bold text-white bg-black hover:bg-uber-gray-800 disabled:bg-uber-gray-200 disabled:text-uber-gray-400 transition-colors rounded-xl border-none cursor-pointer flex items-center justify-center"
+                      >
+                        {submittingPayment ? 'Registrando...' : 'Registrar Pago'}
+                      </button>
+                      <button
+                        onClick={closePaymentModal}
+                        disabled={submittingPayment}
+                        className="flex-1 py-3 text-sm font-semibold bg-uber-gray-50 hover:bg-uber-gray-100 text-black border border-uber-gray-200 rounded-xl transition-all cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

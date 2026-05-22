@@ -123,6 +123,7 @@ export interface Payment {
   metodo_pago: 'CASH' | 'TRANSFER' | 'WALLET';
   estado: 'PENDING' | 'COMPLETED' | 'REFUNDED' | 'FAILED';
   referencia_transaccion: string | null;
+  comprobante_url?: string | null;
   creado_en: string;
   actualizado_en: string;
   // Joined fields

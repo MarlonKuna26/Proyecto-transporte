@@ -13,7 +13,7 @@ export function createPaymentRoutes(): Router {
   // Crear pago (pasajero paga por su solicitud aceptada)
   router.post('/', authenticateToken, async (req: Request, res: Response) => {
     try {
-      const { rideRequestId, amount, paymentMethod, reference } = req.body;
+      const { rideRequestId, amount, paymentMethod, reference, comprobanteUrl } = req.body;
       const userId = req.user!.userId;
 
       if (!rideRequestId || amount === undefined) {
@@ -30,9 +30,9 @@ export function createPaymentRoutes(): Router {
       }
 
       const result = await pool.query(
-        `INSERT INTO pagos (solicitud_viaje_id, monto, metodo_pago, estado, referencia_transaccion)
-         VALUES ($1, $2, $3, 'PENDING', $4) RETURNING *`,
-        [rideRequestId, amount, paymentMethod || 'CASH', reference || null],
+        `INSERT INTO pagos (solicitud_viaje_id, monto, metodo_pago, estado, referencia_transaccion, comprobante_url)
+         VALUES ($1, $2, $3, 'PENDING', $4, $5) RETURNING *`,
+        [rideRequestId, amount, paymentMethod || 'CASH', reference || null, comprobanteUrl || null],
       );
 
       // Registrar evento

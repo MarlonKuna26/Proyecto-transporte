@@ -260,6 +260,11 @@ const payments =
                     <span className="text-xs font-semibold text-black bg-uber-gray-50 px-2 py-0.5 rounded">
                       {methodLabel[payment.metodo_pago] || payment.metodo_pago}
                     </span>
+                    {payment.comprobante_url && (
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 border border-blue-100">
+                        📎 Con comprobante
+                      </span>
+                    )}
                   </div>
 
                   {/* Route Dot-Line-Square */}
@@ -337,7 +342,7 @@ const payments =
       {/* ═══ CUSTOM MODAL: CONFIRM PAYMENT RECEIVED ═══ */}
       {confirmPaymentId && currentConfirmPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile">
+          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-uber-lg animate-slide-up-mobile flex flex-col max-h-[90vh]">
             {/* Header */}
             <div className="bg-black text-white px-6 py-5 shrink-0">
               <h3 className="text-lg font-bold">¿Confirmar recepción de pago?</h3>
@@ -345,12 +350,12 @@ const payments =
             </div>
 
             {/* Body */}
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               <div className="flex items-start gap-4">
                 <div className="shrink-0 w-10 h-10 flex items-center justify-center bg-green-50 border border-green-200 rounded-full text-uber-green">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="text-sm font-bold text-black">¿Has recibido el pago correctamente?</h4>
                   <p className="text-xs text-uber-gray-500 mt-1 leading-relaxed">
                     Confirmas que el pasajero <span className="font-bold text-black">{currentConfirmPayment.nombre_pasajero || 'Usuario'}</span> te ha transferido o entregado en efectivo la suma de:
@@ -360,6 +365,28 @@ const payments =
                   </p>
                 </div>
               </div>
+
+              {/* Show comprobante if present */}
+              {currentConfirmPayment.comprobante_url && (
+                <div className="space-y-2 pt-3 border-t border-uber-gray-100">
+                  <span className="text-xs font-bold text-uber-gray-400 uppercase tracking-wider block">Comprobante Cargado</span>
+                  <div className="rounded-2xl overflow-hidden border border-uber-gray-200 bg-uber-gray-50 p-2 text-center">
+                    <img
+                      src={currentConfirmPayment.comprobante_url}
+                      alt="Comprobante de pago"
+                      className="w-full max-h-60 object-contain rounded-xl"
+                    />
+                    <a
+                      href={currentConfirmPayment.comprobante_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 text-[10px] font-bold text-blue-600 hover:underline"
+                    >
+                      🔍 Ver imagen en pantalla completa
+                    </a>
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4 border-t border-uber-gray-100">
                 <button
