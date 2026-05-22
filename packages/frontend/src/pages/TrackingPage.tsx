@@ -17,6 +17,11 @@ export const TrackingPage: React.FC = () => {
   const [isDriver, setIsDriver] = useState(false);
   const [gpsActive, setGpsActive] = useState(false);
   const [messages, setMessages] = useState<ToastMessage[]>([]);
+  
+  // ETA States
+  const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
+  const [elapsedMinutes, setElapsedMinutes] = useState<number>(0);
+
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const watchRef = useRef<number>();
 
@@ -68,6 +73,61 @@ export const TrackingPage: React.FC = () => {
     } catch { }
   };
 
+  // ETA Calculation
+  useEffect(() => {
+    if (ride?.originLat && ride?.originLng && ride?.destinationLat && ride?.destinationLng) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${ride.originLng},${ride.originLat};${ride.destinationLng},${ride.destinationLat}?overview=false`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.code === 'Ok' && data.routes && data.routes[0]) {
+            const durationSec = data.routes[0].duration;
+            setEtaMinutes(Math.max(1, Math.ceil(durationSec / 60)));
+          } else {
+             // Fallback
+             const distance = getDistanceFromLatLonInKm(ride.originLat!, ride.originLng!, ride.destinationLat!, ride.destinationLng!);
+             setEtaMinutes(Math.max(5, Math.ceil((distance / 30) * 60))); // ~30km/h avg city speed
+          }
+        })
+        .catch(() => {
+             const distance = getDistanceFromLatLonInKm(ride.originLat!, ride.originLng!, ride.destinationLat!, ride.destinationLng!);
+             setEtaMinutes(Math.max(5, Math.ceil((distance / 30) * 60)));
+        });
+    }
+  }, [ride]);
+
+  function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180); 
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c;
+  }
+
+  // Elapsed time calculation
+  useEffect(() => {
+    if (ride?.status !== 'IN_PROGRESS') return;
+    
+    const startEvent = events.find(e => e.tipo_evento === 'STARTED');
+    if (!startEvent) return;
+
+    const startTime = new Date(startEvent.creado_en).getTime();
+    
+    const updateElapsed = () => {
+      const now = Date.now();
+      const diffMins = Math.floor((now - startTime) / 60000);
+      setElapsedMinutes(Math.max(0, diffMins));
+    };
+    
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, [ride?.status, events]);
+
   const startGPS = () => {
     if (!navigator.geolocation) { addToast('GPS no disponible en este navegador', 'error'); return; }
     setGpsActive(true);
@@ -109,6 +169,8 @@ export const TrackingPage: React.FC = () => {
       loadData();
     } catch (err: any) { addToast(err.message || 'Error al completar el viaje', 'error'); }
   };
+
+  const isCompleteAllowed = etaMinutes === null ? true : elapsedMinutes >= Math.max(0, Math.floor(etaMinutes * 0.7));
 
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
     PUBLISHED:   { label: 'Disponible',  bg: '#E6F4EA', color: '#06C167' },
@@ -184,7 +246,7 @@ export const TrackingPage: React.FC = () => {
       <ToastContainer messages={messages} onClose={removeToast} />
 
       {/* Map */}
-      <div className="bg-white rounded-2xl border border-uber-gray-100 shadow-uber-sm overflow-hidden animate-fade-in">
+      <div className="bg-white rounded-2xl border border-uber-gray-100 shadow-uber-sm overflow-hidden animate-fade-in relative">
         <LiveMap
           origin={ride.originLat && ride.originLng ? { lat: ride.originLat, lng: ride.originLng, label: ride.originZone } : null}
           destination={ride.destinationLat && ride.destinationLng ? { lat: ride.destinationLat, lng: ride.destinationLng, label: ride.destinationZone } : null}
@@ -192,14 +254,40 @@ export const TrackingPage: React.FC = () => {
           trackingPath={history.map(h => ({ lat: h.lat, lng: h.lng }))}
           height="450px"
         />
+
+        {/* ETA Overlay Card */}
+        {ride.status === 'IN_PROGRESS' && etaMinutes !== null && (
+          <div className="absolute top-4 left-4 z-[400] bg-white/95 backdrop-blur shadow-uber-md border border-uber-gray-100 rounded-2xl p-4 flex flex-col min-w-[140px]">
+            <span className="text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider">Progreso de Viaje</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-black">{Math.max(0, etaMinutes - elapsedMinutes)}</span>
+              <span className="text-sm font-bold text-uber-gray-500">min. rest.</span>
+            </div>
+            <div className="w-full bg-uber-gray-200 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div 
+                className="bg-uber-blue h-full transition-all duration-1000 ease-out rounded-full" 
+                style={{ width: `${Math.min(100, (elapsedMinutes / Math.max(1, etaMinutes)) * 100)}%` }} 
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Driver controls */}
       {isDriver && (
         <div className="bg-white rounded-2xl border border-uber-gray-100 shadow-uber-sm p-6 space-y-4 animate-fade-in">
-          <p className="text-[10px] font-bold text-uber-gray-400 uppercase tracking-wider pl-1">
-            Controles del conductor
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-[10px] font-bold text-uber-gray-400 uppercase tracking-wider pl-1">
+              Controles del conductor
+            </p>
+            
+            {ride.status === 'IN_PROGRESS' && !isCompleteAllowed && (
+              <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
+                Falta para poder completar el viaje ({Math.max(0, Math.floor(etaMinutes! * 0.7) - elapsedMinutes)} min)
+              </span>
+            )}
+          </div>
+          
           <div className="flex flex-wrap gap-3">
             {(ride.status === 'PUBLISHED' || ride.status === 'FULL') && (
               <button
@@ -228,7 +316,12 @@ export const TrackingPage: React.FC = () => {
                 )}
                 <button
                   onClick={handleCompleteRide}
-                  className="px-4 py-2.5 text-xs font-bold bg-black text-white hover:bg-zinc-800 rounded-lg transition-colors border-none cursor-pointer shadow-sm uppercase tracking-wide"
+                  disabled={!isCompleteAllowed}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors border-none shadow-sm uppercase tracking-wide ${
+                    isCompleteAllowed 
+                      ? 'bg-black text-white hover:bg-zinc-800 cursor-pointer' 
+                      : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+                  }`}
                 >
                   Completar viaje
                 </button>

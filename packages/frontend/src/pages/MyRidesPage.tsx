@@ -839,6 +839,9 @@ export const MyRidesPage: React.FC = () => {
           {[
             { key: 'ALL', label: 'Todos' },
             { key: 'PUBLISHED', label: 'Disponibles' },
+            { key: 'FULL', label: 'Llenos' },
+            { key: 'IN_PROGRESS', label: 'En curso' },
+            { key: 'COMPLETED', label: 'Completados' },
             { key: 'CANCELLED', label: 'Cancelados' },
           ].map(filter => {
             const active = statusFilter === filter.key;
