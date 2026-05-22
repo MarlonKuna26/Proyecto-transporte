@@ -120,4 +120,23 @@ export class EmailService {
       `,
     });
   }
+
+  static async sendRideRequestAcceptedEmail(to: string, details: { origin: string; destination: string; date: string; time: string }) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: '¡Solicitud de viaje Aceptada! 🎉🚗',
+      html: `
+        <h2>Tu solicitud de viaje ha sido aceptada</h2>
+        <p>¡Buenas noticias! El conductor ha aceptado tu solicitud para unirte al viaje:</p>
+        <ul>
+          <li><strong>Origen:</strong> ${details.origin}</li>
+          <li><strong>Destino:</strong> ${details.destination}</li>
+          <li><strong>Fecha:</strong> ${details.date}</li>
+          <li><strong>Hora:</strong> ${details.time}</li>
+        </ul>
+        <p>Por favor, revisa los detalles del viaje en la sección "Mis solicitudes". ¡Buen viaje!</p>
+      `,
+    });
+  }
 }
