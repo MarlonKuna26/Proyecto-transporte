@@ -459,6 +459,21 @@ export const MyRequestsPage: React.FC = () => {
                       </button>
                     )}
 
+                    {/* SEGUIMIENTO DE VIAJE (Para pasajeros) */}
+                    {req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && (
+                      <Link
+                        to={`/tracking/${ride.id}`}
+                        className="px-4 py-2.5 text-xs font-bold text-white bg-uber-blue hover:bg-blue-700 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center justify-center gap-1.5"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2a10 10 0 0 0-10 10c0 5.25 10 12 10 12s10-6.75 10-12a10 10 0 0 0-10-10z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Ver seguimiento
+                      </Link>
+                    )}
+
                     {/* CALIFICAR VIAJE */}
                     {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && !hasAlreadyRated(ride.id) && (
                       <button

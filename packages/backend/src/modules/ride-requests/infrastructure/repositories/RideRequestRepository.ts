@@ -74,9 +74,12 @@ export class RideRequestRepository implements IRideRequestRepository {
     const values: any[] = [];
     let idx = 1;
 
-    if ((data as any).status) { updates.push(`estado = $${idx++}`); values.push((data as any).status); }
-    if ((data as any).respondedAt) { updates.push(`respondido_en = $${idx++}`); values.push((data as any).respondedAt); }
-    if ((data as any).rejectReason !== undefined) { updates.push(`motivo_rechazo = $${idx++}`); values.push((data as any).rejectReason); }
+    if (data.status !== undefined) { updates.push(`estado = $${idx++}`); values.push(data.status); }
+    if (data.respondedAt !== undefined) { updates.push(`respondido_en = $${idx++}`); values.push(data.respondedAt); }
+    if (data.rejectReason !== undefined) { updates.push(`motivo_rechazo = $${idx++}`); values.push(data.rejectReason); }
+    if (data.seatsRequested !== undefined) { updates.push(`asientos_solicitados = $${idx++}`); values.push(data.seatsRequested); }
+    if (data.message !== undefined) { updates.push(`mensaje = $${idx++}`); values.push(data.message); }
+    if (data.createdAt !== undefined) { updates.push(`creado_en = $${idx++}`); values.push(data.createdAt); }
 
     updates.push(`actualizado_en = $${idx++}`);
     values.push(new Date());

@@ -26,8 +26,18 @@ export class RequestJoinUseCase implements IUseCase<RequestJoinInput, RideReques
     }
 
     const existing = await this.requestRepo.findByRideAndPassenger(input.data.rideId, input.passengerId);
-    if (existing && existing.status !== 'CANCELLED' && existing.status !== 'REJECTED') {
-      throw new ConflictError('You already have a pending or accepted request for this ride');
+    if (existing) {
+      if (existing.status !== 'CANCELLED' && existing.status !== 'REJECTED') {
+        throw new ConflictError('You already have a pending or accepted request for this ride');
+      }
+      return this.requestRepo.update(existing.id, {
+        status: 'PENDING',
+        seatsRequested: input.data.seatsRequested,
+        message: input.data.message || null,
+        respondedAt: null,
+        rejectReason: null,
+        createdAt: new Date(),
+      } as any);
     }
 
     const request = new RideRequest(

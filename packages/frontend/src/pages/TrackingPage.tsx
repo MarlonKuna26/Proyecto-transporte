@@ -91,9 +91,13 @@ export const TrackingPage: React.FC = () => {
       // Try OSRM for even better estimate
       const url = `https://router.project-osrm.org/route/v1/driving/${ride.originLng},${ride.originLat};${ride.destinationLng},${ride.destinationLat}?overview=false`;
       
-      fetch(url, { timeout: 5000 })
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      fetch(url, { signal: controller.signal })
         .then(res => res.json())
         .then(data => {
+          clearTimeout(timeoutId);
           if (data.code === 'Ok' && data.routes?.[0]) {
             const durationSec = data.routes[0].duration;
             const distanceM = data.routes[0].distance;
@@ -102,6 +106,7 @@ export const TrackingPage: React.FC = () => {
           }
         })
         .catch(err => {
+          clearTimeout(timeoutId);
           console.log('OSRM failed, using Haversine estimate');
         });
     } else {
@@ -246,7 +251,7 @@ export const TrackingPage: React.FC = () => {
             </div>
           </div>
           <Link
-            to="/my-rides"
+            to={isDriver ? "/my-rides" : "/my-requests"}
             className="px-4 py-2 text-xs font-bold bg-zinc-900 text-white border border-zinc-800 hover:bg-zinc-800 rounded-lg transition-colors inline-flex items-center gap-1.5"
             style={{ textDecoration: 'none' }}
           >

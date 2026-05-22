@@ -140,6 +140,26 @@ export class EmailService {
     });
   }
 
+  static async sendRideRequestRejectedEmail(to: string, details: { origin: string; destination: string; date: string; time: string; rejectReason?: string | null }) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: 'Solicitud de viaje Rechazada ❌🚗',
+      html: `
+        <h2>Tu solicitud de viaje ha sido rechazada</h2>
+        <p>Lamentamos informarte que el conductor ha rechazado tu solicitud para unirte al viaje:</p>
+        <ul>
+          <li><strong>Origen:</strong> ${details.origin}</li>
+          <li><strong>Destino:</strong> ${details.destination}</li>
+          <li><strong>Fecha:</strong> ${details.date}</li>
+          <li><strong>Hora:</strong> ${details.time}</li>
+        </ul>
+        ${details.rejectReason ? `<p><strong>Motivo del rechazo:</strong> ${details.rejectReason}</p>` : ''}
+        <p>Puedes buscar otros viajes disponibles en la plataforma.</p>
+      `,
+    });
+  }
+
   static async sendPassengerCancelledRequestEmail(to: string, details: { origin: string; destination: string; date: string; time: string, passengerName?: string }) {
     await this.sendMail({
       from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
