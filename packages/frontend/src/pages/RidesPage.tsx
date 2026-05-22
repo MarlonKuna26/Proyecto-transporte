@@ -811,6 +811,20 @@ export const RidesPage: React.FC = () => {
                             </div>
                           )}
 
+                          {/* Mensaje al conductor input */}
+                          <div>
+                            <label className="block text-[10px] font-bold text-uber-gray-500 uppercase tracking-wider mb-1.5 pl-1">
+                              Mensaje al conductor (opcional)
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Escribe un mensaje al conductor (ej: Llevo mochila grande)..."
+                              className="w-full px-4 py-3 bg-white rounded-xl text-sm text-black border border-uber-gray-200 outline-none focus:ring-2 focus:ring-black/10 focus:border-black placeholder-uber-gray-400"
+                              value={requestMsg}
+                              onChange={e => setRequestMsg(e.target.value)}
+                            />
+                          </div>
+
                           {/* Footer action buttons */}
                           <div className="flex gap-3 pt-2">
                             <button
@@ -832,26 +846,18 @@ export const RidesPage: React.FC = () => {
                       );
                     }
                     return (
-                      <div className="space-y-3">
-                        <input
-                          className="w-full px-4 py-3 bg-white rounded-xl text-sm text-black border border-uber-gray-200 outline-none focus:ring-2 focus:ring-black/10 focus:border-black placeholder-uber-gray-400"
-                          placeholder="Escribe un mensaje al conductor (ej: Llevo mochila grande)..."
-                          value={requestMsg}
-                          onChange={e => setRequestMsg(e.target.value)}
-                        />
-                        <button
-                          onClick={() => {
-                            if (!myProfile || !myProfile.career || !myProfile.phone) {
-                              addToast('Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', 'error');
-                              return;
-                            }
-                            setShowPaymentStep(true);
-                          }}
-                          className="uber-btn-primary w-full py-3.5 text-sm font-bold tracking-wide"
-                        >
-                          Solicitar unirme al viaje
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => {
+                          if (!myProfile || !myProfile.career || !myProfile.phone) {
+                            addToast('Por favor, actualiza tu perfil (carrera y teléfono) en la sección de Perfil antes de solicitar unirte a un viaje.', 'error');
+                            return;
+                          }
+                          setShowPaymentStep(true);
+                        }}
+                        className="uber-btn-primary w-full py-3.5 text-sm font-bold tracking-wide"
+                      >
+                        Solicitar unirme al viaje
+                      </button>
                     );
                   })()
                 ) : (
