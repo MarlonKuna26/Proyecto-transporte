@@ -25,7 +25,7 @@ export const RidesPage: React.FC = () => {
   const [loadingDriver, setLoadingDriver] = useState(false);
 
   const [showPaymentStep, setShowPaymentStep] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia'>('efectivo');
+  const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia' | 'paypal'>('efectivo');
   const [transferRef, setTransferRef] = useState('');
 
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
@@ -111,9 +111,11 @@ export const RidesPage: React.FC = () => {
       let finalMsg = requestMsg;
       if (paymentMethod === 'efectivo') {
         finalMsg = `${requestMsg} [Pago: Efectivo]`.trim();
-      } else {
+      } else if (paymentMethod === 'transferencia') {
         const ref = transferRef.trim() || '-';
         finalMsg = `${requestMsg} [Pago: Transferencia, Ref: ${ref}]`.trim();
+      } else if (paymentMethod === 'paypal') {
+        finalMsg = `${requestMsg} [Pago: PayPal]`.trim();
       }
 
       await api.rideRequests.create({ rideId, message: finalMsg || null, seatsRequested: 1 });
@@ -664,7 +666,7 @@ export const RidesPage: React.FC = () => {
                           </div>
 
                           {/* Options grid */}
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             {/* Cash Option */}
                             <button
                               type="button"
@@ -712,6 +714,30 @@ export const RidesPage: React.FC = () => {
                                 </p>
                               </div>
                             </button>
+
+                            {/* PayPal Option */}
+                            <button
+                              type="button"
+                              onClick={() => setPaymentMethod('paypal')}
+                              className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between h-28 cursor-pointer ${
+                                paymentMethod === 'paypal'
+                                  ? 'bg-black text-white border-black shadow-md'
+                                  : 'bg-white text-black border-uber-gray-200 hover:bg-uber-gray-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <span className="text-2xl">💳</span>
+                                {paymentMethod === 'paypal' && (
+                                  <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">✓</span>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold leading-tight">PayPal</h4>
+                                <p className={`text-[10px] mt-1 ${paymentMethod === 'paypal' ? 'text-uber-gray-300' : 'text-uber-gray-500'}`}>
+                                  Pago seguro online
+                                </p>
+                              </div>
+                            </button>
                           </div>
 
                           {/* Detail panel */}
@@ -722,11 +748,18 @@ export const RidesPage: React.FC = () => {
                                 Has elegido pagar en efectivo. Podrás coordinar el pago al subir al vehículo una vez que el conductor acepte tu solicitud.
                               </p>
                             </div>
-                          ) : (
+                          ) : paymentMethod === 'transferencia' ? (
                             <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">ℹ️</span>
                               <p className="text-xs text-blue-800 leading-relaxed font-medium">
-                                Podrás ver los datos bancarios y el código QR del conductor en la sección "Mis solicitudes" cuando el conductor apruebe tu viaje.
+                                Podrás ver los datos bancarios del conductor en "Mis solicitudes" cuando el conductor apruebe tu viaje.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="p-3.5 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-2.5">
+                              <span className="text-base shrink-0">🛡️</span>
+                              <p className="text-xs text-indigo-800 leading-relaxed font-medium">
+                                Procesarás el pago con PayPal una vez que el conductor acepte tu solicitud. Es 100% seguro.
                               </p>
                             </div>
                           )}

@@ -129,6 +129,10 @@ export const api = {
   payments: {
     create: (data: { rideRequestId: string; amount: number; paymentMethod?: string; reference?: string; comprobanteUrl?: string }) =>
       request<any>('/payments', { method: 'POST', body: JSON.stringify(data) }),
+    createPayPalOrder: (data: { rideRequestId: string; amount: string | number }) =>
+      request<any>('/payments/paypal/create-order', { method: 'POST', body: JSON.stringify(data) }),
+    capturePayPalOrder: (data: { orderID: string; rideRequestId: string; amount: string | number }) =>
+      request<any>('/payments/paypal/capture-order', { method: 'POST', body: JSON.stringify(data) }),
     myPayments: () => request<any>('/payments/my-payments'),
     received: () => request<any>('/payments/received'),
     byRide: (rideId: string) => request<any>(`/payments/ride/${rideId}`),
