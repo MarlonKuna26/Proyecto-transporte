@@ -137,6 +137,9 @@ export class UserRepository implements IUserRepository {
       row.id,
       new Date(row.creado_en),
       new Date(row.actualizado_en),
+      row.esta_suspendido,
+      row.motivo_suspension,
+      row.suspendido_hasta ? new Date(row.suspendido_hasta) : null,
     );
   }
 }

@@ -104,6 +104,7 @@ export const api = {
       request<any>('/reports', { method: 'POST', body: JSON.stringify(data) }),
     list: (status?: string) =>
       request<any>(`/reports${status ? `?status=${status}` : ''}`),
+    getMyReports: () => request<any>('/reports/me'),
     resolve: (id: string, data: any) =>
       request<any>(`/reports/${id}/resolve`, { method: 'PUT', body: JSON.stringify(data) }),
   },

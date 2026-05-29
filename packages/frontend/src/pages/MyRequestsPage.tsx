@@ -4,6 +4,7 @@ import type { RideRequest, Ride, UserProfile } from '@/types';
 import { Link } from 'react-router-dom';
 import { ToastContainer, type ToastMessage } from '@/components/Toast';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { ReportUserModal } from '@/components/ReportUserModal';
 
 const parseMessage = (msg: string | null) => {
   if (!msg) return { cleanMessage: '', paymentInfo: null };
@@ -43,6 +44,9 @@ export const MyRequestsPage: React.FC = () => {
   const [submittingRating, setSubmittingRating] = useState<boolean>(false);
   const [givenRatings, setGivenRatings] = useState<any[]>([]);
   const [driverProfile, setDriverProfile] = useState<UserProfile | null>(null);
+
+  // State for Reporting
+  const [reportDriver, setReportDriver] = useState<{ id: string, name: string, rideId: string } | null>(null);
 
   // State for Payment Modal
   const [paymentRide, setPaymentRide] = useState<Ride | null>(null);
@@ -585,6 +589,23 @@ export const MyRequestsPage: React.FC = () => {
                       </button>
                     )}
 
+                    {/* REPORTAR CONDUCTOR */}
+                    {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED' || req.status === 'ACCEPTED') && (
+                      <button
+                        onClick={() => {
+                          setReportDriver({
+                            id: ride.driverId,
+                            name: 'Conductor',
+                            rideId: ride.id
+                          });
+                        }}
+                        className="px-4 py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Reportar
+                      </button>
+                    )}
+
                     {/* YA CALIFICADO */}
                     {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && hasAlreadyRated(ride.id) && (
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl self-start md:self-auto">
@@ -1109,6 +1130,18 @@ export const MyRequestsPage: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* ═══ REPORT MODAL ═══ */}
+      {reportDriver && (
+        <ReportUserModal
+          reportedUserId={reportDriver.id}
+          reportedUserName={reportDriver.name}
+          reportedUserRole="DRIVER"
+          rideId={reportDriver.rideId}
+          onClose={() => setReportDriver(null)}
+          onSuccess={() => setReportDriver(null)}
+        />
+      )}
     </div>
   );
 };

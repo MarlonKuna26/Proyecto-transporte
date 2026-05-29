@@ -5,6 +5,7 @@ import { UserRepository } from '@modules/auth/infrastructure/repositories/UserRe
 import { CreateReportUseCase } from './application/usecases/CreateReportUseCase';
 import { ListReportsUseCase } from './application/usecases/ListReportsUseCase';
 import { ResolveReportUseCase } from './application/usecases/ResolveReportUseCase';
+import { ListMyReportsUseCase } from './application/usecases/ListMyReportsUseCase';
 import { ReportController } from './infrastructure/controllers/ReportController';
 
 export function createReportRoutes(): Router {
@@ -15,11 +16,15 @@ export function createReportRoutes(): Router {
   const createUseCase = new CreateReportUseCase(reportRepo);
   const listUseCase = new ListReportsUseCase(reportRepo);
   const resolveUseCase = new ResolveReportUseCase(reportRepo, userRepo);
+  const listMyReportsUseCase = new ListMyReportsUseCase(reportRepo);
 
-  const controller = new ReportController(createUseCase, listUseCase, resolveUseCase);
+  const controller = new ReportController(createUseCase, listUseCase, resolveUseCase, listMyReportsUseCase);
 
   // Estudiante crea reporte
   router.post('/', authenticateToken, (req, res) => controller.create(req, res));
+  
+  // Estudiante ve sus propios reportes
+  router.get('/me', authenticateToken, (req, res) => controller.listMyReports(req, res));
 
   // Admin ve y resuelve reportes
   router.get('/', authenticateToken, authorizeRole('ADMIN'), (req, res) => controller.list(req, res));

@@ -26,7 +26,7 @@ export const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 flex items-center gap-3 px-4 py-3 text-sm rounded-xl border animate-fade-in transition-all duration-300 shadow-lg ${
+      className={`flex items-center gap-3 px-4 py-3 text-sm rounded-xl border animate-fade-in transition-all duration-300 shadow-lg ${
         isError
           ? 'border-red-200 bg-red-50 text-red-700'
           : 'border-green-200 bg-green-50 text-green-700'
@@ -65,7 +65,7 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ messages, onClose }) => {
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2">
       {messages.map(message => (
         <Toast key={message.id} message={message} onClose={onClose} />
       ))}
