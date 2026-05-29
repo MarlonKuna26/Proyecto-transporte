@@ -6,6 +6,7 @@ import { ToastContainer, type ToastMessage } from '@/components/Toast';
 import type { Ride, RideRequest, UserProfile, Vehicle } from '@/types';
 import { LiveMap } from '@/components/LiveMap';
 import { ZONE_COORDINATES, ZONAS_AMBATO, CAMPUS_UTA } from '@/constants';
+import { ReportUserModal } from '@/components/ReportUserModal';
 
 const findNearestZone = (lat: number, lng: number): string => {
   let nearestZone = '';
@@ -77,6 +78,9 @@ export const MyRidesPage: React.FC = () => {
   const [rejectReqId, setRejectReqId] = useState<string | null>(null);
   const [rejectRideId, setRejectRideId] = useState<string | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState('');
+  
+  // State for Reporting
+  const [reportPassenger, setReportPassenger] = useState<{ id: string, name: string, rideId: string } | null>(null);
 
   // ===== TOAST FUNCTIONS =====
   const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
@@ -333,7 +337,7 @@ export const MyRidesPage: React.FC = () => {
   const confirmRejectRequest = async () => {
     if (!rejectReqId || !rejectRideId) return;
     if (!rejectReasonInput.trim()) {
-      alert("Por favor, ingresa un motivo para el rechazo.");
+      addToast("Por favor, ingresa un motivo para el rechazo.", "error");
       return;
     }
     try {
@@ -1125,6 +1129,25 @@ export const MyRidesPage: React.FC = () => {
                                   </button>
                                 </div>
                               )}
+                              
+                              {/* REPORTAR PASAJERO */}
+                              {(req.status === 'ACCEPTED' || ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && (
+                                <div className="flex gap-1.5 shrink-0 self-end sm:self-center" onClick={e => e.stopPropagation()}>
+                                  <button
+                                    onClick={() => {
+                                      setReportPassenger({
+                                        id: req.passengerId,
+                                        name: 'Pasajero',
+                                        rideId: ride.id
+                                      });
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-lg transition-colors flex items-center gap-1.5"
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                    Reportar
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -1452,6 +1475,18 @@ export const MyRidesPage: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* ═══ REPORT MODAL ═══ */}
+      {reportPassenger && (
+        <ReportUserModal
+          reportedUserId={reportPassenger.id}
+          reportedUserName={reportPassenger.name}
+          reportedUserRole="PASSENGER"
+          rideId={reportPassenger.rideId}
+          onClose={() => setReportPassenger(null)}
+          onSuccess={() => setReportPassenger(null)}
+        />
+      )}
     </div>
   );
 };

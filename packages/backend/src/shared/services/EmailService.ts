@@ -178,4 +178,19 @@ export class EmailService {
       `,
     });
   }
+
+  static async sendReportResolvedEmail(to: string, details: { reportReason: string, adminNotes: string }) {
+    await this.sendMail({
+      from: `"U-Ride" <${process.env.EMAIL_USER || 'no-reply@u-ride.local'}>`,
+      to,
+      subject: 'Tu reporte ha sido resuelto 🛡️',
+      html: `
+        <h2>Resolución de Reporte</h2>
+        <p>El equipo de administración ha revisado y resuelto el reporte que enviaste por el motivo: <strong>${details.reportReason}</strong>.</p>
+        <p><strong>Notas de administración:</strong></p>
+        <p style="background: #f5f5f5; padding: 12px; border-left: 4px solid #000;">${details.adminNotes}</p>
+        <p>Gracias por ayudarnos a mantener una comunidad segura.</p>
+      `,
+    });
+  }
 }

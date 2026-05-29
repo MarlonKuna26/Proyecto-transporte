@@ -11,6 +11,14 @@ export const AdminPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
+  // Modal States
+  const [suspendModal, setSuspendModal] = useState<{ isOpen: boolean, userId: string }>({ isOpen: false, userId: '' });
+  const [suspendReason, setSuspendReason] = useState('');
+  const [suspendDays, setSuspendDays] = useState(7);
+  
+  const [resolveModal, setResolveModal] = useState<{ isOpen: boolean, reportId: string, status: 'RESOLVED' | 'DISMISSED' }>({ isOpen: false, reportId: '', status: 'RESOLVED' });
+  const [resolveNotes, setResolveNotes] = useState('');
+
   // ===== TOAST FUNCTIONS =====
   const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -34,13 +42,22 @@ export const AdminPage: React.FC = () => {
     load();
   }, []);
 
-  const suspendUser = async (id: string) => {
-    const reason = prompt('Razón de suspensión:');
-    if (!reason) return;
+  const suspendUser = (id: string) => {
+    setSuspendModal({ isOpen: true, userId: id });
+    setSuspendReason('');
+    setSuspendDays(7);
+  };
+
+  const executeSuspendUser = async () => {
+    if (!suspendReason.trim()) {
+      addToast('Ingresa la razón de la suspensión', 'error');
+      return;
+    }
     try {
-      await api.admin.suspendUser(id, { reason, days: 7 });
-      setUsers(prev => prev.map(u => u.id === id ? { ...u, is_suspended: true } : u));
+      await api.admin.suspendUser(suspendModal.userId, { reason: suspendReason, days: suspendDays });
+      setUsers(prev => prev.map(u => u.id === suspendModal.userId ? { ...u, is_suspended: true } : u));
       addToast('Usuario suspendido', 'success');
+      setSuspendModal({ isOpen: false, userId: '' });
     } catch (err: any) { addToast(err.message, 'error'); }
   };
 
@@ -52,13 +69,21 @@ export const AdminPage: React.FC = () => {
     } catch (err: any) { addToast(err.message, 'error'); }
   };
 
-  const resolveReport = async (id: string, status: 'RESOLVED' | 'DISMISSED') => {
-    const notes = prompt('Notas del administrador:');
-    if (!notes) return;
+  const resolveReport = (id: string, status: 'RESOLVED' | 'DISMISSED') => {
+    setResolveModal({ isOpen: true, reportId: id, status });
+    setResolveNotes('');
+  };
+
+  const executeResolveReport = async () => {
+    if (!resolveNotes.trim()) {
+      addToast('Ingresa las notas de la resolución', 'error');
+      return;
+    }
     try {
-      await api.reports.resolve(id, { status, adminNotes: notes });
-      setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+      await api.reports.resolve(resolveModal.reportId, { status: resolveModal.status, adminNotes: resolveNotes });
+      setReports(prev => prev.map(r => r.id === resolveModal.reportId ? { ...r, status: resolveModal.status } : r));
       addToast('Reporte resuelto', 'success');
+      setResolveModal({ isOpen: false, reportId: '', status: 'RESOLVED' });
     } catch (err: any) { addToast(err.message, 'error'); }
   };
 
@@ -114,6 +139,66 @@ export const AdminPage: React.FC = () => {
 
       {/* ═══ TOAST NOTIFICATIONS ═══ */}
       <ToastContainer messages={messages} onClose={removeToast} />
+
+      {/* ═══ MODALS ═══ */}
+      {suspendModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="glass-card w-full max-w-md bg-white border border-zinc-150 p-6 rounded-2xl animate-scale-up">
+            <h3 className="text-xl font-bold text-black mb-2">Suspender Usuario</h3>
+            <p className="text-sm text-zinc-500 mb-4">¿Por qué estás suspendiendo a este usuario?</p>
+            <textarea
+              className="w-full bg-zinc-50 border border-zinc-200 text-black text-sm rounded-xl p-4 min-h-[100px] mb-4 outline-none focus:border-black transition-colors resize-none"
+              placeholder="Escribe la razón aquí..."
+              value={suspendReason}
+              onChange={(e) => setSuspendReason(e.target.value)}
+            />
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-black mb-2">Duración de la suspensión</label>
+              <div className="relative">
+                <select 
+                  value={suspendDays} 
+                  onChange={(e) => setSuspendDays(Number(e.target.value))}
+                  className="w-full bg-zinc-50 border border-zinc-200 text-black text-sm font-medium rounded-xl p-3.5 outline-none focus:border-black transition-colors appearance-none"
+                >
+                  <option value={1}>1 día</option>
+                  <option value={3}>3 días</option>
+                  <option value={7}>1 semana</option>
+                  <option value={15}>15 días</option>
+                  <option value={30}>1 mes</option>
+                  <option value={180}>6 meses</option>
+                  <option value={365}>1 año</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setSuspendModal({ isOpen: false, userId: '' })} className="px-5 py-2.5 rounded-xl font-bold text-sm text-zinc-600 hover:bg-zinc-100 transition-colors">Cancelar</button>
+              <button onClick={executeSuspendUser} className="px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all">Suspender</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resolveModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="glass-card w-full max-w-md bg-white border border-zinc-150 p-6 rounded-2xl animate-scale-up">
+            <h3 className="text-xl font-bold text-black mb-2">{resolveModal.status === 'RESOLVED' ? 'Resolver Reporte' : 'Descartar Reporte'}</h3>
+            <p className="text-sm text-zinc-500 mb-4">Añade una nota explicativa que se le enviará al estudiante que realizó el reporte.</p>
+            <textarea
+              className="w-full bg-zinc-50 border border-zinc-200 text-black text-sm rounded-xl p-4 min-h-[100px] mb-4 outline-none focus:border-black transition-colors resize-none"
+              placeholder="Escribe las notas de administración aquí..."
+              value={resolveNotes}
+              onChange={(e) => setResolveNotes(e.target.value)}
+            />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setResolveModal({ isOpen: false, reportId: '', status: 'RESOLVED' })} className="px-5 py-2.5 rounded-xl font-bold text-sm text-zinc-600 hover:bg-zinc-100 transition-colors">Cancelar</button>
+              <button onClick={executeResolveReport} className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg ${resolveModal.status === 'RESOLVED' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-black hover:bg-zinc-800 shadow-black/20'}`}>Aceptar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CreateReportUseCase } from '../../application/usecases/CreateReportUseCase';
 import { ListReportsUseCase } from '../../application/usecases/ListReportsUseCase';
 import { ResolveReportUseCase } from '../../application/usecases/ResolveReportUseCase';
+import { ListMyReportsUseCase } from '../../application/usecases/ListMyReportsUseCase';
 import { CreateReportDTO, ResolveReportDTO } from '../../application/dtos/ReportDTO';
 import { ReportStatus } from '../../domain/entities/Report';
 import { AppError } from '@shared/errors/AppError';
@@ -14,6 +15,7 @@ export class ReportController {
     private createReportUseCase: CreateReportUseCase,
     private listReportsUseCase: ListReportsUseCase,
     private resolveReportUseCase: ResolveReportUseCase,
+    private listMyReportsUseCase: ListMyReportsUseCase,
   ) {}
 
   async create(req: Request, res: Response): Promise<void> {
@@ -34,6 +36,16 @@ export class ReportController {
       res.status(200).json({ success: true, data: result });
     } catch (error: unknown) {
       this.handleError(error, res, 'list_reports');
+    }
+  }
+
+  async listMyReports(req: Request, res: Response): Promise<void> {
+    try {
+      const reporterId = req.user!.userId;
+      const result = await this.listMyReportsUseCase.execute(reporterId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'list_my_reports');
     }
   }
 

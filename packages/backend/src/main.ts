@@ -1,7 +1,10 @@
 import 'reflect-metadata'; // Para decoradores
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-// Cargar variables de entorno PRIMERO
+// Cargar variables de entorno PRIMERO desde la raíz del proyecto
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// Por si las dudas, también cargamos el default
 dotenv.config();
 
 import { App } from './app';

@@ -102,6 +102,7 @@ export interface Report {
   status: 'PENDING' | 'REVIEWING' | 'RESOLVED' | 'DISMISSED';
   adminNotes: string | null;
   resolvedBy: string | null;
+  resolvedAt: string | null;
   createdAt: string;
 }
 

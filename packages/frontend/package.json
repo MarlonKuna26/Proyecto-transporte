@@ -17,6 +17,7 @@
     "clean": "rm -rf dist coverage .vite"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^9.2.0",
     "axios": "^1.6.5",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",

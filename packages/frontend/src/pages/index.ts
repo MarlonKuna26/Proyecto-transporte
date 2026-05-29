@@ -10,3 +10,4 @@ export { ProfilePage } from './ProfilePage';
 export { AdminPage } from './AdminPage';
 export { TrackingPage } from './TrackingPage';
 export { PaymentsPage } from './PaymentsPage';
+export { MyReportsPage } from './MyReportsPage';

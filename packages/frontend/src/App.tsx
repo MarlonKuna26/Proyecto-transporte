@@ -5,6 +5,7 @@ import {
   LoginPage, RegisterPage, DashboardPage, RidesPage,
   MyRidesPage, MyRequestsPage, ProfilePage, AdminPage,
   TrackingPage, PaymentsPage, ForgotPasswordPage, ResetPasswordPage,
+  MyReportsPage,
 } from '@/pages';
 
 /** Ruta protegida: redirige a /login si no hay sesión */
@@ -41,7 +42,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           {/* Rutas públicas */}
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
@@ -58,6 +59,7 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/tracking/:rideId" element={<TrackingPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/my-reports" element={<MyReportsPage />} />
             <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
           </Route>
 
