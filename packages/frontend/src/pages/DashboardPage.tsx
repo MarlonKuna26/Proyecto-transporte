@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/services/api';
 import type { Ride, UserProfile } from '@/types';
@@ -27,6 +29,11 @@ const animationStyles = `
     0%, 100% { box-shadow: 0 0 8px rgba(39, 110, 241, 0.6); }
     50% { box-shadow: 0 0 16px rgba(39, 110, 241, 0.9); }
   }
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
   .animate-vehicle-1 {
     animation: moveVehicle1 6s ease-in-out infinite;
   }
@@ -45,10 +52,58 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [recentRides, setRecentRides] = useState<Ride[]>([]);
+  const [activeDrivers, setActiveDrivers] = useState<{ride: Ride, driver: UserProfile}[]>([]);
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
   const [hasVehicles, setHasVehicles] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<ToastMessage[]>([]);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  // Inicializar mapa de Leaflet
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = L.map(mapRef.current, {
+      zoomControl: false,
+      scrollWheelZoom: false,
+      dragging: false,
+      doubleClickZoom: false,
+      attributionControl: false
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+
+    // Marcadores reales de los Campus
+    const createCampusIcon = (colorClass: string, shadowClass: string, label: string) => L.divIcon({
+      className: 'custom-campus-icon',
+      html: `
+        <div class="flex flex-col items-center">
+          <div class="w-5 h-5 ${colorClass} rounded-full ${shadowClass} flex items-center justify-center">
+            <div class="w-2 h-2 bg-white rounded-full"></div>
+          </div>
+          <div class="mt-2 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md border border-gray-100 font-bold text-xs text-black whitespace-nowrap pointer-events-auto">
+            ${label}
+          </div>
+        </div>
+      `,
+      iconSize: [120, 60],
+      iconAnchor: [60, 10]
+    });
+
+    const bounds = L.latLngBounds([
+      [-1.2690, -78.6241], // Huachi
+      [-1.3695, -78.6065], // Querochaca
+      [-1.2338, -78.6169]  // Ingahurco
+    ]);
+
+    L.marker([-1.2690, -78.6241], { icon: createCampusIcon('bg-black', 'shadow-[0_0_0_6px_rgba(0,0,0,0.1)]', 'Campus Huachi') }).addTo(map);
+    L.marker([-1.3695, -78.6065], { icon: createCampusIcon('bg-[#06C167]', 'shadow-[0_0_0_6px_rgba(6,193,103,0.15)]', 'Campus Querochaca') }).addTo(map);
+    L.marker([-1.2338, -78.6169], { icon: createCampusIcon('bg-[#276EF1]', 'shadow-[0_0_0_6px_rgba(39,110,241,0.15)]', 'Campus Ingahurco') }).addTo(map);
+
+    map.fitBounds(bounds, { padding: [50, 50] });
+
+    return () => {
+      map.remove();
+    };
+  }, []);
 
   // ===== TOAST FUNCTIONS =====
   const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
@@ -64,7 +119,19 @@ export const DashboardPage: React.FC = () => {
     const load = async () => {
       try {
         const res = await api.rides.list({ limit: '4', status: 'PUBLISHED' });
-        setRecentRides(res.data || []);
+        const fetchedRides = res.data || [];
+        setRecentRides(fetchedRides);
+        
+        // Cargar perfiles reales para el mapa interactivo
+        const driversData = await Promise.all(
+          fetchedRides.map(async (ride: Ride) => {
+            try {
+               const driverRes = await api.users.getProfile(ride.driverId);
+               return { ride, driver: driverRes.data };
+            } catch { return null; }
+          })
+        );
+        setActiveDrivers(driversData.filter((d): d is {ride: Ride, driver: UserProfile} => d !== null && !!d.driver));
       } catch { /* ignore */ }
       setLoading(false);
     };
@@ -169,25 +236,73 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: Visual area (map-like placeholder) */}
-            <div className="flex-1 min-h-[260px] lg:min-h-[360px] rounded-2xl overflow-hidden relative" style={{ background: '#F6F6F6' }}>
-              <div className="absolute inset-0" style={{
-                background: 'linear-gradient(135deg, #E8F0FE 0%, #F6F6F6 30%, #E6F4EA 60%, #F6F6F6 100%)',
-              }}>
-                {/* Decorative road lines */}
-                <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 300">
-                  <path d="M0 150 Q100 100 200 150 T400 150" fill="none" stroke="#000" strokeWidth="3" strokeDasharray="8 6"/>
-                  <path d="M50 50 Q150 200 250 100 T400 200" fill="none" stroke="#000" strokeWidth="2" strokeDasharray="5 5"/>
-                  <circle cx="200" cy="150" r="6" fill="#000" opacity="0.3"/>
-                  <circle cx="100" cy="120" r="4" fill="#06C167" opacity="0.5"/>
-                  <circle cx="300" cy="130" r="4" fill="#276EF1" opacity="0.5"/>
-                </svg>
+            {/* Right: Real-time Map Visual Area */}
+            <div className="flex-1 min-h-[260px] lg:min-h-[360px] rounded-2xl overflow-hidden relative bg-uber-gray-50 group shadow-[0_2px_16px_rgba(0,0,0,0.08)]">
+              {/* Real Leaflet Map Background */}
+              <div className="absolute inset-0 z-0">
+                <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
+              </div>
 
-                {/* Floating card */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl px-5 py-3 shadow-uber-md flex items-center gap-3 animate-fade-in">
-                  <div className="w-2 h-2 rounded-full bg-black" />
-                  <span className="text-sm font-medium text-black">U-Ride · Transporte Estudiantil</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AFAFAF" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+              {/* Foreground Floating Elements */}
+              <div className="absolute inset-0 z-10 pointer-events-none">
+                
+                {/* Dynamic Real Drivers */}
+                {activeDrivers.slice(0, 3).map((item, index) => {
+                  const configs = [
+                    { top: '25%', left: '60%', anim: 'animate-vehicle-1', color: 'blue' },
+                    { top: '60%', left: '35%', anim: 'animate-vehicle-2', color: 'green' },
+                    { top: '40%', left: '50%', anim: 'animate-vehicle-3', color: 'indigo' }
+                  ];
+                  const cfg = configs[index % configs.length];
+                  
+                  return (
+                    <div 
+                      key={item.ride.id}
+                      className={`absolute flex flex-col items-center cursor-pointer hover:scale-110 hover:z-30 transition-all duration-300 z-20 group/driver pointer-events-auto ${cfg.anim}`}
+                      style={{ top: cfg.top, left: cfg.left }}
+                      onClick={() => navigate(`/rides?view=${item.ride.id}`)}
+                    >
+                      <div className="relative">
+                        {item.driver.photoUrl ? (
+                          <img src={item.driver.photoUrl} alt={item.driver.name} className="w-14 h-14 rounded-full border-[3px] border-white shadow-xl object-cover" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-full border-[3px] border-white shadow-xl bg-black text-white flex items-center justify-center text-xl font-bold">
+                            {item.driver.name[0]}
+                          </div>
+                        )}
+                        <div className="absolute -bottom-2 -right-2 bg-white rounded-full px-1.5 py-0.5 shadow-md border border-gray-100 flex items-center gap-0.5">
+                          <span className="text-[10px]">⭐</span>
+                          <span className="text-[10px] font-bold text-black">{item.driver.reputation ? Number(item.driver.reputation).toFixed(1) : '5.0'}</span>
+                        </div>
+                      </div>
+                      <div className={`mt-3 bg-white px-3 py-1.5 rounded-full shadow-lg text-xs font-semibold flex items-center gap-2 animate-pulse-glow border border-${cfg.color}-50 group-hover/driver:bg-${cfg.color}-50 transition-colors`}>
+                        <div className={`w-6 h-6 rounded-full bg-${cfg.color}-100 flex items-center justify-center`}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={cfg.color === 'blue' ? '#276EF1' : cfg.color === 'green' ? '#06C167' : '#4F46E5'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                        </div>
+                        <span className="text-black max-w-[100px] truncate">{item.driver.name.split(' ')[0]} • {item.ride.originZone}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Floating UI Overlay */}
+                <div className="absolute bottom-5 left-5 right-5 flex justify-between items-end z-30 pointer-events-none">
+                  <div className="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-gray-100 flex items-center gap-3 pointer-events-auto cursor-pointer hover:shadow-xl transition-shadow" onClick={() => navigate('/rides')}>
+                    <div className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-uber-green opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-[#06C167]"></span>
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-black leading-tight">{recentRides.length} viajes activos</p>
+                      <p className="text-[10px] text-uber-gray-500 font-medium">Actualizado ahora</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => navigate('/rides')}
+                    className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors pointer-events-auto border border-gray-100"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  </button>
                 </div>
               </div>
             </div>
