@@ -37,22 +37,12 @@ async function bootstrap() {
     // 2. Crear instancia de Express
     const app = new App();
 
-    // 3. Registrar TODAS las rutas
-    app.express.use('/api/v1/auth', createAuthRoutes());
-    app.express.use('/api/v1/users', createUserRoutes());
-    app.express.use('/api/v1/rides', createRideRoutes());
-    app.express.use('/api/v1/ride-requests', createRideRequestRoutes());
-    app.express.use('/api/v1/ratings', createRatingRoutes());
-    app.express.use('/api/v1/reports', createReportRoutes());
-    app.express.use('/api/v1/admin', createAdminRoutes());
-    app.express.use('/api/v1/security-rules', createSecurityRulesRoutes());
-    app.express.use('/api/v1/payments', createPaymentRoutes());
-    app.express.use('/api/v1/tracking', createTrackingRoutes());
-
-    // 4. Registrar error handlers (DESPUÉS de todas las rutas)
+    // 3. Registrar error handlers (DESPUÉS de todas las rutas ya registradas en el constructor de App)
     app.setupErrorHandlers();
 
-    // 5. Iniciar servidor
+    logger.info('Routes registered successfully', 'BOOTSTRAP');
+
+    // 4. Iniciar servidor
     server = app.express.listen(PORT, () => {
       logger.info(`🚀 Server running on http://localhost:${PORT}`, 'SERVER');
       logger.info(`📍 API: http://localhost:${PORT}/api/v1`, 'SERVER');

@@ -180,6 +180,7 @@ export function createPaymentRoutes(): Router {
         const rideId = reqResult.rows[0].viaje_id;
 
         // Guardar el pago en BD con estado COMPLETED automáticamente
+        // Ahora usamos 'PAYPAL' ya que la base de datos fue actualizada para aceptarlo
         const result = await pool.query(
           `INSERT INTO pagos (solicitud_viaje_id, monto, metodo_pago, estado, referencia_transaccion)
            VALUES ($1, $2, 'PAYPAL', 'COMPLETED', $3) RETURNING *`,
