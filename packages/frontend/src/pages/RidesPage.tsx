@@ -17,6 +17,8 @@ export const RidesPage: React.FC = () => {
 
   const [requestMsg, setRequestMsg] = useState('');
   const [filters, setFilters] = useState({ originZone: '', destinationZone: '', departureDate: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const [acceptedUsers, setAcceptedUsers] = useState<UserProfile[]>([]);
@@ -174,6 +176,9 @@ export const RidesPage: React.FC = () => {
     return true;
   });
 
+  const totalPages = Math.ceil(filteredRides.length / pageSize);
+  const paginatedRides = filteredRides.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
@@ -209,7 +214,10 @@ export const RidesPage: React.FC = () => {
               <select
                 className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border border-uber-gray-200 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black appearance-none"
                 value={filters.originZone}
-                onChange={e => setFilters(prev => ({ ...prev, originZone: e.target.value }))}
+                onChange={e => {
+                  setFilters(prev => ({ ...prev, originZone: e.target.value }));
+                  setCurrentPage(1);
+                }}
               >
                 <option value="">Todas las zonas</option>
                 <optgroup label="Campus UTA">
@@ -233,7 +241,10 @@ export const RidesPage: React.FC = () => {
               <select
                 className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border border-uber-gray-200 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black appearance-none"
                 value={filters.destinationZone}
-                onChange={e => setFilters(prev => ({ ...prev, destinationZone: e.target.value }))}
+                onChange={e => {
+                  setFilters(prev => ({ ...prev, destinationZone: e.target.value }));
+                  setCurrentPage(1);
+                }}
               >
                 <option value="">Todas las zonas</option>
                 <optgroup label="Campus UTA">
@@ -257,7 +268,10 @@ export const RidesPage: React.FC = () => {
               type="date"
               className="w-full px-4 py-2.5 bg-white rounded-xl border border-uber-gray-200 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black"
               value={filters.departureDate}
-              onChange={e => setFilters(prev => ({ ...prev, departureDate: e.target.value }))}
+              onChange={e => {
+                setFilters(prev => ({ ...prev, departureDate: e.target.value }));
+                setCurrentPage(1);
+              }}
             />
           </div>
 
@@ -325,75 +339,114 @@ export const RidesPage: React.FC = () => {
         </div>
       ) : (
         /* Ride cards grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredRides.map(ride => {
-            const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
-            return (
-              <div
-                key={ride.id}
-                onClick={() => handleViewRide(ride)}
-                className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 cursor-pointer flex flex-col group relative animate-fade-in"
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {paginatedRides.map(ride => {
+              const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
+              return (
+                <div
+                  key={ride.id}
+                  onClick={() => handleViewRide(ride)}
+                  className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 cursor-pointer flex flex-col group relative animate-fade-in"
+                >
+                  {/* Top line: Route with dot indicators */}
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex gap-3 min-w-0">
+                      <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                        <div className="w-2.5 h-2.5 rounded-full bg-black" />
+                        <div className="w-0.5 h-7 bg-uber-gray-200" />
+                        <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-black truncate">{ride.originZone}</h3>
+                        {ride.originDetail && (
+                          <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.originDetail}</p>
+                        )}
+                        <h3 className="text-sm font-semibold text-black truncate mt-3.5">{ride.destinationZone}</h3>
+                        {ride.destinationDetail && (
+                          <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.destinationDetail}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Top-right Actions & Badges */}
+                    <div className="flex flex-col items-end gap-2" onClick={e => e.stopPropagation()}>
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${s.bg} ${s.border} ${s.text}`}
+                      >
+                        {s.label}
+                      </span>
+
+                      {/* Driver options if owner was here, now removed */}
+                    </div>
+                  </div>
+
+                  {/* Bottom line: details + price */}
+                  <div className="mt-auto pt-4 border-t border-uber-gray-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-uber-gray-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {ride.departureDate} · {ride.departureTime}
+                      </span>
+                      <span>·</span>
+                      <span>{ride.availableSeats} asientos</span>
+                    </div>
+
+                    {ride.pricePerSeat > 0 ? (
+                      <div className="text-right">
+                        <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider">Por persona</span>
+                        <span className="text-base font-bold text-black">${ride.pricePerSeat.toLocaleString()}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs font-bold text-black bg-white px-2 py-0.5 rounded border border-emerald-500 font-black">Gratis</span>
+                    )}
+                  </div>
+
+                  {/* Hover arrow indicator */}
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
               >
-                {/* Top line: Route with dot indicators */}
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex gap-3 min-w-0">
-                    <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
-                      <div className="w-2.5 h-2.5 rounded-full bg-black" />
-                      <div className="w-0.5 h-7 bg-uber-gray-200" />
-                      <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-black truncate">{ride.originZone}</h3>
-                      {ride.originDetail && (
-                        <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.originDetail}</p>
-                      )}
-                      <h3 className="text-sm font-semibold text-black truncate mt-3.5">{ride.destinationZone}</h3>
-                      {ride.destinationDetail && (
-                        <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.destinationDetail}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Top-right Actions & Badges */}
-                  <div className="flex flex-col items-end gap-2" onClick={e => e.stopPropagation()}>
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${s.bg} ${s.border} ${s.text}`}
-                    >
-                      {s.label}
-                    </span>
-
-                    {/* Driver options if owner was here, now removed */}
-                  </div>
-                </div>
-
-                {/* Bottom line: details + price */}
-                <div className="mt-auto pt-4 border-t border-uber-gray-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-uber-gray-500 font-medium">
-                    <span className="flex items-center gap-1">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      {ride.departureDate} · {ride.departureTime}
-                    </span>
-                    <span>·</span>
-                    <span>{ride.availableSeats} asientos</span>
-                  </div>
-
-                  {ride.pricePerSeat > 0 ? (
-                    <div className="text-right">
-                      <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider">Por persona</span>
-                      <span className="text-base font-bold text-black">${ride.pricePerSeat.toLocaleString()}</span>
-                    </div>
-                  ) : (
-                    <span className="text-xs font-bold text-black bg-white px-2 py-0.5 rounded border border-emerald-500 font-black">Gratis</span>
-                  )}
-                </div>
-
-                {/* Hover arrow indicator */}
-                <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                      currentPage === page
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border border-uber-gray-200 hover:bg-uber-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
-            );
-          })}
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

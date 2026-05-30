@@ -65,6 +65,8 @@ export const MyRidesPage: React.FC = () => {
   const [requests, setRequests] = useState<Record<string, RideRequest[]>>({});
   const [viewRide, setViewRide] = useState<Ride | null>(null);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PUBLISHED' | 'CANCELLED'>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<ToastMessage[]>([]);
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
@@ -404,6 +406,9 @@ export const MyRidesPage: React.FC = () => {
     if (statusFilter === 'ALL') return true;
     return ride.status === statusFilter;
   });
+
+  const totalPages = Math.ceil(filteredRides.length / pageSize);
+  const paginatedRides = filteredRides.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -853,7 +858,10 @@ export const MyRidesPage: React.FC = () => {
               <button
                 key={filter.key}
                 type="button"
-                onClick={() => setStatusFilter(filter.key as any)}
+                onClick={() => {
+                  setStatusFilter(filter.key as any);
+                  setCurrentPage(1);
+                }}
                 className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer
                   ${
                     active
@@ -923,9 +931,10 @@ export const MyRidesPage: React.FC = () => {
         </div>
       ) : (
         /* Rides Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredRides.map(ride => {
-            const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {paginatedRides.map(ride => {
+              const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
             const expanded = !!requests[ride.id];
             return (
               <div
@@ -1156,6 +1165,44 @@ export const MyRidesPage: React.FC = () => {
               </div>
             );
           })}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                      currentPage === page
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border border-uber-gray-200 hover:bg-uber-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
