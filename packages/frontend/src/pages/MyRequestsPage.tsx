@@ -233,11 +233,11 @@ export const MyRequestsPage: React.FC = () => {
     }
   };
 
-  const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
-    PENDING: { label: 'Pendiente', bg: '#FFF3E0', color: '#FF6937' },
-    ACCEPTED: { label: 'Aceptada', bg: '#E6F4EA', color: '#06C167' },
-    REJECTED: { label: 'Rechazada', bg: '#FDECEA', color: '#E11900' },
-    CANCELLED: { label: 'Cancelada', bg: '#F6F6F6', color: '#545454' },
+  const statusConfig: Record<string, { label: string; border: string; text: string; bg: string }> = {
+    PENDING: { label: 'Pendiente', border: 'border-amber-200', text: 'text-amber-700', bg: 'bg-white' },
+    ACCEPTED: { label: 'Aceptada', border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white' },
+    REJECTED: { label: 'Rechazada', border: 'border-red-500', text: 'text-red-700', bg: 'bg-white' },
+    CANCELLED: { label: 'Cancelada', border: 'border-zinc-300', text: 'text-zinc-500', bg: 'bg-zinc-50' },
   };
 
   // =========================
@@ -412,13 +412,12 @@ export const MyRequestsPage: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap">
 
                       <span
-                        className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap"
-                        style={{ background: cfg.bg, color: cfg.color }}
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
                       >
                         {cfg.label}
                       </span>
 
-                      <span className="text-xs font-semibold text-black bg-uber-gray-50 px-2 py-0.5 rounded">
+                      <span className="text-xs font-bold text-black bg-white border border-zinc-200 px-2 py-1 rounded-lg">
                         {req.seatsRequested} asiento{req.seatsRequested !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -477,20 +476,20 @@ export const MyRequestsPage: React.FC = () => {
                     {paymentInfo && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                          className={`text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
                             paymentInfo.method.toLowerCase() === 'efectivo'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              ? 'text-emerald-700 border-emerald-500'
                               : paymentInfo.method.toLowerCase() === 'transferencia'
-                                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                                : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                                ? 'text-blue-700 border-blue-500'
+                                : 'text-black border-black font-black'
                           }`}
                         >
                           {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' 
                             : paymentInfo.method.toLowerCase() === 'transferencia' ? '🏦 Transferencia'
-                            : '💳 PayPal'}
+                            : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Pagar con PayPal</>}
                         </span>
                         {paymentInfo.reference && paymentInfo.reference !== '-' && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
+                          <span className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-white text-zinc-600 border border-zinc-200 shadow-sm">
                             Ref: {paymentInfo.reference}
                           </span>
                         )}
@@ -531,8 +530,8 @@ export const MyRequestsPage: React.FC = () => {
                         
                         if (isPaidWithPayPal) {
                           return (
-                            <div className="px-4 py-2.5 text-[10px] uppercase tracking-wider font-black rounded-xl text-emerald-700 bg-emerald-50 border border-emerald-100 self-start md:self-auto flex items-center gap-1.5 cursor-default">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <div className="px-4 py-2.5 text-[10px] uppercase tracking-wider font-black rounded-xl text-emerald-700 bg-white border border-emerald-500 self-start md:self-auto flex items-center gap-1.5 cursor-default shadow-sm font-black">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                               Pagado con PayPal
                             </div>
                           );
@@ -544,10 +543,10 @@ export const MyRequestsPage: React.FC = () => {
                               setPaymentRide(ride);
                               setPaymentRequest(req);
                             }}
-                            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5 ${
+                            className={`px-4 py-2.5 text-xs font-black rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5 shadow-sm uppercase tracking-wide bg-white ${
                               paymentInfo.method.toLowerCase() === 'paypal' 
-                                ? 'text-black bg-white hover:bg-zinc-50 border border-black shadow-sm'
-                                : 'text-black bg-white hover:bg-zinc-50 border border-zinc-200'
+                                ? 'text-black border-black'
+                                : 'text-zinc-600 border-zinc-200 hover:bg-zinc-50'
                             }`}
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -580,9 +579,9 @@ export const MyRequestsPage: React.FC = () => {
                           setRatingScore(5);
                           setRatingComment('');
                         }}
-                        className="px-4 py-2.5 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 hover:border-amber-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
+                        className="px-4 py-2.5 text-xs font-bold text-black bg-white hover:bg-zinc-50 border border-black rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5 shadow-sm"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                         </svg>
                         Calificar conductor
@@ -599,7 +598,7 @@ export const MyRequestsPage: React.FC = () => {
                             rideId: ride.id
                           });
                         }}
-                        className="px-4 py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
+                        className="px-4 py-2.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5 shadow-sm"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         Reportar

@@ -163,12 +163,12 @@ export const DashboardPage: React.FC = () => {
     navigate('/rides?create=true');
   };
 
-  const statusConfig: Record<string, { bg: string; color: string; label: string }> = {
-    PUBLISHED:   { bg: '#E6F4EA', color: '#06C167', label: 'Disponible' },
-    FULL:        { bg: '#FFF3E0', color: '#FF6937', label: 'Lleno' },
-    IN_PROGRESS: { bg: '#E8F0FE', color: '#276EF1', label: 'En curso' },
-    COMPLETED:   { bg: '#F6F6F6', color: '#545454', label: 'Completado' },
-    CANCELLED:   { bg: '#FDECEA', color: '#E11900', label: 'Cancelado' },
+  const statusConfig: Record<string, { border: string; text: string; bg: string; label: string }> = {
+    PUBLISHED:   { border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white', label: 'Disponible' },
+    FULL:        { border: 'border-amber-500',   text: 'text-amber-700',   bg: 'bg-white', label: 'Lleno' },
+    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-blue-700',    bg: 'bg-white', label: 'En curso' },
+    COMPLETED:   { border: 'border-zinc-300',    text: 'text-zinc-500',    bg: 'bg-zinc-50', label: 'Completado' },
+    CANCELLED:   { border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white', label: 'Cancelado' },
   };
 
   return (
@@ -475,8 +475,7 @@ export const DashboardPage: React.FC = () => {
 
                       {/* Status badge */}
                       <span
-                        className="text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 ml-2"
-                        style={{ background: s.bg, color: s.color }}
+                        className={`text-[9px] font-black px-2.5 py-1 rounded-full whitespace-nowrap border shadow-sm uppercase tracking-wider ${s.bg} ${s.border} ${s.text}`}
                       >
                         {s.label}
                       </span>

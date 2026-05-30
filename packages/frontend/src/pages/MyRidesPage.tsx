@@ -385,19 +385,19 @@ export const MyRidesPage: React.FC = () => {
     }
   };
 
-  const statusStyleMap: Record<string, { bg: string; color: string; label: string }> = {
-    PUBLISHED:   { bg: '#E6F4EA', color: '#06C167', label: 'Disponible' },
-    FULL:        { bg: '#FFF3E0', color: '#FF6937', label: 'Lleno' },
-    IN_PROGRESS: { bg: '#E8F0FE', color: '#276EF1', label: 'En curso' },
-    COMPLETED:   { bg: '#F6F6F6', color: '#545454', label: 'Completado' },
-    CANCELLED:   { bg: '#FDECEA', color: '#E11900', label: 'Cancelado' },
+  const statusStyleMap: Record<string, { border: string; text: string; bg: string; label: string }> = {
+    PUBLISHED:   { border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white', label: 'Disponible' },
+    FULL:        { border: 'border-amber-500',   text: 'text-amber-700',   bg: 'bg-white', label: 'Lleno' },
+    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-blue-700',    bg: 'bg-white', label: 'En curso' },
+    COMPLETED:   { border: 'border-zinc-300',    text: 'text-zinc-500',    bg: 'bg-zinc-50', label: 'Completado' },
+    CANCELLED:   { border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white', label: 'Cancelado' },
   };
 
-  const reqStatusStyleMap: Record<string, { bg: string; color: string; label: string }> = {
-    PENDING:   { bg: '#FFF3E0', color: '#FF6937', label: 'Pendiente' },
-    ACCEPTED:  { bg: '#E6F4EA', color: '#06C167', label: 'Aceptado' },
-    REJECTED:  { bg: '#FDECEA', color: '#E11900', label: 'Rechazado' },
-    CANCELLED: { bg: '#F6F6F6', color: '#545454', label: 'Cancelado' },
+  const reqStatusStyleMap: Record<string, { border: string; text: string; bg: string; label: string }> = {
+    PENDING:   { border: 'border-amber-200', text: 'text-amber-700',  bg: 'bg-white', label: 'Pendiente' },
+    ACCEPTED:  { border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white', label: 'Aceptado' },
+    REJECTED:  { border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white', label: 'Rechazado' },
+    CANCELLED: { border: 'border-zinc-300',    text: 'text-zinc-500',    bg: 'bg-zinc-50', label: 'Cancelado' },
   };
 
   const filteredRides = rides.filter(ride => {
@@ -954,8 +954,7 @@ export const MyRidesPage: React.FC = () => {
                   </div>
 
                   <span
-                    className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap"
-                    style={{ background: s.bg, color: s.color }}
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${s.bg} ${s.border} ${s.text}`}
                   >
                     {s.label}
                   </span>
@@ -1076,12 +1075,11 @@ export const MyRidesPage: React.FC = () => {
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span
-                                    className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
-                                    style={{ background: rs.bg, color: rs.color }}
+                                    className={`text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border shadow-sm ${rs.bg} ${rs.border} ${rs.text}`}
                                   >
                                     {rs.label}
                                   </span>
-                                  <span className="text-xs font-semibold text-black">
+                                  <span className="text-xs font-bold text-black bg-white border border-zinc-200 px-2 py-0.5 rounded-lg">
                                     {req.seatsRequested} asiento{req.seatsRequested > 1 ? 's' : ''} solicitado{req.seatsRequested > 1 ? 's' : ''}
                                   </span>
                                 </div>
@@ -1093,16 +1091,16 @@ export const MyRidesPage: React.FC = () => {
                                 {paymentInfo && (
                                   <div className="flex flex-wrap gap-1.5 mt-2">
                                     <span
-                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                                      className={`text-[10px] font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
                                         paymentInfo.method.toLowerCase() === 'efectivo'
-                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                                          : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                          ? 'text-emerald-700 border-emerald-500'
+                                          : 'text-blue-700 border-blue-500'
                                       }`}
                                     >
                                       {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia'}
                                     </span>
                                     {paymentInfo.reference && paymentInfo.reference !== '-' && (
-                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
+                                      <span className="text-[10px] font-bold px-3 py-1 rounded-xl bg-white text-zinc-600 border border-zinc-200 shadow-sm">
                                         Ref: {paymentInfo.reference}
                                       </span>
                                     )}
@@ -1141,7 +1139,7 @@ export const MyRidesPage: React.FC = () => {
                                         rideId: ride.id
                                       });
                                     }}
-                                    className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-lg transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
                                   >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                     Reportar

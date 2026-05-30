@@ -78,11 +78,11 @@ export const PaymentsPage: React.FC = () => {
     }
   };
 
-  const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
-    PENDING:   { label: 'Pendiente',   bg: '#FFF3E0', color: '#FF6937' },
-    COMPLETED: { label: 'Completado',  bg: '#E6F4EA', color: '#06C167' },
-    REFUNDED:  { label: 'Reembolsado', bg: '#E8F0FE', color: '#276EF1' },
-    FAILED:    { label: 'Fallido',     bg: '#FDECEA', color: '#E11900' },
+  const statusConfig: Record<string, { label: string; border: string; text: string; bg: string }> = {
+    PENDING:   { label: 'Pendiente',   border: 'border-amber-500',   text: 'text-amber-700',   bg: 'bg-white' },
+    COMPLETED: { label: 'Completado',  border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white' },
+    REFUNDED:  { label: 'Reembolsado', border: 'border-blue-500',    text: 'text-blue-700',    bg: 'bg-white' },
+    FAILED:    { label: 'Fallido',     border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white' },
   };
 
   const methodLabel: Record<string, string> = {
@@ -252,18 +252,26 @@ const payments =
                   {/* Top row: Status and Method */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap"
-                      style={{ background: cfg.bg, color: cfg.color }}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
                     >
                       {cfg.label}
                     </span>
-                    <span className="text-xs font-semibold text-black bg-uber-gray-50 px-2 py-0.5 rounded">
-                      {methodLabel[payment.metodo_pago] || payment.metodo_pago}
+                    <span className={`text-[10px] font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
+                      payment.metodo_pago === 'CASH' ? 'text-emerald-700 border-emerald-500' : 
+                      payment.metodo_pago === 'PAYPAL' ? 'text-black border-black font-black' : 
+                      'text-blue-700 border-blue-500'
+                    }`}>
+                      {payment.metodo_pago === 'CASH' ? '💵 Efectivo' : 
+                       payment.metodo_pago === 'PAYPAL' ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> PayPal</> : 
+                       '🏦 Transferencia'}
                     </span>
                     {payment.comprobante_url && (
-                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 border border-blue-100">
-                        📎 Con comprobante
-                      </span>
+                      <button 
+                        onClick={() => window.open(payment.comprobante_url!, '_blank')}
+                        className="text-[10px] font-bold text-zinc-600 bg-white px-2 py-1 rounded-lg flex items-center gap-1 border border-zinc-200 shadow-sm hover:bg-zinc-50 transition-colors"
+                      >
+                        📎 Ver comprobante
+                      </button>
                     )}
                   </div>
 

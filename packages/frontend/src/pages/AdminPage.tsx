@@ -313,11 +313,11 @@ export const AdminPage: React.FC = () => {
                   <td className="p-3"><span className="px-2 py-0.5 bg-zinc-100 text-zinc-800 rounded text-[10px] font-bold uppercase tracking-wider">{u.role}</span></td>
                   <td className="p-3">
                     {u.is_suspended ? (
-                      <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-100 rounded text-[10px] font-bold uppercase tracking-wider">Suspendido</span>
+                      <span className="px-3 py-1 bg-white text-red-700 border border-red-500 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm">Suspendido</span>
                     ) : u.is_verified ? (
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[10px] font-bold uppercase tracking-wider">Activo</span>
+                      <span className="px-3 py-1 bg-white text-emerald-700 border border-emerald-500 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm">Activo</span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded text-[10px] font-bold uppercase tracking-wider">Sin verificar</span>
+                      <span className="px-3 py-1 bg-white text-amber-700 border border-amber-500 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm">Sin verificar</span>
                     )}
                   </td>
                   <td className="p-3">
@@ -347,14 +347,14 @@ export const AdminPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${
                         r.status === 'PENDING' 
-                          ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                          ? 'bg-white text-amber-700 border-amber-500' 
                           : r.status === 'RESOLVED' 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                            : 'bg-zinc-50 text-zinc-600 border-zinc-200'
+                            ? 'bg-white text-emerald-700 border-emerald-500' 
+                            : 'bg-zinc-50 text-zinc-600 border-zinc-300'
                       }`}>
-                        {r.status}
+                        {r.status === 'PENDING' ? 'Pendiente' : r.status === 'RESOLVED' ? 'Resuelto' : 'Descartado'}
                       </span>
                       <span className="text-black font-extrabold text-sm">{r.reason}</span>
                     </div>
@@ -365,14 +365,14 @@ export const AdminPage: React.FC = () => {
                     <div className="flex gap-2">
                       <button 
                         onClick={() => resolveReport(r.id, 'RESOLVED')} 
-                        className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+                        className="px-3.5 py-2 rounded-xl bg-white border border-emerald-500 text-emerald-700 text-xs font-black shadow-sm hover:bg-emerald-50 transition-all flex items-center gap-1.5"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                         Resolver
                       </button>
                       <button 
                         onClick={() => resolveReport(r.id, 'DISMISSED')} 
-                        className="px-3.5 py-2 rounded-xl bg-zinc-100 text-zinc-600 text-xs font-bold hover:bg-zinc-200 transition-colors"
+                        className="px-3.5 py-2 rounded-xl bg-white border border-zinc-400 text-black text-xs font-black shadow-sm hover:bg-zinc-50 transition-all"
                       >
                         Descartar
                       </button>
