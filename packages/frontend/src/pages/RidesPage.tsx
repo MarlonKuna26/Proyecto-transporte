@@ -155,12 +155,12 @@ export const RidesPage: React.FC = () => {
     }
   };
 
-  const statusStyleMap: Record<string, { label: string; bg: string; color: string }> = {
-    PUBLISHED:   { label: 'Disponible', bg: '#E6F4EA', color: '#06C167' },
-    FULL:        { label: 'Lleno',      bg: '#FFF3E0', color: '#FF6937' },
-    IN_PROGRESS: { label: 'En curso',   bg: '#E8F0FE', color: '#276EF1' },
-    COMPLETED:   { label: 'Completado', bg: '#F6F6F6', color: '#545454' },
-    CANCELLED:   { label: 'Cancelado',  bg: '#FDECEA', color: '#E11900' },
+  const statusStyleMap: Record<string, { border: string; text: string; bg: string; label: string }> = {
+    PUBLISHED:   { border: 'border-emerald-500', text: 'text-black', bg: 'bg-white', label: 'Disponible' },
+    FULL:        { border: 'border-amber-500',   text: 'text-black', bg: 'bg-white', label: 'Lleno' },
+    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-black', bg: 'bg-white', label: 'En curso' },
+    COMPLETED:   { border: 'border-zinc-300',    text: 'text-black', bg: 'bg-white', label: 'Completado' },
+    CANCELLED:   { border: 'border-red-500',     text: 'text-black', bg: 'bg-white', label: 'Cancelado' },
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -357,8 +357,7 @@ export const RidesPage: React.FC = () => {
                   {/* Top-right Actions & Badges */}
                   <div className="flex flex-col items-end gap-2" onClick={e => e.stopPropagation()}>
                     <span
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap"
-                      style={{ background: s.bg, color: s.color }}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${s.bg} ${s.border} ${s.text}`}
                     >
                       {s.label}
                     </span>
