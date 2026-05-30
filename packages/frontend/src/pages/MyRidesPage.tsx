@@ -386,18 +386,18 @@ export const MyRidesPage: React.FC = () => {
   };
 
   const statusStyleMap: Record<string, { border: string; text: string; bg: string; label: string }> = {
-    PUBLISHED:   { border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white', label: 'Disponible' },
-    FULL:        { border: 'border-amber-500',   text: 'text-amber-700',   bg: 'bg-white', label: 'Lleno' },
-    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-blue-700',    bg: 'bg-white', label: 'En curso' },
-    COMPLETED:   { border: 'border-zinc-300',    text: 'text-zinc-500',    bg: 'bg-zinc-50', label: 'Completado' },
-    CANCELLED:   { border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white', label: 'Cancelado' },
+    PUBLISHED:   { border: 'border-emerald-500', text: 'text-black', bg: 'bg-white', label: 'Disponible' },
+    FULL:        { border: 'border-amber-500',   text: 'text-black', bg: 'bg-white', label: 'Lleno' },
+    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-black', bg: 'bg-white', label: 'En curso' },
+    COMPLETED:   { border: 'border-zinc-300',    text: 'text-black', bg: 'bg-white', label: 'Completado' },
+    CANCELLED:   { border: 'border-red-500',     text: 'text-black', bg: 'bg-white', label: 'Cancelado' },
   };
 
   const reqStatusStyleMap: Record<string, { border: string; text: string; bg: string; label: string }> = {
-    PENDING:   { border: 'border-amber-200', text: 'text-amber-700',  bg: 'bg-white', label: 'Pendiente' },
-    ACCEPTED:  { border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white', label: 'Aceptado' },
-    REJECTED:  { border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white', label: 'Rechazado' },
-    CANCELLED: { border: 'border-zinc-300',    text: 'text-zinc-500',    bg: 'bg-zinc-50', label: 'Cancelado' },
+    PENDING:   { border: 'border-amber-500', text: 'text-black',  bg: 'bg-white', label: 'Pendiente' },
+    ACCEPTED:  { border: 'border-emerald-500', text: 'text-black', bg: 'bg-white', label: 'Aceptado' },
+    REJECTED:  { border: 'border-red-500',     text: 'text-black',     bg: 'bg-white', label: 'Rechazado' },
+    CANCELLED: { border: 'border-zinc-300',    text: 'text-black',    bg: 'bg-white', label: 'Cancelado' },
   };
 
   const filteredRides = rides.filter(ride => {
@@ -483,8 +483,8 @@ export const MyRidesPage: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 rounded-full bg-green-50 border border-green-200 flex items-center justify-center shrink-0">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#06C167" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div className="w-7 h-7 rounded-full bg-white border border-emerald-500 flex items-center justify-center shrink-0 text-black">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                 </div>
               );
@@ -497,7 +497,7 @@ export const MyRidesPage: React.FC = () => {
               {isEditing ? 'Editar viaje' : 'Publicar nuevo viaje'}
             </h2>
             {isEditing && (
-              <span className="text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[10px] font-black bg-white text-black border border-amber-500 px-2.5 py-1 rounded-full uppercase tracking-wider">
                 Modo edición
               </span>
             )}
@@ -1093,8 +1093,8 @@ export const MyRidesPage: React.FC = () => {
                                     <span
                                       className={`text-[10px] font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
                                         paymentInfo.method.toLowerCase() === 'efectivo'
-                                          ? 'text-emerald-700 border-emerald-500'
-                                          : 'text-blue-700 border-blue-500'
+                                          ? 'text-black border-emerald-500'
+                                          : 'text-black border-blue-500'
                                       }`}
                                     >
                                       {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' : '🏦 Transferencia'}
@@ -1309,7 +1309,7 @@ export const MyRidesPage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-extrabold text-black truncate">{myProfile?.name} (Tú)</span>
                         {myProfile?.isVerified && (
-                          <span className="text-uber-green inline-flex shrink-0" title="Perfil verificado">
+                          <span className="text-black inline-flex shrink-0" title="Perfil verificado">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                           </span>
                         )}

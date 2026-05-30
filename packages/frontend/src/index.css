@@ -67,16 +67,16 @@
     @apply inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black;
   }
   .badge-success {
-    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-100;
+    @apply badge bg-white text-black border border-emerald-500;
   }
   .badge-warning {
-    @apply badge bg-amber-50 text-amber-700 border border-amber-100;
+    @apply badge bg-white text-black border border-amber-500;
   }
   .badge-danger {
-    @apply badge bg-red-50 text-red-700 border border-red-100;
+    @apply badge bg-white text-black border border-red-500;
   }
   .badge-info {
-    @apply badge bg-zinc-100 text-zinc-700 border border-zinc-200;
+    @apply badge bg-white text-black border border-zinc-200;
   }
   .page-gradient {
     @apply min-h-screen bg-zinc-50;
@@ -207,16 +207,16 @@
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-black border;
   }
   .uber-badge-available {
-    @apply uber-badge bg-emerald-50 text-emerald-700 border-emerald-100;
+    @apply uber-badge bg-white text-black border-emerald-500;
   }
   .uber-badge-full {
-    @apply uber-badge bg-amber-50 text-amber-700 border-amber-100;
+    @apply uber-badge bg-white text-black border-amber-500;
   }
   .uber-badge-progress {
     @apply uber-badge bg-black text-white border-black;
   }
   .uber-badge-done {
-    @apply uber-badge bg-zinc-100 text-zinc-500 border-zinc-200;
+    @apply uber-badge bg-white text-black border-zinc-200;
   }
   .uber-badge-cancel {
     @apply uber-badge bg-red-50 text-red-700 border-red-100;

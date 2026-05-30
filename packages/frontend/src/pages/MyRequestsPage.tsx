@@ -234,10 +234,10 @@ export const MyRequestsPage: React.FC = () => {
   };
 
   const statusConfig: Record<string, { label: string; border: string; text: string; bg: string }> = {
-    PENDING: { label: 'Pendiente', border: 'border-amber-200', text: 'text-amber-700', bg: 'bg-white' },
-    ACCEPTED: { label: 'Aceptada', border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white' },
-    REJECTED: { label: 'Rechazada', border: 'border-red-500', text: 'text-red-700', bg: 'bg-white' },
-    CANCELLED: { label: 'Cancelada', border: 'border-zinc-300', text: 'text-zinc-500', bg: 'bg-zinc-50' },
+    PENDING: { label: 'Pendiente', border: 'border-amber-500', text: 'text-black', bg: 'bg-white' },
+    ACCEPTED: { label: 'Aceptada', border: 'border-emerald-500', text: 'text-black', bg: 'bg-white' },
+    REJECTED: { label: 'Rechazada', border: 'border-red-500', text: 'text-black', bg: 'bg-white' },
+    CANCELLED: { label: 'Cancelada', border: 'border-zinc-300', text: 'text-black', bg: 'bg-white' },
   };
 
   // =========================
@@ -478,10 +478,10 @@ export const MyRequestsPage: React.FC = () => {
                         <span
                           className={`text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
                             paymentInfo.method.toLowerCase() === 'efectivo'
-                              ? 'text-emerald-700 border-emerald-500'
-                              : paymentInfo.method.toLowerCase() === 'transferencia'
-                                ? 'text-blue-700 border-blue-500'
-                                : 'text-black border-black font-black'
+                                ? 'text-black border-emerald-500'
+                                : paymentInfo.method.toLowerCase() === 'transferencia'
+                                  ? 'text-black border-blue-500'
+                                  : 'text-black border-black font-black'
                           }`}
                         >
                           {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' 
@@ -530,7 +530,7 @@ export const MyRequestsPage: React.FC = () => {
                         
                         if (isPaidWithPayPal) {
                           return (
-                            <div className="px-4 py-2.5 text-[10px] uppercase tracking-wider font-black rounded-xl text-emerald-700 bg-white border border-emerald-500 self-start md:self-auto flex items-center gap-1.5 cursor-default shadow-sm font-black">
+                            <div className="px-4 py-2.5 text-[10px] uppercase tracking-wider font-black rounded-xl text-black bg-white border border-emerald-500 self-start md:self-auto flex items-center gap-1.5 cursor-default shadow-sm font-black">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                               Pagado con PayPal
                             </div>
@@ -607,7 +607,7 @@ export const MyRequestsPage: React.FC = () => {
 
                     {/* YA CALIFICADO */}
                     {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && hasAlreadyRated(ride.id) && (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl self-start md:self-auto">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-black text-black bg-white border border-emerald-500 px-4 py-2.5 rounded-xl self-start md:self-auto shadow-sm">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                         </svg>
@@ -1089,7 +1089,7 @@ export const MyRequestsPage: React.FC = () => {
                                 alt="Vista previa del comprobante"
                                 className="w-full max-h-40 object-contain rounded-lg"
                               />
-                              <p className="text-[10px] text-center text-uber-green font-bold">¡Imagen seleccionada! Haz clic o arrastra para cambiar</p>
+                              <p className="text-[10px] text-center text-black font-bold">¡Imagen seleccionada! Haz clic o arrastra para cambiar</p>
                             </div>
                           ) : (
                             <div className="text-center space-y-1.5 py-3">

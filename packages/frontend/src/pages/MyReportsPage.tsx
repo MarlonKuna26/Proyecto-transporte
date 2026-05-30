@@ -68,9 +68,9 @@ export const MyReportsPage: React.FC = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
                       r.status === 'PENDING' 
-                        ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                        ? 'bg-white text-black border-amber-500' 
                         : r.status === 'RESOLVED' 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                          ? 'bg-white text-black border-emerald-500' 
                           : 'bg-zinc-50 text-zinc-600 border-zinc-200'
                     }`}>
                       {r.status === 'PENDING' ? 'En Revisión' : r.status === 'RESOLVED' ? 'Resuelto' : 'Descartado'}

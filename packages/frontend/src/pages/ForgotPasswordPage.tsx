@@ -119,8 +119,8 @@ export const ForgotPasswordPage: React.FC = () => {
               </div>
 
               {devCode && (
-                <div className="p-3.5 text-xs rounded-xl bg-amber-50 text-amber-800 border border-amber-100/60 break-all font-mono leading-relaxed space-y-1">
-                  <div className="font-bold text-[10px] uppercase tracking-wider text-amber-900">Entorno Desarrollo:</div>
+                <div className="p-3.5 text-xs rounded-xl bg-white text-black border border-amber-500/80 break-all font-mono leading-relaxed space-y-1 font-black">
+                  <div className="font-bold text-[10px] uppercase tracking-wider text-black">Entorno Desarrollo:</div>
                   <div>{devCode}</div>
                 </div>
               )}
@@ -200,7 +200,7 @@ export const ForgotPasswordPage: React.FC = () => {
                     required
                     disabled={loading}
                     className={`w-full px-4 py-3 bg-zinc-50 border rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 ${
-                      password ? (isStrongPassword ? 'border-green-200 focus:ring-1 focus:ring-green-500' : 'border-red-200 focus:ring-1 focus:ring-red-500') : 'border-zinc-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black'
+                      password ? (isStrongPassword ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'border-red-500 focus:ring-1 focus:ring-red-500') : 'border-zinc-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black'
                     }`}
                   />
                   <p className={`text-[10px] font-medium ${isStrongPassword ? 'text-green-600' : 'text-zinc-400'}`}>
@@ -220,7 +220,7 @@ export const ForgotPasswordPage: React.FC = () => {
                     required
                     disabled={loading}
                     className={`w-full px-4 py-3 bg-zinc-50 border rounded-xl text-sm font-semibold text-black placeholder-zinc-300 outline-none transition-all duration-200 ${
-                      confirmPassword ? (password === confirmPassword ? 'border-green-200 focus:ring-1 focus:ring-green-500' : 'border-red-200 focus:ring-1 focus:ring-red-500') : 'border-zinc-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black'
+                      confirmPassword ? (password === confirmPassword ? 'border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'border-red-500 focus:ring-1 focus:ring-red-500') : 'border-zinc-200 focus:border-black focus:bg-white focus:ring-1 focus:ring-black'
                     }`}
                   />
                 </div>

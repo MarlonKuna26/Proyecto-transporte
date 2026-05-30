@@ -384,7 +384,7 @@ export const RidesPage: React.FC = () => {
                       <span className="text-base font-bold text-black">${ride.pricePerSeat.toLocaleString()}</span>
                     </div>
                   ) : (
-                    <span className="text-xs font-bold text-uber-green bg-green-50 px-2 py-0.5 rounded">Gratis</span>
+                    <span className="text-xs font-bold text-black bg-white px-2 py-0.5 rounded border border-emerald-500 font-black">Gratis</span>
                   )}
                 </div>
 
@@ -463,7 +463,7 @@ export const RidesPage: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-extrabold text-black truncate">{driverProfile.name}</span>
                             {driverProfile.isVerified && (
-                              <span className="text-uber-green inline-flex shrink-0" title="Perfil verificado">
+                              <span className="text-black inline-flex shrink-0" title="Perfil verificado">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                               </span>
                             )}
@@ -471,7 +471,7 @@ export const RidesPage: React.FC = () => {
                           <p className="text-xs text-uber-gray-500 truncate mt-0.5">
                             {driverProfile.career || 'Conductor Universitario'}
                           </p>
-                          <div className="flex items-center gap-1 mt-1 text-[10px] text-amber-600 font-bold bg-amber-50 border border-amber-100 rounded-md px-1.5 py-0.5 w-fit">
+                            <div className="flex items-center gap-1 mt-1 text-[10px] text-black font-bold bg-white border border-amber-500 rounded-md px-1.5 py-0.5 w-fit">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                             <span>{(() => {
                               const val = parseFloat(driverProfile.reputation as any);
@@ -496,7 +496,7 @@ export const RidesPage: React.FC = () => {
                             href={`https://wa.me/${driverProfile.phone.startsWith('+') ? driverProfile.phone.replace('+', '') : (driverProfile.phone.startsWith('09') ? '593' + driverProfile.phone.substring(1) : driverProfile.phone)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-9 h-9 rounded-full bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm"
+                            className="w-9 h-9 rounded-full bg-white border border-uber-gray-100 flex items-center justify-center text-black hover:bg-uber-gray-50 transition-colors shadow-sm"
                             title="Enviar WhatsApp"
                           >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -641,14 +641,14 @@ export const RidesPage: React.FC = () => {
                     const pendingRequest = myRequests.find(r => r.rideId === viewRide.id && r.status === 'PENDING');
                     if (acceptedRequest) {
                       return (
-                        <div className="text-center p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-xl uppercase tracking-wider shadow-xs flex items-center justify-center gap-2">
+                        <div className="text-center p-3.5 bg-white border border-emerald-500 text-black text-xs font-black rounded-xl uppercase tracking-wider shadow-xs flex items-center justify-center gap-2">
                           <span className="text-sm">✓</span> Ya está aceptado
                         </div>
                       );
                     }
                     if (pendingRequest) {
                       return (
-                        <div className="text-center p-3.5 bg-green-50 border border-green-200 text-uber-green text-xs font-bold rounded-xl uppercase tracking-wider shadow-xs">
+                        <div className="text-center p-3.5 bg-white border border-emerald-500 text-black text-xs font-black rounded-xl uppercase tracking-wider shadow-xs">
                           Ya has enviado una solicitud para este viaje
                         </div>
                       );
@@ -742,21 +742,21 @@ export const RidesPage: React.FC = () => {
 
                           {/* Detail panel */}
                           {paymentMethod === 'efectivo' ? (
-                            <div className="p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2.5">
+                            <div className="p-3.5 bg-white border border-emerald-500 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">💡</span>
-                              <p className="text-xs text-emerald-800 leading-relaxed font-medium">
+                              <p className="text-xs text-black leading-relaxed font-medium">
                                 Has elegido pagar en efectivo. Podrás coordinar el pago al subir al vehículo una vez que el conductor acepte tu solicitud.
                               </p>
                             </div>
                           ) : paymentMethod === 'transferencia' ? (
-                            <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-2.5">
+                            <div className="p-3.5 bg-white border border-blue-100 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">ℹ️</span>
-                              <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                              <p className="text-xs text-black leading-relaxed font-medium">
                                 Podrás ver los datos bancarios del conductor en "Mis solicitudes" cuando el conductor apruebe tu viaje.
                               </p>
                             </div>
                           ) : (
-                            <div className="p-3.5 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-2.5">
+                            <div className="p-3.5 bg-white border border-indigo-100 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">🛡️</span>
                               <p className="text-xs text-indigo-800 leading-relaxed font-medium">
                                 Procesarás el pago con PayPal una vez que el conductor acepte tu solicitud. Es 100% seguro.

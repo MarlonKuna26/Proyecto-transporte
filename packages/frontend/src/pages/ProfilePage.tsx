@@ -332,14 +332,14 @@ export const ProfilePage: React.FC = () => {
                   {profile?.role === 'ADMIN' ? 'Administrador' : 'Estudiante'}
                 </span>
                 {profile?.isVerified && (
-                  <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100/60 rounded flex items-center gap-1">
+                  <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 bg-white text-black border border-emerald-500 rounded flex items-center gap-1 font-black">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                     Verificado
                   </span>
                 )}
-                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-100/50 px-2.5 py-0.5 rounded">
+                <div className="flex items-center gap-1.5 bg-white border border-amber-500 px-2.5 py-0.5 rounded text-black font-black">
                   {renderStars(profile?.reputation || 5)}
-                  <span className="text-[11px] font-bold text-amber-700">({ratings?.count || 0})</span>
+                  <span className="text-[11px] font-black">({ratings?.count || 0})</span>
                 </div>
               </div>
             </div>
@@ -360,11 +360,11 @@ export const ProfilePage: React.FC = () => {
       {/* ═══ PROFILE PROGRESS BAR ═══ */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-5 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-          <div>
-            <h3 className="text-sm font-bold text-black">Nivel de completitud de tu cuenta</h3>
-            <p className="text-xs text-zinc-400">Un perfil completo genera mayor confianza y agiliza tus viajes.</p>
-          </div>
-          <span className="text-sm font-extrabold text-black shrink-0">{completionPercent}%</span>
+                <div
+                  className="flex items-center gap-1.5 bg-white border border-amber-500 rounded-xl px-3 py-2.5 mb-4 text-xs text-black font-black">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Solo puedes tener hasta {MAX_VEHICLES} vehículos. Elimina uno para agregar otro.
+              </div>
         </div>
         <div className="w-full bg-zinc-100 h-2.5 rounded-full overflow-hidden">
           <div
@@ -517,7 +517,7 @@ export const ProfilePage: React.FC = () => {
 
             {/* Banner informativo cuando se llega al límite */}
             {vehicleLimitReached && !showVehicleForm && (
-              <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 mb-4 text-xs text-amber-700 font-medium">
+              <div className="flex items-center gap-2.5 bg-white border border-amber-500 rounded-xl px-3 py-2.5 mb-4 text-xs text-black font-medium">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 Solo puedes tener hasta {MAX_VEHICLES} vehículos. Elimina uno para agregar otro.
               </div>

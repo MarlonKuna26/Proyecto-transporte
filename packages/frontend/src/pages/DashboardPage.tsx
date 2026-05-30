@@ -164,11 +164,11 @@ export const DashboardPage: React.FC = () => {
   };
 
   const statusConfig: Record<string, { border: string; text: string; bg: string; label: string }> = {
-    PUBLISHED:   { border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white', label: 'Disponible' },
-    FULL:        { border: 'border-amber-500',   text: 'text-amber-700',   bg: 'bg-white', label: 'Lleno' },
-    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-blue-700',    bg: 'bg-white', label: 'En curso' },
-    COMPLETED:   { border: 'border-zinc-300',    text: 'text-zinc-500',    bg: 'bg-zinc-50', label: 'Completado' },
-    CANCELLED:   { border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white', label: 'Cancelado' },
+    PUBLISHED:   { border: 'border-emerald-500', text: 'text-black', bg: 'bg-white', label: 'Disponible' },
+    FULL:        { border: 'border-amber-500',   text: 'text-black', bg: 'bg-white', label: 'Lleno' },
+    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-black', bg: 'bg-white', label: 'En curso' },
+    COMPLETED:   { border: 'border-zinc-300',    text: 'text-black', bg: 'bg-white', label: 'Completado' },
+    CANCELLED:   { border: 'border-red-500',     text: 'text-black', bg: 'bg-white', label: 'Cancelado' },
   };
 
   return (

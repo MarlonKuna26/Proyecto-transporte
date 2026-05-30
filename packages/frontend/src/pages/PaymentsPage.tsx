@@ -79,10 +79,10 @@ export const PaymentsPage: React.FC = () => {
   };
 
   const statusConfig: Record<string, { label: string; border: string; text: string; bg: string }> = {
-    PENDING:   { label: 'Pendiente',   border: 'border-amber-500',   text: 'text-amber-700',   bg: 'bg-white' },
-    COMPLETED: { label: 'Completado',  border: 'border-emerald-500', text: 'text-emerald-700', bg: 'bg-white' },
-    REFUNDED:  { label: 'Reembolsado', border: 'border-blue-500',    text: 'text-blue-700',    bg: 'bg-white' },
-    FAILED:    { label: 'Fallido',     border: 'border-red-500',     text: 'text-red-700',     bg: 'bg-white' },
+    PENDING:   { label: 'Pendiente',   border: 'border-amber-500',   text: 'text-black',   bg: 'bg-white' },
+    COMPLETED: { label: 'Completado',  border: 'border-emerald-500', text: 'text-black', bg: 'bg-white' },
+    REFUNDED:  { label: 'Reembolsado', border: 'border-blue-500',    text: 'text-black',    bg: 'bg-white' },
+    FAILED:    { label: 'Fallido',     border: 'border-red-500',     text: 'text-black',     bg: 'bg-white' },
   };
 
   const methodLabel: Record<string, string> = {
@@ -96,7 +96,7 @@ export const PaymentsPage: React.FC = () => {
     label: 'Total pagado',
     value: `$${Number(summary.sent.monto_total).toLocaleString()}`,
     icon: <Wallet size={20} strokeWidth={2.5} />,
-    color: 'bg-green-50 text-emerald-600',
+    color: 'bg-white border border-emerald-500 text-black',
   },
        {
     label: 'Total recibido',
@@ -108,7 +108,7 @@ export const PaymentsPage: React.FC = () => {
     label: 'Pagos pendientes',
     value: String(summary.sent.pendientes),
     icon: <Clock3 size={20} strokeWidth={2.5} />,
-    color: 'bg-amber-50 text-amber-600',
+    color: 'bg-white border border-amber-500 text-black',
   },
   {
     label: 'Pagos completados',
@@ -117,7 +117,7 @@ export const PaymentsPage: React.FC = () => {
       Number(summary.received.completados)
     ),
     icon: <BadgeCheck size={20} strokeWidth={2.5} />,
-    color: 'bg-purple-50 text-purple-600',
+    color: 'bg-white border border-purple-500 text-black',
   },] : [];
 
   if (loading) return (
@@ -257,9 +257,9 @@ const payments =
                       {cfg.label}
                     </span>
                     <span className={`text-[10px] font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
-                      payment.metodo_pago === 'CASH' ? 'text-emerald-700 border-emerald-500' : 
+                      payment.metodo_pago === 'CASH' ? 'text-black border-emerald-500' : 
                       payment.metodo_pago === 'PAYPAL' ? 'text-black border-black font-black' : 
-                      'text-blue-700 border-blue-500'
+                      'text-black border-blue-500'
                     }`}>
                       {payment.metodo_pago === 'CASH' ? '💵 Efectivo' : 
                        payment.metodo_pago === 'PAYPAL' ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> PayPal</> : 
@@ -360,7 +360,7 @@ const payments =
             {/* Body */}
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
               <div className="flex items-start gap-4">
-                <div className="shrink-0 w-10 h-10 flex items-center justify-center bg-green-50 border border-green-200 rounded-full text-uber-green">
+                <div className="shrink-0 w-10 h-10 flex items-center justify-center bg-white border border-emerald-500 rounded-full text-black">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div className="min-w-0 flex-1">
