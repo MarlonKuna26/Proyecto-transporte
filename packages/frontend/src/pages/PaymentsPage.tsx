@@ -19,6 +19,9 @@ export const PaymentsPage: React.FC = () => {
   const [summary, setSummary] = useState<PaymentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<ToastMessage[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
+
 
   // ===== TOAST FUNCTIONS =====
   const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
@@ -133,10 +136,14 @@ export const PaymentsPage: React.FC = () => {
 
   const allPayments = tab === 'sent' ? sentPayments : receivedPayments;
 
-const payments =
-  statusFilter === 'ALL'
-    ? allPayments
-    : allPayments.filter(p => p.estado === statusFilter);
+  const payments =
+    statusFilter === 'ALL'
+      ? allPayments
+      : allPayments.filter(p => p.estado === statusFilter);
+
+  const totalPages = Math.ceil(payments.length / pageSize);
+  const paginatedPayments = payments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const currentConfirmPayment = payments.find(p => p.id === confirmPaymentId);
   const currentRefundPayment = payments.find(p => p.id === refundPaymentId);
 
@@ -180,7 +187,10 @@ const payments =
           className={`pb-3 text-sm font-bold transition-all relative border-none bg-transparent cursor-pointer ${
             tab === 'sent' ? 'text-black' : 'text-uber-gray-400 hover:text-black'
           }`}
-          onClick={() => setTab('sent')}
+          onClick={() => {
+            setTab('sent');
+            setCurrentPage(1);
+          }}
         >
           Enviados ({sentPayments.length})
           {tab === 'sent' && (
@@ -191,7 +201,10 @@ const payments =
           className={`pb-3 text-sm font-bold transition-all relative border-none bg-transparent cursor-pointer ${
             tab === 'received' ? 'text-black' : 'text-uber-gray-400 hover:text-black'
           }`}
-          onClick={() => setTab('received')}
+          onClick={() => {
+            setTab('received');
+            setCurrentPage(1);
+          }}
         >
           Recibidos ({receivedPayments.length})
           {tab === 'received' && (
@@ -213,7 +226,10 @@ const payments =
     return (
       <button
         key={filter.key}
-        onClick={() => setStatusFilter(filter.key as any)}
+        onClick={() => {
+          setStatusFilter(filter.key as any);
+          setCurrentPage(1);
+        }}
         className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border cursor-pointer
           ${
             active
@@ -240,110 +256,149 @@ const payments =
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {payments.map(payment => {
-            const cfg = statusConfig[payment.estado] || statusConfig.PENDING;
-            return (
-              <div
-                key={payment.id}
-                className="bg-white rounded-2xl p-5 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in"
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {paginatedPayments.map(payment => {
+              const cfg = statusConfig[payment.estado] || statusConfig.PENDING;
+              return (
+                <div
+                  key={payment.id}
+                  className="bg-white rounded-2xl p-5 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-4 animate-fade-in"
+                >
+                  <div className="space-y-3">
+                    {/* Top row: Status and Method */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
+                      >
+                        {cfg.label}
+                      </span>
+                      <span className={`text-[10px] font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
+                        payment.metodo_pago === 'CASH' ? 'text-black border-emerald-500' : 
+                        payment.metodo_pago === 'PAYPAL' ? 'text-black border-black font-black' : 
+                        'text-black border-blue-500'
+                      }`}>
+                        {payment.metodo_pago === 'CASH' ? '💵 Efectivo' : 
+                         payment.metodo_pago === 'PAYPAL' ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> PayPal</> : 
+                         '🏦 Transferencia'}
+                      </span>
+                      {payment.comprobante_url && (
+                        <button 
+                          onClick={() => window.open(payment.comprobante_url!, '_blank')}
+                          className="text-[10px] font-bold text-zinc-600 bg-white px-2 py-1 rounded-lg flex items-center gap-1 border border-zinc-200 shadow-sm hover:bg-zinc-50 transition-colors"
+                        >
+                          📎 Ver comprobante
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Route Dot-Line-Square */}
+                    {payment.zona_origen ? (
+                      <div className="flex gap-2.5 my-2">
+                        <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                          <div className="w-2 h-2 rounded-full bg-black" />
+                          <div className="w-0.5 h-6 bg-uber-gray-200" />
+                          <div className="w-2 h-2 bg-black" style={{ borderRadius: '1.5px' }} />
+                        </div>
+                        <div className="min-w-0 text-xs">
+                          <div className="font-bold text-black truncate leading-none">{payment.zona_origen}</div>
+                          <div className="h-3" />
+                          <div className="font-bold text-black truncate leading-none">{payment.zona_destino}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-uber-gray-400 font-semibold italic">Ruta no especificada en el pago</p>
+                    )}
+
+                    {/* Pasajero o Conductor */}
+                    {payment.nombre_pasajero && tab === 'received' && (
+                      <div className="flex items-center gap-1.5 text-xs text-uber-gray-600 pl-1 font-semibold">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>Pasajero: <span className="text-black font-bold">{payment.nombre_pasajero}</span></span>
+                      </div>
+                    )}
+
+                    {/* Transaction metadata */}
+                    <div className="space-y-1 pl-1">
+                      {payment.referencia_transaccion && (
+                        <p className="text-[10px] text-uber-gray-400 font-semibold">Ref: <span className="text-uber-gray-600">{payment.referencia_transaccion}</span></p>
+                      )}
+                      <p className="text-[10px] text-uber-gray-400 font-medium">
+                        Realizado el {new Date(payment.creado_en).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Amount & Actions */}
+                  <div className="flex items-center justify-between pt-3 border-t border-uber-gray-100 mt-auto">
+                    <div>
+                      <div className="text-[10px] text-uber-gray-400 font-bold uppercase tracking-wider leading-none">Monto</div>
+                      <div className="text-xl font-black text-black mt-1 leading-none">
+                        ${Number(payment.monto).toLocaleString()}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      {tab === 'received' && payment.estado === 'PENDING' && (
+                        <button
+                          onClick={() => setConfirmPaymentId(payment.id)}
+                          className="px-4 py-2 text-xs font-bold text-white bg-black hover:bg-uber-gray-800 transition-colors rounded-xl border-none cursor-pointer shadow-sm"
+                        >
+                          Confirmar
+                        </button>
+                      )}
+                      {payment.estado === 'COMPLETED' && (
+                        <button
+                          onClick={() => setRefundPaymentId(payment.id)}
+                          className="px-4 py-2 text-xs font-semibold text-uber-gray-700 bg-uber-gray-50 hover:bg-uber-gray-100 border border-uber-gray-200 hover:border-uber-gray-300 rounded-xl transition-all cursor-pointer"
+                        >
+                          Reembolsar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
               >
-                <div className="flex-1 space-y-3">
-                  {/* Top row: Status and Method */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
-                    >
-                      {cfg.label}
-                    </span>
-                    <span className={`text-[10px] font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
-                      payment.metodo_pago === 'CASH' ? 'text-black border-emerald-500' : 
-                      payment.metodo_pago === 'PAYPAL' ? 'text-black border-black font-black' : 
-                      'text-black border-blue-500'
-                    }`}>
-                      {payment.metodo_pago === 'CASH' ? '💵 Efectivo' : 
-                       payment.metodo_pago === 'PAYPAL' ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> PayPal</> : 
-                       '🏦 Transferencia'}
-                    </span>
-                    {payment.comprobante_url && (
-                      <button 
-                        onClick={() => window.open(payment.comprobante_url!, '_blank')}
-                        className="text-[10px] font-bold text-zinc-600 bg-white px-2 py-1 rounded-lg flex items-center gap-1 border border-zinc-200 shadow-sm hover:bg-zinc-50 transition-colors"
-                      >
-                        📎 Ver comprobante
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Route Dot-Line-Square */}
-                  {payment.zona_origen ? (
-                    <div className="flex gap-2.5 my-2">
-                      <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
-                        <div className="w-2 h-2 rounded-full bg-black" />
-                        <div className="w-0.5 h-6 bg-uber-gray-200" />
-                        <div className="w-2 h-2 bg-black" style={{ borderRadius: '1.5px' }} />
-                      </div>
-                      <div className="min-w-0 text-xs">
-                        <div className="font-bold text-black truncate leading-none">{payment.zona_origen}</div>
-                        <div className="h-3" />
-                        <div className="font-bold text-black truncate leading-none">{payment.zona_destino}</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-uber-gray-400 font-semibold italic">Ruta no especificada en el pago</p>
-                  )}
-
-                  {/* Pasajero o Conductor */}
-                  {payment.nombre_pasajero && tab === 'received' && (
-                    <div className="flex items-center gap-1.5 text-xs text-uber-gray-600 pl-1 font-semibold">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                      <span>Pasajero: <span className="text-black font-bold">{payment.nombre_pasajero}</span></span>
-                    </div>
-                  )}
-
-                  {/* Transaction metadata */}
-                  <div className="space-y-1 pl-1">
-                    {payment.referencia_transaccion && (
-                      <p className="text-[10px] text-uber-gray-400 font-semibold">Ref: <span className="text-uber-gray-600">{payment.referencia_transaccion}</span></p>
-                    )}
-                    <p className="text-[10px] text-uber-gray-400 font-medium">
-                      Realizado el {new Date(payment.creado_en).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right Column: Amount & Actions */}
-                <div className="flex flex-row md:flex-col md:items-end justify-between items-center md:justify-start gap-4 shrink-0 text-right">
-                  <div>
-                    <div className="text-[10px] text-uber-gray-400 font-bold uppercase tracking-wider leading-none">Monto</div>
-                    <div className="text-2xl font-black text-black mt-0.5 leading-none">
-                      ${Number(payment.monto).toLocaleString()}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    {tab === 'received' && payment.estado === 'PENDING' && (
-                      <button
-                        onClick={() => setConfirmPaymentId(payment.id)}
-                        className="px-4 py-2 text-xs font-bold text-white bg-black hover:bg-uber-gray-800 transition-colors rounded-xl border-none cursor-pointer shadow-sm"
-                      >
-                        Confirmar
-                      </button>
-                    )}
-                    {payment.estado === 'COMPLETED' && (
-                      <button
-                        onClick={() => setRefundPaymentId(payment.id)}
-                        className="px-4 py-2 text-xs font-semibold text-uber-gray-700 bg-uber-gray-50 hover:bg-uber-gray-100 border border-uber-gray-200 hover:border-uber-gray-300 rounded-xl transition-all cursor-pointer"
-                      >
-                        Reembolsar
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                      currentPage === page
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border border-uber-gray-200 hover:bg-uber-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
-            );
-          })}
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
