@@ -80,7 +80,6 @@ export const MyRidesPage: React.FC = () => {
   const [rejectReqId, setRejectReqId] = useState<string | null>(null);
   const [rejectRideId, setRejectRideId] = useState<string | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState('');
-  
   // State for Reporting
   const [reportPassenger, setReportPassenger] = useState<{ id: string, name: string, rideId: string } | null>(null);
 
@@ -1138,7 +1137,7 @@ export const MyRidesPage: React.FC = () => {
                               )}
                               
                               {/* REPORTAR PASAJERO */}
-                              {(req.status === 'ACCEPTED' || ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && (
+                              {ride.status === 'COMPLETED' && (
                                 <div className="flex gap-1.5 shrink-0 self-end sm:self-center" onClick={e => e.stopPropagation()}>
                                   <button
                                     onClick={() => {
@@ -1148,7 +1147,7 @@ export const MyRidesPage: React.FC = () => {
                                         rideId: ride.id
                                       });
                                     }}
-                                    className="px-3 py-1.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                                    className="px-3 py-1.5 text-xs font-bold text-red-600 bg-white hover:bg-black hover:text-white hover:border-black border border-red-100 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
                                   >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                     Reportar

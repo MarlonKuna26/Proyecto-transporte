@@ -603,7 +603,7 @@ export const MyRequestsPage: React.FC = () => {
                           )}
 
                           {/* REPORTAR CONDUCTOR */}
-                          {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED' || req.status === 'ACCEPTED') && (
+                          {ride && ride.status === 'COMPLETED' && (
                             <button
                               onClick={() => {
                                 setReportDriver({
