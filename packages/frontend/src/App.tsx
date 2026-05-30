@@ -39,6 +39,13 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Ruta que requiere rol STUDENT */
+function StudentRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (user?.role !== 'STUDENT') return <Navigate to="/admin" replace />;
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -53,13 +60,17 @@ function App() {
           {/* Rutas protegidas con Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/rides" element={<RidesPage />} />
-            <Route path="/my-rides" element={<MyRidesPage />} />
-            <Route path="/my-requests" element={<MyRequestsPage />} />
-            <Route path="/payments" element={<PaymentsPage />} />
-            <Route path="/tracking/:rideId" element={<TrackingPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/my-reports" element={<MyReportsPage />} />
+            
+            {/* Rutas exclusivas para Estudiantes/Pasajeros/Conductores */}
+            <Route path="/rides" element={<StudentRoute><RidesPage /></StudentRoute>} />
+            <Route path="/my-rides" element={<StudentRoute><MyRidesPage /></StudentRoute>} />
+            <Route path="/my-requests" element={<StudentRoute><MyRequestsPage /></StudentRoute>} />
+            <Route path="/payments" element={<StudentRoute><PaymentsPage /></StudentRoute>} />
+            <Route path="/tracking/:rideId" element={<StudentRoute><TrackingPage /></StudentRoute>} />
+            <Route path="/profile" element={<StudentRoute><ProfilePage /></StudentRoute>} />
+            <Route path="/my-reports" element={<StudentRoute><MyReportsPage /></StudentRoute>} />
+            
+            {/* Rutas exclusivas para Admin */}
             <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
           </Route>
 

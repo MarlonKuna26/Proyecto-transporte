@@ -24,10 +24,10 @@ export class CreateVehicleDTO {
 
   private validate(): void {
     if (!this.plate || !this.brand || !this.model || !this.color) {
-      throw new Error('Plate, brand, model and color are required');
+      throw new Error('La placa, marca, modelo y color son obligatorios');
     }
     if (this.capacity < 1 || this.capacity > 8) {
-      throw new Error('Capacity must be between 1 and 8');
+      throw new Error('La capacidad debe estar entre 1 y 8');
     }
   }
 }

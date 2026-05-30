@@ -15,9 +15,9 @@ export class CreateReportDTO {
   }
 
   private validate(): void {
-    if (!this.reportedId) throw new Error('Reported user ID is required');
-    if (!this.reason) throw new Error('Reason is required');
-    if (!this.description || this.description.length < 10) throw new Error('Description must be at least 10 characters');
+    if (!this.reportedId) throw new Error('El ID del usuario reportado es obligatorio');
+    if (!this.reason) throw new Error('La razón es obligatoria');
+    if (!this.description || this.description.length < 10) throw new Error('La descripción debe tener al menos 10 caracteres');
   }
 }
 
@@ -32,7 +32,7 @@ export class ResolveReportDTO {
     this.adminNotes = data.adminNotes;
     this.action = data.action;
     this.suspensionDays = data.suspensionDays;
-    if (!this.status) throw new Error('Status is required');
-    if (!this.adminNotes) throw new Error('Admin notes are required');
+    if (!this.status) throw new Error('El estado es obligatorio');
+    if (!this.adminNotes) throw new Error('Las notas administrativas son obligatorias');
   }
 }

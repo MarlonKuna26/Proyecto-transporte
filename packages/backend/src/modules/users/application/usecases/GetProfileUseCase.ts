@@ -13,7 +13,7 @@ export class GetProfileUseCase implements IUseCase<string, ProfileResponseDTO> {
   async execute(userId: string): Promise<ProfileResponseDTO> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('Usuario no encontrado');
     }
 
     const profile = await this.userProfileRepository.findByUserId(userId);

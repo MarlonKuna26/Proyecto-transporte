@@ -17,6 +17,8 @@ export const RidesPage: React.FC = () => {
 
   const [requestMsg, setRequestMsg] = useState('');
   const [filters, setFilters] = useState({ originZone: '', destinationZone: '', departureDate: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const [acceptedUsers, setAcceptedUsers] = useState<UserProfile[]>([]);
@@ -155,12 +157,12 @@ export const RidesPage: React.FC = () => {
     }
   };
 
-  const statusStyleMap: Record<string, { label: string; bg: string; color: string }> = {
-    PUBLISHED:   { label: 'Disponible', bg: '#E6F4EA', color: '#06C167' },
-    FULL:        { label: 'Lleno',      bg: '#FFF3E0', color: '#FF6937' },
-    IN_PROGRESS: { label: 'En curso',   bg: '#E8F0FE', color: '#276EF1' },
-    COMPLETED:   { label: 'Completado', bg: '#F6F6F6', color: '#545454' },
-    CANCELLED:   { label: 'Cancelado',  bg: '#FDECEA', color: '#E11900' },
+  const statusStyleMap: Record<string, { border: string; text: string; bg: string; label: string }> = {
+    PUBLISHED:   { border: 'border-emerald-500', text: 'text-black', bg: 'bg-white', label: 'Disponible' },
+    FULL:        { border: 'border-amber-500',   text: 'text-black', bg: 'bg-white', label: 'Lleno' },
+    IN_PROGRESS: { border: 'border-blue-500',    text: 'text-black', bg: 'bg-white', label: 'En curso' },
+    COMPLETED:   { border: 'border-zinc-300',    text: 'text-black', bg: 'bg-white', label: 'Completado' },
+    CANCELLED:   { border: 'border-red-500',     text: 'text-black', bg: 'bg-white', label: 'Cancelado' },
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -173,6 +175,9 @@ export const RidesPage: React.FC = () => {
     if (filters.departureDate && ride.departureDate !== filters.departureDate) return false;
     return true;
   });
+
+  const totalPages = Math.ceil(filteredRides.length / pageSize);
+  const paginatedRides = filteredRides.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -209,7 +214,10 @@ export const RidesPage: React.FC = () => {
               <select
                 className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border border-uber-gray-200 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black appearance-none"
                 value={filters.originZone}
-                onChange={e => setFilters(prev => ({ ...prev, originZone: e.target.value }))}
+                onChange={e => {
+                  setFilters(prev => ({ ...prev, originZone: e.target.value }));
+                  setCurrentPage(1);
+                }}
               >
                 <option value="">Todas las zonas</option>
                 <optgroup label="Campus UTA">
@@ -233,7 +241,10 @@ export const RidesPage: React.FC = () => {
               <select
                 className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border border-uber-gray-200 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black appearance-none"
                 value={filters.destinationZone}
-                onChange={e => setFilters(prev => ({ ...prev, destinationZone: e.target.value }))}
+                onChange={e => {
+                  setFilters(prev => ({ ...prev, destinationZone: e.target.value }));
+                  setCurrentPage(1);
+                }}
               >
                 <option value="">Todas las zonas</option>
                 <optgroup label="Campus UTA">
@@ -257,7 +268,10 @@ export const RidesPage: React.FC = () => {
               type="date"
               className="w-full px-4 py-2.5 bg-white rounded-xl border border-uber-gray-200 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black"
               value={filters.departureDate}
-              onChange={e => setFilters(prev => ({ ...prev, departureDate: e.target.value }))}
+              onChange={e => {
+                setFilters(prev => ({ ...prev, departureDate: e.target.value }));
+                setCurrentPage(1);
+              }}
             />
           </div>
 
@@ -265,7 +279,7 @@ export const RidesPage: React.FC = () => {
           {(filters.originZone || filters.destinationZone || filters.departureDate) && (
             <button
               onClick={() => setFilters({ originZone: '', destinationZone: '', departureDate: '' })}
-              className="self-end md:self-center px-4 py-2.5 text-xs font-semibold text-uber-red hover:bg-red-50 rounded-xl transition-colors shrink-0"
+              className="self-end md:self-center px-4 py-2.5 text-xs font-bold text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-xl transition-all shrink-0"
               style={{ border: 'none', cursor: 'pointer', background: 'transparent' }}
             >
               Limpiar filtros
@@ -325,76 +339,114 @@ export const RidesPage: React.FC = () => {
         </div>
       ) : (
         /* Ride cards grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredRides.map(ride => {
-            const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
-            return (
-              <div
-                key={ride.id}
-                onClick={() => handleViewRide(ride)}
-                className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 cursor-pointer flex flex-col group relative animate-fade-in"
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {paginatedRides.map(ride => {
+              const s = statusStyleMap[ride.status] || statusStyleMap.IN_PROGRESS;
+              return (
+                <div
+                  key={ride.id}
+                  onClick={() => handleViewRide(ride)}
+                  className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 cursor-pointer flex flex-col group relative animate-fade-in"
+                >
+                  {/* Top line: Route with dot indicators */}
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex gap-3 min-w-0">
+                      <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                        <div className="w-2.5 h-2.5 rounded-full bg-black" />
+                        <div className="w-0.5 h-7 bg-uber-gray-200" />
+                        <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-black truncate">{ride.originZone}</h3>
+                        {ride.originDetail && (
+                          <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.originDetail}</p>
+                        )}
+                        <h3 className="text-sm font-semibold text-black truncate mt-3.5">{ride.destinationZone}</h3>
+                        {ride.destinationDetail && (
+                          <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.destinationDetail}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Top-right Actions & Badges */}
+                    <div className="flex flex-col items-end gap-2" onClick={e => e.stopPropagation()}>
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${s.bg} ${s.border} ${s.text}`}
+                      >
+                        {s.label}
+                      </span>
+
+                      {/* Driver options if owner was here, now removed */}
+                    </div>
+                  </div>
+
+                  {/* Bottom line: details + price */}
+                  <div className="mt-auto pt-4 border-t border-uber-gray-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-uber-gray-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {ride.departureDate} · {ride.departureTime}
+                      </span>
+                      <span>·</span>
+                      <span>{ride.availableSeats} asientos</span>
+                    </div>
+
+                    {ride.pricePerSeat > 0 ? (
+                      <div className="text-right">
+                        <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider">Por persona</span>
+                        <span className="text-base font-bold text-black">${ride.pricePerSeat.toLocaleString()}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs font-bold text-black bg-white px-2 py-0.5 rounded border border-emerald-500 font-black">Gratis</span>
+                    )}
+                  </div>
+
+                  {/* Hover arrow indicator */}
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
               >
-                {/* Top line: Route with dot indicators */}
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex gap-3 min-w-0">
-                    <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
-                      <div className="w-2.5 h-2.5 rounded-full bg-black" />
-                      <div className="w-0.5 h-7 bg-uber-gray-200" />
-                      <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-black truncate">{ride.originZone}</h3>
-                      {ride.originDetail && (
-                        <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.originDetail}</p>
-                      )}
-                      <h3 className="text-sm font-semibold text-black truncate mt-3.5">{ride.destinationZone}</h3>
-                      {ride.destinationDetail && (
-                        <p className="text-xs text-uber-gray-400 truncate mt-0.5">{ride.destinationDetail}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Top-right Actions & Badges */}
-                  <div className="flex flex-col items-end gap-2" onClick={e => e.stopPropagation()}>
-                    <span
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap"
-                      style={{ background: s.bg, color: s.color }}
-                    >
-                      {s.label}
-                    </span>
-
-                    {/* Driver options if owner was here, now removed */}
-                  </div>
-                </div>
-
-                {/* Bottom line: details + price */}
-                <div className="mt-auto pt-4 border-t border-uber-gray-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-uber-gray-500 font-medium">
-                    <span className="flex items-center gap-1">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      {ride.departureDate} · {ride.departureTime}
-                    </span>
-                    <span>·</span>
-                    <span>{ride.availableSeats} asientos</span>
-                  </div>
-
-                  {ride.pricePerSeat > 0 ? (
-                    <div className="text-right">
-                      <span className="text-[9px] text-uber-gray-400 block font-bold uppercase tracking-wider">Por persona</span>
-                      <span className="text-base font-bold text-black">${ride.pricePerSeat.toLocaleString()}</span>
-                    </div>
-                  ) : (
-                    <span className="text-xs font-bold text-uber-green bg-green-50 px-2 py-0.5 rounded">Gratis</span>
-                  )}
-                </div>
-
-                {/* Hover arrow indicator */}
-                <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                      currentPage === page
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border border-uber-gray-200 hover:bg-uber-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
-            );
-          })}
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -463,7 +515,7 @@ export const RidesPage: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-extrabold text-black truncate">{driverProfile.name}</span>
                             {driverProfile.isVerified && (
-                              <span className="text-uber-green inline-flex shrink-0" title="Perfil verificado">
+                              <span className="text-black inline-flex shrink-0" title="Perfil verificado">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                               </span>
                             )}
@@ -471,7 +523,7 @@ export const RidesPage: React.FC = () => {
                           <p className="text-xs text-uber-gray-500 truncate mt-0.5">
                             {driverProfile.career || 'Conductor Universitario'}
                           </p>
-                          <div className="flex items-center gap-1 mt-1 text-[10px] text-amber-600 font-bold bg-amber-50 border border-amber-100 rounded-md px-1.5 py-0.5 w-fit">
+                            <div className="flex items-center gap-1 mt-1 text-[10px] text-black font-bold bg-white border border-amber-500 rounded-md px-1.5 py-0.5 w-fit">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                             <span>{(() => {
                               const val = parseFloat(driverProfile.reputation as any);
@@ -496,7 +548,7 @@ export const RidesPage: React.FC = () => {
                             href={`https://wa.me/${driverProfile.phone.startsWith('+') ? driverProfile.phone.replace('+', '') : (driverProfile.phone.startsWith('09') ? '593' + driverProfile.phone.substring(1) : driverProfile.phone)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 transition-colors shadow-sm"
+                            className="w-9 h-9 rounded-full bg-white border border-uber-gray-100 flex items-center justify-center text-black hover:bg-uber-gray-50 transition-colors shadow-sm"
                             title="Enviar WhatsApp"
                           >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -641,14 +693,14 @@ export const RidesPage: React.FC = () => {
                     const pendingRequest = myRequests.find(r => r.rideId === viewRide.id && r.status === 'PENDING');
                     if (acceptedRequest) {
                       return (
-                        <div className="text-center p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-xl uppercase tracking-wider shadow-xs flex items-center justify-center gap-2">
+                        <div className="text-center p-3.5 bg-white border border-emerald-500 text-black text-xs font-black rounded-xl uppercase tracking-wider shadow-xs flex items-center justify-center gap-2">
                           <span className="text-sm">✓</span> Ya está aceptado
                         </div>
                       );
                     }
                     if (pendingRequest) {
                       return (
-                        <div className="text-center p-3.5 bg-green-50 border border-green-200 text-uber-green text-xs font-bold rounded-xl uppercase tracking-wider shadow-xs">
+                        <div className="text-center p-3.5 bg-white border border-emerald-500 text-black text-xs font-black rounded-xl uppercase tracking-wider shadow-xs">
                           Ya has enviado una solicitud para este viaje
                         </div>
                       );
@@ -742,21 +794,21 @@ export const RidesPage: React.FC = () => {
 
                           {/* Detail panel */}
                           {paymentMethod === 'efectivo' ? (
-                            <div className="p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2.5">
+                            <div className="p-3.5 bg-white border border-emerald-500 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">💡</span>
-                              <p className="text-xs text-emerald-800 leading-relaxed font-medium">
+                              <p className="text-xs text-black leading-relaxed font-medium">
                                 Has elegido pagar en efectivo. Podrás coordinar el pago al subir al vehículo una vez que el conductor acepte tu solicitud.
                               </p>
                             </div>
                           ) : paymentMethod === 'transferencia' ? (
-                            <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-2.5">
+                            <div className="p-3.5 bg-white border border-blue-100 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">ℹ️</span>
-                              <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                              <p className="text-xs text-black leading-relaxed font-medium">
                                 Podrás ver los datos bancarios del conductor en "Mis solicitudes" cuando el conductor apruebe tu viaje.
                               </p>
                             </div>
                           ) : (
-                            <div className="p-3.5 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-2.5">
+                            <div className="p-3.5 bg-white border border-indigo-100 rounded-xl flex items-start gap-2.5">
                               <span className="text-base shrink-0">🛡️</span>
                               <p className="text-xs text-indigo-800 leading-relaxed font-medium">
                                 Procesarás el pago con PayPal una vez que el conductor acepte tu solicitud. Es 100% seguro.

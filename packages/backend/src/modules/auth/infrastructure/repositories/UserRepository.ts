@@ -74,7 +74,7 @@ export class UserRepository implements IUserRepository {
   async update(id: string, userData: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
-      throw new NotFoundError(`User ${id} not found`);
+      throw new NotFoundError(`Usuario ${id} no encontrado`);
     }
 
     const updates: string[] = [];

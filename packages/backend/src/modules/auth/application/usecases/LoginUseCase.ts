@@ -27,7 +27,7 @@ export class LoginUseCase implements IUseCase<LoginDTO, LoginResponseDTO> {
 
     if (!user) {
       // No revelar si el email existe (seguridad)
-      throw new AuthenticationError('Invalid email or password');
+      throw new AuthenticationError('Correo o contraseña inválidos');
     }
 
     // 2. Verificar si está suspendido
@@ -47,7 +47,7 @@ export class LoginUseCase implements IUseCase<LoginDTO, LoginResponseDTO> {
     const isPasswordValid = await PasswordService.compare(input.password, user.hashedPassword);
 
     if (!isPasswordValid) {
-      throw new AuthenticationError('Invalid email or password');
+      throw new AuthenticationError('Correo o contraseña inválidos');
     }
 
     // 4. Generar tokens JWT

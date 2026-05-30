@@ -14,10 +14,10 @@ export class CancelRideUseCase implements IUseCase<CancelRideInput, void> {
 
   async execute(input: CancelRideInput): Promise<void> {
     const ride = await this.rideRepository.findById(input.rideId);
-    if (!ride) throw new NotFoundError('Ride not found');
-    if (ride.driverId !== input.driverId) throw new AuthorizationError('Only the driver can cancel the ride');
+    if (!ride) throw new NotFoundError('Viaje no encontrado');
+    if (ride.driverId !== input.driverId) throw new AuthorizationError('Solo el conductor puede cancelar el viaje');
     if (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') {
-      throw new ValidationError('Ride is already completed or cancelled');
+      throw new ValidationError('El viaje ya está completado o cancelado');
     }
 
     const pool = DatabaseConnection.getInstance();

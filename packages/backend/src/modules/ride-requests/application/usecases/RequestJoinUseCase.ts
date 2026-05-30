@@ -18,9 +18,9 @@ export class RequestJoinUseCase implements IUseCase<RequestJoinInput, RideReques
 
   async execute(input: RequestJoinInput): Promise<RideRequest> {
     const ride = await this.rideRepo.findById(input.data.rideId);
-    if (!ride) throw new NotFoundError('Ride not found');
-    if (ride.driverId === input.passengerId) throw new ValidationError('You cannot join your own ride');
-    if (!ride.isAvailable()) throw new ValidationError('Ride is not available');
+    if (!ride) throw new NotFoundError('Viaje no encontrado');
+    if (ride.driverId === input.passengerId) throw new ValidationError('No puedes unirte a tu propio viaje');
+    if (!ride.isAvailable()) throw new ValidationError('El viaje no está disponible');
     if (ride.availableSeats < input.data.seatsRequested) {
       throw new ValidationError(`Only ${ride.availableSeats} seat(s) available`);
     }
@@ -28,7 +28,7 @@ export class RequestJoinUseCase implements IUseCase<RequestJoinInput, RideReques
     const existing = await this.requestRepo.findByRideAndPassenger(input.data.rideId, input.passengerId);
     if (existing) {
       if (existing.status !== 'CANCELLED' && existing.status !== 'REJECTED') {
-        throw new ConflictError('You already have a pending or accepted request for this ride');
+        throw new ConflictError('Ya tienes una solicitud pendiente o aceptada para este viaje');
       }
       return this.requestRepo.update(existing.id, {
         status: 'PENDING',

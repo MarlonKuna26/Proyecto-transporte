@@ -289,7 +289,7 @@ export const TrackingPage: React.FC = () => {
             {/* Origin and Destination */}
             <div className="mt-3 space-y-2 pb-3 border-b border-uber-gray-100">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <div className="w-2.5 h-2.5 rounded-full bg-black" />
                 <span className="text-xs font-semibold text-black truncate">{ride.originZone}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -322,9 +322,9 @@ export const TrackingPage: React.FC = () => {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-uber-gray-200 h-2 rounded-full mt-3 overflow-hidden">
+                <div className="w-full bg-zinc-100 h-2 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-blue-500 h-full transition-all duration-1000 ease-out rounded-full" 
+                    className="bg-black h-full transition-all duration-1000 ease-out rounded-full" 
                     style={{ width: `${Math.min(100, (elapsedMinutes / Math.max(1, etaMinutes)) * 100)}%` }} 
                   />
                 </div>
@@ -352,9 +352,9 @@ export const TrackingPage: React.FC = () => {
             </p>
             
             {ride.status === 'IN_PROGRESS' && !isCompleteAllowed && (
-              <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
-                Falta para poder completar el viaje ({Math.max(0, Math.floor(etaMinutes! * 0.7) - elapsedMinutes)} min)
-              </span>
+              <span className="text-xs font-semibold text-black bg-white px-3 py-1.5 rounded-lg border border-amber-500">
+                  Falta para poder completar el viaje ({Math.max(0, Math.floor(etaMinutes! * 0.7) - elapsedMinutes)} min)
+                </span>
             )}
           </div>
           
@@ -372,14 +372,14 @@ export const TrackingPage: React.FC = () => {
                 {!gpsActive ? (
                   <button
                     onClick={startGPS}
-                    className="px-4 py-2.5 text-xs font-bold bg-uber-blue text-white hover:bg-blue-700 rounded-lg transition-colors border-none cursor-pointer shadow-sm uppercase tracking-wide"
+                    className="px-4 py-2.5 text-xs font-bold bg-black text-white hover:bg-zinc-800 rounded-lg transition-colors border-none cursor-pointer shadow-sm uppercase tracking-wide"
                   >
                     Activar GPS
                   </button>
                 ) : (
                   <button
                     onClick={stopGPS}
-                    className="px-4 py-2.5 text-xs font-bold bg-white text-uber-gray-700 hover:bg-uber-gray-100 border border-uber-gray-200 rounded-lg transition-all cursor-pointer uppercase tracking-wide"
+                    className="px-4 py-2.5 text-xs font-bold bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200 rounded-lg transition-all cursor-pointer uppercase tracking-wide"
                   >
                     Pausar GPS
                   </button>
@@ -400,12 +400,12 @@ export const TrackingPage: React.FC = () => {
           </div>
 
           {gpsActive && (
-            <div className="mt-2 flex items-center gap-2 text-uber-green bg-green-50 border border-green-150 px-3 py-2 rounded-xl text-xs font-semibold max-w-sm">
-              <span
-                className="w-2.5 h-2.5 rounded-full bg-uber-green shrink-0 animate-ping"
-              />
-              <span>GPS activo — transmitiendo ubicación en vivo</span>
-            </div>
+            <div className="mt-2 flex items-center gap-2 text-black bg-white border border-emerald-500 px-3 py-2 rounded-xl text-xs font-semibold max-w-sm">
+                <span
+                  className="w-2.5 h-2.5 rounded-full bg-black shrink-0 animate-ping"
+                />
+                <span>GPS activo — transmitiendo ubicación en vivo</span>
+              </div>
           )}
         </div>
       )}

@@ -23,7 +23,7 @@ export class ListRequestsUseCase implements IUseCase<ListRequestsInput, RideRequ
     // NUEVO: pasajeros aceptados públicos (sin validar driverId)
     if (input.rideId && input.onlyAccepted) {
       const ride = await this.rideRepo.findById(input.rideId);
-      if (!ride) throw new NotFoundError('Ride not found');
+      if (!ride) throw new NotFoundError('Viaje no encontrado');
       const all = await this.requestRepo.findByRideId(input.rideId);
       return all.filter(r => r.status === 'ACCEPTED');
     }
@@ -31,9 +31,9 @@ export class ListRequestsUseCase implements IUseCase<ListRequestsInput, RideRequ
     // Solicitudes de un viaje (solo conductor dueño) — igual que antes
     if (input.rideId) {
       const ride = await this.rideRepo.findById(input.rideId);
-      if (!ride) throw new NotFoundError('Ride not found');
+      if (!ride) throw new NotFoundError('Viaje no encontrado');
       if (ride.driverId !== input.driverId) {
-        throw new AuthorizationError('You are not authorized to view these requests');
+        throw new AuthorizationError('No tienes autorización para ver estas solicitudes');
       }
       return this.requestRepo.findByRideId(input.rideId);
     }

@@ -16,10 +16,10 @@ export class UpdateRideUseCase implements IUseCase<UpdateRideInput, Ride> {
 
   async execute(input: UpdateRideInput): Promise<Ride> {
     const ride = await this.rideRepository.findById(input.rideId);
-    if (!ride) throw new NotFoundError('Ride not found');
-    if (ride.driverId !== input.driverId) throw new AuthorizationError('Only the driver can update the ride');
+    if (!ride) throw new NotFoundError('Viaje no encontrado');
+    if (ride.driverId !== input.driverId) throw new AuthorizationError('Solo el conductor puede actualizar el viaje');
     if (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') {
-      throw new ValidationError('Cannot update a completed or cancelled ride');
+      throw new ValidationError('No se puede actualizar un viaje completado o cancelado');
     }
 
     const pool = DatabaseConnection.getInstance();

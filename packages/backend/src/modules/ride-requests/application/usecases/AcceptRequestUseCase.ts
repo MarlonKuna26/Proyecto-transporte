@@ -19,14 +19,14 @@ export class AcceptRequestUseCase implements IUseCase<AcceptRequestInput, RideRe
 
   async execute(input: AcceptRequestInput): Promise<RideRequest> {
     const request = await this.requestRepo.findById(input.requestId);
-    if (!request) throw new NotFoundError('Request not found');
-    if (request.status !== 'PENDING') throw new ValidationError('Request is not pending');
+    if (!request) throw new NotFoundError('Solicitud no encontrada');
+    if (request.status !== 'PENDING') throw new ValidationError('La solicitud no está pendiente');
 
     const ride = await this.rideRepo.findById(request.rideId);
-    if (!ride) throw new NotFoundError('Ride not found');
-    if (ride.driverId !== input.driverId) throw new AuthorizationError('Only the driver can accept requests');
+    if (!ride) throw new NotFoundError('Viaje no encontrado');
+    if (ride.driverId !== input.driverId) throw new AuthorizationError('Solo el conductor puede aceptar solicitudes');
     if (ride.availableSeats < request.seatsRequested) {
-      throw new ValidationError('Not enough seats available');
+      throw new ValidationError('No hay suficientes asientos disponibles');
     }
 
     // Decrementar asientos

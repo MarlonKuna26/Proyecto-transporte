@@ -11,7 +11,7 @@ export class CreateReportUseCase implements IUseCase<CreateReportInput, Report> 
 
   async execute(input: CreateReportInput): Promise<Report> {
     if (input.reporterId === input.data.reportedId) {
-      throw new ValidationError('You cannot report yourself');
+      throw new ValidationError('No puedes reportarte a ti mismo');
     }
 
     if (input.data.rideId) {

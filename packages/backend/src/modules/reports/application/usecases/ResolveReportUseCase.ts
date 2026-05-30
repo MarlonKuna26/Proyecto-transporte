@@ -17,7 +17,7 @@ export class ResolveReportUseCase implements IUseCase<ResolveReportInput, Report
 
   async execute(input: ResolveReportInput): Promise<Report> {
     const report = await this.reportRepo.findById(input.reportId);
-    if (!report) throw new NotFoundError('Report not found');
+    if (!report) throw new NotFoundError('Reporte no encontrado');
 
     const pool = DatabaseConnection.getInstance();
 

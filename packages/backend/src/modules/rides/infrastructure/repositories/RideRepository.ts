@@ -176,9 +176,9 @@ export class RideRepository implements IRideRepository {
 
     const query = `UPDATE viajes SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
-    if (!result.rows[0]) throw new NotFoundError('Ride not found');
+    if (!result.rows[0]) throw new NotFoundError('Viaje no encontrado');
     const updatedRide = await this.findById(id);
-    if (!updatedRide) throw new NotFoundError('Ride not found');
+    if (!updatedRide) throw new NotFoundError('Viaje no encontrado');
     return updatedRide;
   }
 
@@ -188,7 +188,7 @@ export class RideRepository implements IRideRepository {
       WHERE id = $2 RETURNING *
     `;
     const result = await this.pool.query(query, [seatsDelta, id]);
-    if (!result.rows[0]) throw new NotFoundError('Ride not found');
+    if (!result.rows[0]) throw new NotFoundError('Viaje no encontrado');
 
     const ride = this.mapRow(result.rows[0]);
     if (ride.availableSeats <= 0 && ride.status === 'PUBLISHED') {

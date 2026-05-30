@@ -18,9 +18,9 @@ export class CancelRequestUseCase implements IUseCase<CancelRequestInput, void> 
 
   async execute(input: CancelRequestInput): Promise<void> {
     const request = await this.requestRepo.findById(input.requestId);
-    if (!request) throw new NotFoundError('Request not found');
-    if (request.passengerId !== input.passengerId) throw new AuthorizationError('You can only cancel your own requests');
-    if (request.status === 'CANCELLED') throw new ValidationError('Request is already cancelled');
+    if (!request) throw new NotFoundError('Solicitud no encontrada');
+    if (request.passengerId !== input.passengerId) throw new AuthorizationError('Solo puedes cancelar tus propias solicitudes');
+    if (request.status === 'CANCELLED') throw new ValidationError('La solicitud ya ha sido cancelada');
 
     const ride = await this.rideRepo.findById(request.rideId);
 

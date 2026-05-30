@@ -70,7 +70,7 @@ export class UserController {
     try {
       const ownerId = req.user!.userId;
       const vehicleId = req.params.vehicleId;
-      if (!vehicleId) throw new ValidationError('Vehicle ID is required');
+      if (!vehicleId) throw new ValidationError('El ID del vehículo es obligatorio');
       await this.deleteVehicleUseCase.execute({ vehicleId, ownerId });
       res.status(200).json({ success: true, message: 'Vehicle deleted' });
     } catch (error: unknown) {
@@ -82,7 +82,7 @@ export class UserController {
     try {
       const ownerId = req.user!.userId;
       const vehicleId = req.params.vehicleId;
-      if (!vehicleId) throw new ValidationError('Vehicle ID is required');
+      if (!vehicleId) throw new ValidationError('El ID del vehículo es obligatorio');
       const dto = new UpdateVehicleDTO(req.body);
       const result = await this.updateVehicleUseCase.execute(ownerId, vehicleId, dto);
       res.status(200).json({ success: true, data: result, message: 'Vehicle updated' });

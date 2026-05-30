@@ -24,10 +24,10 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const variantClasses = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 shadow-blue',
-    secondary: 'bg-white text-navy-700 border border-primary-200 hover:bg-primary-50',
-    success: 'bg-primary-600 text-white hover:bg-primary-700',
-    danger: 'bg-red-500 text-white hover:bg-red-600',
+    primary: 'bg-black text-white hover:bg-zinc-800 shadow-sm border border-transparent',
+    secondary: 'bg-white text-black border border-zinc-200 hover:bg-zinc-50',
+    success: 'bg-black text-white hover:bg-zinc-800 border-2 border-green-500/30',
+    danger: 'bg-white text-red-600 border border-red-200 hover:bg-red-50',
   };
 
   const sizeClasses = {

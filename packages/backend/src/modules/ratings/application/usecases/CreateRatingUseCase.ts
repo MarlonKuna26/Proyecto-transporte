@@ -21,13 +21,13 @@ export class CreateRatingUseCase implements IUseCase<CreateRatingInput, Rating> 
 
   async execute(input: CreateRatingInput): Promise<Rating> {
     if (input.raterId === input.data.ratedId) {
-      throw new ValidationError('You cannot rate yourself');
+      throw new ValidationError('No puedes calificarte a ti mismo');
     }
 
     const ride = await this.rideRepo.findById(input.data.rideId);
-    if (!ride) throw new NotFoundError('Ride not found');
+    if (!ride) throw new NotFoundError('Viaje no encontrado');
     if (ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED') {
-      throw new ValidationError('Can only rate completed or cancelled rides');
+      throw new ValidationError('Solo se pueden calificar viajes completados o cancelados');
     }
 
     // Determinar rol
@@ -50,7 +50,7 @@ export class CreateRatingUseCase implements IUseCase<CreateRatingInput, Rating> 
 
     // Verificar que no haya calificación duplicada
     const existing = await this.ratingRepo.findByRaterAndRide(input.raterId, input.data.rideId, input.data.ratedId);
-    if (existing) throw new ConflictError('You already rated this user for this ride');
+    if (existing) throw new ConflictError('Ya calificaste a este usuario para este viaje');
 
     const rating = new Rating(
       input.data.rideId, input.raterId, input.data.ratedId,

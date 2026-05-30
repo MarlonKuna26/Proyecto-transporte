@@ -32,6 +32,8 @@ export const MyRequestsPage: React.FC = () => {
 
   // FILTROS
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
   const [search, setSearch] = useState('');
 
   // Custom Modal State for Cancellation
@@ -233,11 +235,11 @@ export const MyRequestsPage: React.FC = () => {
     }
   };
 
-  const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
-    PENDING: { label: 'Pendiente', bg: '#FFF3E0', color: '#FF6937' },
-    ACCEPTED: { label: 'Aceptada', bg: '#E6F4EA', color: '#06C167' },
-    REJECTED: { label: 'Rechazada', bg: '#FDECEA', color: '#E11900' },
-    CANCELLED: { label: 'Cancelada', bg: '#F6F6F6', color: '#545454' },
+  const statusConfig: Record<string, { label: string; border: string; text: string; bg: string }> = {
+    PENDING: { label: 'Pendiente', border: 'border-amber-500', text: 'text-black', bg: 'bg-white' },
+    ACCEPTED: { label: 'Aceptada', border: 'border-emerald-500', text: 'text-black', bg: 'bg-white' },
+    REJECTED: { label: 'Rechazada', border: 'border-red-500', text: 'text-black', bg: 'bg-white' },
+    CANCELLED: { label: 'Cancelada', border: 'border-zinc-300', text: 'text-black', bg: 'bg-white' },
   };
 
   // =========================
@@ -270,9 +272,12 @@ export const MyRequestsPage: React.FC = () => {
     });
   }, [requests, ridesMap, statusFilter, search]);
 
+  const totalPages = Math.ceil(filteredRequests.length / pageSize);
+  const paginatedRequests = filteredRequests.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div
-      className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6"
+      className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6"
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
 
@@ -306,7 +311,10 @@ export const MyRequestsPage: React.FC = () => {
       type="text"
       placeholder="Buscar por origen, destino o mensaje..."
       value={search}
-      onChange={(e) => setSearch(e.target.value)}
+      onChange={(e) => {
+        setSearch(e.target.value);
+        setCurrentPage(1);
+      }}
       className="w-full px-4 py-3 rounded-xl border border-uber-gray-200 outline-none focus:border-black text-sm"
     />
   </div>
@@ -327,7 +335,10 @@ export const MyRequestsPage: React.FC = () => {
       return (
         <button
           key={tab.key}
-          onClick={() => setStatusFilter(tab.key)}
+          onClick={() => {
+            setStatusFilter(tab.key);
+            setCurrentPage(1);
+          }}
           className="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer border"
           style={{
             background: active ? '#000' : '#fff',
@@ -389,256 +400,298 @@ export const MyRequestsPage: React.FC = () => {
       ) : (
 
         /* Requests Cards List */
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {filteredRequests.map(req => {
+            {paginatedRequests.map(req => {
 
-            const cfg = statusConfig[req.status] || statusConfig.PENDING;
-            const ride = ridesMap[req.rideId];
-            const { cleanMessage, paymentInfo } = parseMessage(req.message);
+              const cfg = statusConfig[req.status] || statusConfig.PENDING;
+              const ride = ridesMap[req.rideId];
+              const { cleanMessage, paymentInfo } = parseMessage(req.message);
 
-            return (
-              <div
-                key={req.id}
-                className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-5 animate-fade-in"
-              >
+              return (
+                <div
+                  key={req.id}
+                  className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-5 animate-fade-in min-h-[200px]"
+                >
 
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="flex flex-col justify-between h-full gap-4">
 
-                  {/* Left Column */}
-                  <div className="flex-1 space-y-4">
+                    {/* Left Column Equivalent */}
+                    <div className="flex-1 space-y-4">
 
-                    {/* Status */}
-                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Status */}
+                      <div className="flex items-center gap-2 flex-wrap">
 
-                      <span
-                        className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap"
-                        style={{ background: cfg.bg, color: cfg.color }}
-                      >
-                        {cfg.label}
-                      </span>
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider whitespace-nowrap border shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
+                        >
+                          {cfg.label}
+                        </span>
 
-                      <span className="text-xs font-semibold text-black bg-uber-gray-50 px-2 py-0.5 rounded">
-                        {req.seatsRequested} asiento{req.seatsRequested !== 1 ? 's' : ''}
-                      </span>
-                    </div>
+                        <span className="text-xs font-bold text-black bg-white border border-zinc-200 px-2 py-1 rounded-lg">
+                          {req.seatsRequested} asiento{req.seatsRequested !== 1 ? 's' : ''}
+                        </span>
+                      </div>
 
-                    {/* ROUTE */}
-                    {ride && (
-                      <div className="space-y-3">
+                      {/* ROUTE */}
+                      {ride && (
+                        <div className="space-y-3">
 
-                        <div className="flex gap-3">
+                          <div className="flex gap-3">
 
-                          <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
-                            <div className="w-2.5 h-2.5 rounded-full bg-black" />
-                            <div className="w-0.5 h-7 bg-uber-gray-200" />
-                            <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-
-                            <div className="text-xs text-uber-gray-400 font-bold uppercase tracking-wider leading-none">
-                              Origen
+                            <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                              <div className="w-2.5 h-2.5 rounded-full bg-black" />
+                              <div className="w-0.5 h-7 bg-uber-gray-200" />
+                              <div className="w-2.5 h-2.5 bg-black" style={{ borderRadius: '2px' }} />
                             </div>
 
-                            <div className="font-bold text-black text-sm truncate mt-0.5 leading-normal">
-                              {ride.originZone}
+                            <div className="min-w-0 flex-1">
+
+                              <div className="text-xs text-uber-gray-400 font-bold uppercase tracking-wider leading-none">
+                                Origen
+                              </div>
+
+                              <div className="font-bold text-black text-sm truncate mt-0.5 leading-normal">
+                                {ride.originZone}
+                              </div>
+
+                              <div className="h-3.5" />
+
+                              <div className="text-xs text-uber-gray-400 font-bold uppercase tracking-wider leading-none">
+                                Destino
+                              </div>
+
+                              <div className="font-bold text-black text-sm truncate mt-0.5 leading-normal">
+                                {ride.destinationZone}
+                              </div>
+
                             </div>
-
-                            <div className="h-3.5" />
-
-                            <div className="text-xs text-uber-gray-400 font-bold uppercase tracking-wider leading-none">
-                              Destino
-                            </div>
-
-                            <div className="font-bold text-black text-sm truncate mt-0.5 leading-normal">
-                              {ride.destinationZone}
-                            </div>
-
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* MESSAGE */}
-                    {cleanMessage && (
-                      <div className="bg-uber-gray-50 border border-uber-gray-100 rounded-xl px-4 py-2.5 max-w-xl">
-                        <span className="block text-[9px] text-uber-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                          Tu mensaje
-                        </span>
+                      {/* MESSAGE */}
+                      {cleanMessage && (
+                        <div className="bg-uber-gray-50 border border-uber-gray-100 rounded-xl px-4 py-2.5">
+                          <span className="block text-[9px] text-uber-gray-400 font-bold uppercase tracking-wider mb-0.5">
+                            Tu mensaje
+                          </span>
 
-                        <p className="text-xs text-uber-gray-700 font-medium leading-relaxed">
-                          "{cleanMessage}"
-                        </p>
-                      </div>
-                    )}
+                          <p className="text-xs text-uber-gray-700 font-medium leading-relaxed">
+                            "{cleanMessage}"
+                          </p>
+                        </div>
+                      )}
 
-                    {/* PAYMENT METHOD BADGES */}
-                    {paymentInfo && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                            paymentInfo.method.toLowerCase() === 'efectivo'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                              : paymentInfo.method.toLowerCase() === 'transferencia'
-                                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                                : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                          }`}
-                        >
-                          {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' 
-                            : paymentInfo.method.toLowerCase() === 'transferencia' ? '🏦 Transferencia'
-                            : '💳 PayPal'}
-                        </span>
-                        {paymentInfo.reference && paymentInfo.reference !== '-' && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100">
-                            Ref: {paymentInfo.reference}
+                      {/* PAYMENT METHOD BADGES */}
+                      {paymentInfo && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <span
+                            className={`text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm bg-white border ${
+                              paymentInfo.method.toLowerCase() === 'efectivo'
+                                  ? 'text-black border-emerald-500'
+                                  : paymentInfo.method.toLowerCase() === 'transferencia'
+                                    ? 'text-black border-blue-500'
+                                    : 'text-black border-black font-black'
+                            }`}
+                          >
+                            {paymentInfo.method.toLowerCase() === 'efectivo' ? '💵 Efectivo' 
+                              : paymentInfo.method.toLowerCase() === 'transferencia' ? '🏦 Transferencia'
+                              : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Pagar con PayPal</>}
+                          </span>
+                          {paymentInfo.reference && paymentInfo.reference !== '-' && (
+                            <span className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-white text-zinc-600 border border-zinc-200 shadow-sm">
+                              Ref: {paymentInfo.reference}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Column Equivalent (Actions) */}
+                    <div className="flex flex-col gap-3 shrink-0">
+
+                      {ride && (
+                        <div className="flex justify-between items-center bg-uber-gray-50 p-3 rounded-xl border border-uber-gray-100">
+                          <div className="text-[10px] text-uber-gray-400 font-bold uppercase tracking-wider">
+                            Costo Estimado
+                          </div>
+
+                          <div className="text-xl font-black text-black">
+                            ${(req.seatsRequested * ride.pricePerSeat).toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        {/* CANCEL */}
+                        {(req.status === 'PENDING' || (req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && ride.status !== 'IN_PROGRESS')) && (
+                          <button
+                            onClick={() => setCancelRequestId(req.id)}
+                            className="w-full py-2.5 text-xs font-bold text-red-600 bg-white hover:bg-black hover:text-white hover:border-black border border-red-100 rounded-xl transition-all cursor-pointer"
+                          >
+                            Cancelar solicitud
+                          </button>
+                        )}
+
+                        {/* VER PAGO / PAGAR */}
+                        {req.status === 'ACCEPTED' && paymentInfo && (paymentInfo.method.toLowerCase() === 'transferencia' || paymentInfo.method.toLowerCase() === 'paypal') && ride && ride.status !== 'CANCELLED' && (
+                          (() => {
+                            const existingPayment = myPayments.find(p => p.solicitud_viaje_id === req.id);
+                            const isPaidWithPayPal = existingPayment && existingPayment.metodo_pago === 'PAYPAL' && existingPayment.estado === 'COMPLETED';
+                            
+                            if (isPaidWithPayPal) {
+                              return (
+                                <div className="w-full py-2.5 text-[10px] uppercase tracking-wider font-black rounded-xl text-black bg-white border border-emerald-500 flex items-center justify-center gap-1.5 cursor-default shadow-sm">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                  Pagado con PayPal
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <button
+                                onClick={() => {
+                                  setPaymentRide(ride);
+                                  setPaymentRequest(req);
+                                }}
+                                className={`w-full py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wide bg-white border ${
+                                  paymentInfo.method.toLowerCase() === 'paypal' 
+                                    ? 'text-black border-black hover:bg-black hover:text-white'
+                                    : 'text-zinc-600 border-zinc-200 hover:bg-black hover:text-white hover:border-black'
+                                }`}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                {paymentInfo.method.toLowerCase() === 'paypal' ? 'Pagar con PayPal' : 'Ver datos de pago'}
+                              </button>
+                            );
+                          })()
+                        )}
+
+                        {/* SEGUIMIENTO DE VIAJE (Para pasajeros) */}
+                        {req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && (
+                          <Link
+                            to={`/tracking/${ride.id}`}
+                            className="w-full py-2.5 text-xs font-bold text-white bg-black hover:bg-zinc-800 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                            style={{ textDecoration: 'none' }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 2a10 10 0 0 0-10 10c0 5.25 10 12 10 12s10-6.75 10-12a10 10 0 0 0-10-10z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            Ver seguimiento
+                          </Link>
+                        )}
+
+                        <div className="flex gap-2 w-full">
+                          {/* CALIFICAR VIAJE */}
+                          {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && !hasAlreadyRated(ride.id) && (
+                            <button
+                              onClick={() => {
+                                setRatingRide(ride);
+                                setRatingScore(5);
+                                setRatingComment('');
+                              }}
+                              className="flex-1 py-2 text-xs font-bold text-black bg-white hover:bg-black hover:text-white border border-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                              </svg>
+                              Calificar
+                            </button>
+                          )}
+
+                          {/* REPORTAR CONDUCTOR */}
+                          {ride && ride.status === 'COMPLETED' && (
+                            <button
+                              onClick={() => {
+                                setReportDriver({
+                                  id: ride.driverId,
+                                  name: 'Conductor',
+                                  rideId: ride.id
+                                });
+                              }}
+                              className="flex-1 py-2 text-xs font-bold text-red-600 bg-white hover:bg-black hover:text-white hover:border-black border border-red-100 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                              Reportar
+                            </button>
+                          )}
+                        </div>
+
+                        {/* YA CALIFICADO */}
+                        {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && hasAlreadyRated(ride.id) && (
+                          <span className="w-full flex items-center justify-center gap-1.5 text-xs font-black text-black bg-white border border-emerald-500 py-2.5 rounded-xl shadow-sm">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            Calificado
                           </span>
                         )}
                       </div>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Right Column */}
-                  <div className="flex flex-row md:flex-col md:items-end justify-between items-center md:justify-start gap-4 md:text-right shrink-0">
+                  {/* FOOTER */}
+                  <div className="pt-3 border-t border-uber-gray-100 flex items-center justify-between text-[10px] text-uber-gray-400 font-medium mt-auto">
 
-                    {ride && (
-                      <div>
-                        <div className="text-[10px] text-uber-gray-400 font-bold uppercase tracking-wider">
-                          Costo Estimado
-                        </div>
+                    <span>
+                      ID Solicitud: {req.id.substring(0, 8)}...
+                    </span>
 
-                        <div className="text-2xl font-black text-black mt-0.5">
-                          ${(req.seatsRequested * ride.pricePerSeat).toLocaleString()}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* CANCEL */}
-                    {(req.status === 'PENDING' || (req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && ride.status !== 'IN_PROGRESS')) && (
-                      <button
-                        onClick={() => setCancelRequestId(req.id)}
-                        className="px-4 py-2.5 text-xs font-bold text-uber-red bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all self-start md:self-auto cursor-pointer"
-                      >
-                        Cancelar solicitud
-                      </button>
-                    )}
-
-                    {/* VER PAGO / PAGAR */}
-                    {req.status === 'ACCEPTED' && paymentInfo && (paymentInfo.method.toLowerCase() === 'transferencia' || paymentInfo.method.toLowerCase() === 'paypal') && ride && ride.status !== 'CANCELLED' && (
-                      (() => {
-                        const existingPayment = myPayments.find(p => p.solicitud_viaje_id === req.id);
-                        const isPaidWithPayPal = existingPayment && existingPayment.metodo_pago === 'PAYPAL' && existingPayment.estado === 'COMPLETED';
-                        
-                        if (isPaidWithPayPal) {
-                          return (
-                            <div className="px-4 py-2.5 text-xs font-bold rounded-xl text-green-700 bg-green-50 border border-green-200 self-start md:self-auto flex items-center gap-1.5 cursor-default">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                              Pagado con PayPal
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <button
-                            onClick={() => {
-                              setPaymentRide(ride);
-                              setPaymentRequest(req);
-                            }}
-                            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5 ${
-                              paymentInfo.method.toLowerCase() === 'paypal' 
-                                ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 hover:border-indigo-300'
-                                : 'text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300'
-                            }`}
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                            {paymentInfo.method.toLowerCase() === 'paypal' ? 'Pagar con PayPal' : 'Ver datos de pago'}
-                          </button>
-                        );
-                      })()
-                    )}
-
-                    {/* SEGUIMIENTO DE VIAJE (Para pasajeros) */}
-                    {req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && (
-                      <Link
-                        to={`/tracking/${ride.id}`}
-                        className="px-4 py-2.5 text-xs font-bold text-white bg-uber-blue hover:bg-blue-700 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center justify-center gap-1.5"
-                        style={{ textDecoration: 'none' }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 2a10 10 0 0 0-10 10c0 5.25 10 12 10 12s10-6.75 10-12a10 10 0 0 0-10-10z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        Ver seguimiento
-                      </Link>
-                    )}
-
-                    {/* CALIFICAR VIAJE */}
-                    {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && !hasAlreadyRated(ride.id) && (
-                      <button
-                        onClick={() => {
-                          setRatingRide(ride);
-                          setRatingScore(5);
-                          setRatingComment('');
-                        }}
-                        className="px-4 py-2.5 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 hover:border-amber-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        Calificar conductor
-                      </button>
-                    )}
-
-                    {/* REPORTAR CONDUCTOR */}
-                    {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED' || req.status === 'ACCEPTED') && (
-                      <button
-                        onClick={() => {
-                          setReportDriver({
-                            id: ride.driverId,
-                            name: 'Conductor',
-                            rideId: ride.id
-                          });
-                        }}
-                        className="px-4 py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        Reportar
-                      </button>
-                    )}
-
-                    {/* YA CALIFICADO */}
-                    {ride && (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') && hasAlreadyRated(ride.id) && (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl self-start md:self-auto">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        Calificado
-                      </span>
-                    )}
+                    <span>
+                      Solicitada el{' '}
+                      {new Date(req.createdAt).toLocaleDateString('es', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                {/* FOOTER */}
-                <div className="pt-3 border-t border-uber-gray-100 flex items-center justify-between text-[10px] text-uber-gray-400 font-medium">
-
-                  <span>
-                    ID Solicitud: {req.id.substring(0, 8)}...
-                  </span>
-
-                  <span>
-                    Solicitada el{' '}
-                    {new Date(req.createdAt).toLocaleDateString('es', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                      currentPage === page
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border border-uber-gray-200 hover:bg-uber-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
-            );
-          })}
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl border border-uber-gray-200 flex items-center justify-center text-black hover:bg-uber-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1090,7 +1143,7 @@ export const MyRequestsPage: React.FC = () => {
                                 alt="Vista previa del comprobante"
                                 className="w-full max-h-40 object-contain rounded-lg"
                               />
-                              <p className="text-[10px] text-center text-uber-green font-bold">¡Imagen seleccionada! Haz clic o arrastra para cambiar</p>
+                              <p className="text-[10px] text-center text-black font-bold">¡Imagen seleccionada! Haz clic o arrastra para cambiar</p>
                             </div>
                           ) : (
                             <div className="text-center space-y-1.5 py-3">

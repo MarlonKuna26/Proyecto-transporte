@@ -118,8 +118,8 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {hint && (
-            <div className="p-3.5 text-xs rounded-xl bg-amber-50 text-amber-800 border border-amber-100/60 break-all font-mono leading-relaxed space-y-1 animate-fade-in">
-              <div className="font-bold text-[10px] uppercase tracking-wider text-amber-900">Entorno Desarrollo:</div>
+            <div className="p-3.5 text-xs rounded-xl bg-white text-black border border-amber-500 break-all font-mono leading-relaxed space-y-1 animate-fade-in">
+              <div className="font-bold text-[10px] uppercase tracking-wider text-black">Entorno Desarrollo:</div>
               <div>{hint}</div>
             </div>
           )}

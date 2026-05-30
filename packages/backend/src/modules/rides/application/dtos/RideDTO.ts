@@ -31,12 +31,12 @@ export class CreateRideDTO {
   }
 
   private validate(): void {
-    if (!this.originZone) throw new Error('Origin zone is required');
-    if (!this.destinationZone) throw new Error('Destination zone is required');
-    if (!this.departureDate) throw new Error('Departure date is required');
-    if (!this.departureTime) throw new Error('Departure time is required');
-    if (!this.availableSeats || this.availableSeats < 1) throw new Error('Available seats must be at least 1');
-    if (this.pricePerSeat < 0) throw new Error('Price per seat cannot be negative');
+    if (!this.originZone) throw new Error('La zona de origen es obligatoria');
+    if (!this.destinationZone) throw new Error('La zona de destino es obligatoria');
+    if (!this.departureDate) throw new Error('La fecha de salida es obligatoria');
+    if (!this.departureTime) throw new Error('La hora de salida es obligatoria');
+    if (!this.availableSeats || this.availableSeats < 1) throw new Error('Los asientos disponibles deben ser al menos 1');
+    if (this.pricePerSeat < 0) throw new Error('El precio por asiento no puede ser negativo');
   }
 }
 

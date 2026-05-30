@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
+import { authenticateToken, authorizeRole } from '@shared/middlewares/AuthMiddleware';
 import { RideRequestRepository } from './infrastructure/repositories/RideRequestRepository';
 import { RideRepository } from '@modules/rides/infrastructure/repositories/RideRepository';
 import { RequestJoinUseCase } from './application/usecases/RequestJoinUseCase';
@@ -31,20 +31,20 @@ export function createRideRequestRoutes(): Router {
   );
 
   // Solicitar unirse a un viaje
-  router.post('/', authenticateToken, (req, res) => controller.requestJoin(req, res));
+  router.post('/', authenticateToken, authorizeRole('STUDENT'), (req, res) => controller.requestJoin(req, res));
 
   // Mis solicitudes (como pasajero)
-  router.get('/my-requests', authenticateToken, (req, res) => controller.listMyRequests(req, res));
-router.get('/ride/:rideId/passengers', authenticateToken, (req, res) => 
+  router.get('/my-requests', authenticateToken, authorizeRole('STUDENT'), (req, res) => controller.listMyRequests(req, res));
+router.get('/ride/:rideId/passengers', authenticateToken, authorizeRole('STUDENT'), (req, res) => 
   controller.getAcceptedPassengers(req, res)
 );
   // Solicitudes de un viaje (para conductor)
-  router.get('/ride/:rideId', authenticateToken, (req, res) => controller.listByRide(req, res));
+  router.get('/ride/:rideId', authenticateToken, authorizeRole('STUDENT'), (req, res) => controller.listByRide(req, res));
 
   // Aceptar/Rechazar/Cancelar
-  router.put('/:id/accept', authenticateToken, (req, res) => controller.accept(req, res));
-  router.put('/:id/reject', authenticateToken, (req, res) => controller.reject(req, res));
-  router.put('/:id/cancel', authenticateToken, (req, res) => controller.cancel(req, res));
+  router.put('/:id/accept', authenticateToken, authorizeRole('STUDENT'), (req, res) => controller.accept(req, res));
+  router.put('/:id/reject', authenticateToken, authorizeRole('STUDENT'), (req, res) => controller.reject(req, res));
+  router.put('/:id/cancel', authenticateToken, authorizeRole('STUDENT'), (req, res) => controller.cancel(req, res));
 // Pasajeros aceptados de un viaje (cualquier usuario autenticado)
 
   return router;

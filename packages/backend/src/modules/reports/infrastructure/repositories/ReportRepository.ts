@@ -66,7 +66,7 @@ export class ReportRepository implements IReportRepository {
 
     const query = `UPDATE reportes SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
     const result = await this.pool.query(query, values);
-    if (!result.rows[0]) throw new NotFoundError('Report not found');
+    if (!result.rows[0]) throw new NotFoundError('Reporte no encontrado');
     return this.mapRow(result.rows[0]);
   }
 
