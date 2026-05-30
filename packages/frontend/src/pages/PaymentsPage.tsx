@@ -148,7 +148,7 @@ export const PaymentsPage: React.FC = () => {
   const currentRefundPayment = payments.find(p => p.id === refundPaymentId);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ═══ PAGE HEADER ═══ */}
       <div className="pb-4 border-b border-uber-gray-100">
@@ -263,7 +263,7 @@ export const PaymentsPage: React.FC = () => {
               return (
                 <div
                   key={payment.id}
-                  className="bg-white rounded-2xl p-5 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-4 animate-fade-in"
+                  className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-4 animate-fade-in min-h-[200px]"
                 >
                   <div className="space-y-3">
                     {/* Top row: Status and Method */}

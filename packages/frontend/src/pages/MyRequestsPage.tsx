@@ -277,7 +277,7 @@ export const MyRequestsPage: React.FC = () => {
 
   return (
     <div
-      className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6"
+      className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6"
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
 
@@ -412,7 +412,7 @@ export const MyRequestsPage: React.FC = () => {
               return (
                 <div
                   key={req.id}
-                  className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-5 animate-fade-in"
+                  className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between gap-5 animate-fade-in min-h-[200px]"
                 >
 
                   <div className="flex flex-col justify-between h-full gap-4">

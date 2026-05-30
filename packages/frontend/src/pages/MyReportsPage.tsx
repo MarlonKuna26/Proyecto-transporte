@@ -39,7 +39,7 @@ export const MyReportsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
         <div className="glass-card p-12 animate-pulse text-center">
           <div className="h-4 bg-dark-200 rounded w-48 mx-auto" />
         </div>
@@ -48,7 +48,7 @@ export const MyReportsPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6 animate-fade-in">
       <ToastContainer messages={messages} onClose={removeToast} />
 
       <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export const MyReportsPage: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {paginatedReports.map(r => (
-                <div key={r.id} className="glass-card p-5 border border-zinc-150 shadow-sm rounded-2xl bg-white transition-all hover:shadow-md relative overflow-hidden flex flex-col justify-between">
+                <div key={r.id} className="bg-white rounded-2xl p-6 border border-uber-gray-100 shadow-uber-sm hover:shadow-uber-md transition-all duration-200 flex flex-col justify-between animate-fade-in min-h-[200px] relative overflow-hidden">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
