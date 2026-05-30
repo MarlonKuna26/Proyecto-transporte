@@ -529,7 +529,7 @@ export const MyRequestsPage: React.FC = () => {
                         {(req.status === 'PENDING' || (req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && ride.status !== 'IN_PROGRESS')) && (
                           <button
                             onClick={() => setCancelRequestId(req.id)}
-                            className="w-full py-2.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-xl transition-all cursor-pointer"
+                            className="w-full py-2.5 text-xs font-bold text-red-600 bg-white hover:bg-black hover:text-white hover:border-black border border-red-100 rounded-xl transition-all cursor-pointer"
                           >
                             Cancelar solicitud
                           </button>
@@ -556,10 +556,10 @@ export const MyRequestsPage: React.FC = () => {
                                   setPaymentRide(ride);
                                   setPaymentRequest(req);
                                 }}
-                                className={`w-full py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wide bg-white ${
+                                className={`w-full py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wide bg-white border ${
                                   paymentInfo.method.toLowerCase() === 'paypal' 
-                                    ? 'text-black border-black'
-                                    : 'text-zinc-600 border-zinc-200 hover:bg-zinc-50'
+                                    ? 'text-black border-black hover:bg-black hover:text-white'
+                                    : 'text-zinc-600 border-zinc-200 hover:bg-black hover:text-white hover:border-black'
                                 }`}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -593,7 +593,7 @@ export const MyRequestsPage: React.FC = () => {
                                 setRatingScore(5);
                                 setRatingComment('');
                               }}
-                              className="flex-1 py-2 text-xs font-bold text-black bg-white hover:bg-zinc-50 border border-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                              className="flex-1 py-2 text-xs font-bold text-black bg-white hover:bg-black hover:text-white border border-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -612,7 +612,7 @@ export const MyRequestsPage: React.FC = () => {
                                   rideId: ride.id
                                 });
                               }}
-                              className="flex-1 py-2 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                              className="flex-1 py-2 text-xs font-bold text-red-600 bg-white hover:bg-black hover:text-white hover:border-black border border-red-100 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                               Reportar

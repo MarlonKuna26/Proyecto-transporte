@@ -348,14 +348,7 @@ export const PaymentsPage: React.FC = () => {
                           Confirmar
                         </button>
                       )}
-                      {payment.estado === 'COMPLETED' && (
-                        <button
-                          onClick={() => setRefundPaymentId(payment.id)}
-                          className="px-4 py-2 text-xs font-semibold text-uber-gray-700 bg-uber-gray-50 hover:bg-uber-gray-100 border border-uber-gray-200 hover:border-uber-gray-300 rounded-xl transition-all cursor-pointer"
-                        >
-                          Reembolsar
-                        </button>
-                      )}
+                      {/* No refund button as per user request */}
                     </div>
                   </div>
                 </div>
