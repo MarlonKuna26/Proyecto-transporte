@@ -239,6 +239,28 @@ export const MyRidesPage: React.FC = () => {
       addToast('El precio por persona debe ser mayor a $0.', 'error');
       return;
     }
+
+    // Validation using general parameters config
+    let maxPricePerSeat = 5.00;
+    let maxPassengerSeats = 4;
+    const savedParams = localStorage.getItem('u_ride_general_params');
+    if (savedParams) {
+      try {
+        const parsed = JSON.parse(savedParams);
+        if (parsed.maxPricePerSeat) maxPricePerSeat = Number(parsed.maxPricePerSeat);
+        if (parsed.maxPassengerSeats) maxPassengerSeats = Number(parsed.maxPassengerSeats);
+      } catch (e) {}
+    }
+
+    if (parseFloat(formData.pricePerSeat) > maxPricePerSeat) {
+      addToast(`El precio por persona no puede superar el límite de $${maxPricePerSeat.toFixed(2)}.`, 'error');
+      return;
+    }
+
+    if (parseInt(formData.availableSeats) > maxPassengerSeats) {
+      addToast(`La cantidad de asientos no puede ser mayor que el límite de ${maxPassengerSeats} asientos.`, 'error');
+      return;
+    }
     try {
       const combinedRules = [...selectedRules, customRule].map(r => r.trim()).filter(Boolean).join(', ');
       await api.rides.create({
@@ -272,6 +294,34 @@ export const MyRidesPage: React.FC = () => {
       addToast('El destino no puede ser el mismo que el origen', 'error');
       return;
     }
+
+    if (!formData.pricePerSeat || parseFloat(formData.pricePerSeat) <= 0) {
+      addToast('El precio por persona debe ser mayor a $0.', 'error');
+      return;
+    }
+
+    // Validation using general parameters config
+    let maxPricePerSeat = 5.00;
+    let maxPassengerSeats = 4;
+    const savedParams = localStorage.getItem('u_ride_general_params');
+    if (savedParams) {
+      try {
+        const parsed = JSON.parse(savedParams);
+        if (parsed.maxPricePerSeat) maxPricePerSeat = Number(parsed.maxPricePerSeat);
+        if (parsed.maxPassengerSeats) maxPassengerSeats = Number(parsed.maxPassengerSeats);
+      } catch (e) {}
+    }
+
+    if (parseFloat(formData.pricePerSeat) > maxPricePerSeat) {
+      addToast(`El precio por persona no puede superar el límite de $${maxPricePerSeat.toFixed(2)}.`, 'error');
+      return;
+    }
+
+    if (parseInt(formData.availableSeats) > maxPassengerSeats) {
+      addToast(`La cantidad de asientos no puede ser mayor que el límite de ${maxPassengerSeats} asientos.`, 'error');
+      return;
+    }
+
     if (!editRideId) return;
     try {
       const combinedRules = [...selectedRules, customRule].map(r => r.trim()).filter(Boolean).join(', ');

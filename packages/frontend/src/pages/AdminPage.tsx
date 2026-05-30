@@ -410,7 +410,7 @@ export const AdminPage: React.FC = () => {
             {/* Health Stats */}
             <div className="glass-card p-6 bg-white border border-zinc-150 rounded-2xl lg:col-span-2 space-y-6">
               <h3 className="text-lg font-bold text-black flex items-center gap-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-500">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-black">
                   <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>
                 Indicadores de Salud del Sistema
@@ -433,7 +433,7 @@ export const AdminPage: React.FC = () => {
                     <span>{completionRate}%</span>
                   </div>
                   <div className="w-full bg-zinc-100 h-2.5 rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${completionRate}%` }} />
+                    <div className="bg-black h-full rounded-full transition-all duration-500" style={{ width: `${completionRate}%` }} />
                   </div>
                 </div>
 
@@ -443,7 +443,7 @@ export const AdminPage: React.FC = () => {
                     <span>{acceptanceRate}%</span>
                   </div>
                   <div className="w-full bg-zinc-100 h-2.5 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${acceptanceRate}%` }} />
+                    <div className="bg-black h-full rounded-full transition-all duration-500" style={{ width: `${acceptanceRate}%` }} />
                   </div>
                 </div>
 
@@ -453,7 +453,7 @@ export const AdminPage: React.FC = () => {
                     <span>{suspensionRate}%</span>
                   </div>
                   <div className="w-full bg-zinc-100 h-2.5 rounded-full overflow-hidden">
-                    <div className="bg-red-500 h-full rounded-full transition-all duration-500" style={{ width: `${suspensionRate}%` }} />
+                    <div className="bg-black h-full rounded-full transition-all duration-500" style={{ width: `${suspensionRate}%` }} />
                   </div>
                 </div>
               </div>
@@ -573,7 +573,7 @@ export const AdminPage: React.FC = () => {
                   ) : (
                     <button 
                       onClick={() => suspendUser(u.id)} 
-                      className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-600 hover:text-white rounded-xl text-xs font-black tracking-wide shadow-sm transition-all duration-300 cursor-pointer"
+                      className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-black hover:text-white hover:border-black rounded-xl text-xs font-black tracking-wide shadow-sm transition-all duration-300 cursor-pointer"
                     >
                       Suspender
                     </button>
@@ -595,7 +595,7 @@ export const AdminPage: React.FC = () => {
               <button 
                 onClick={() => setUsersPage(p => Math.max(1, p - 1))}
                 disabled={usersPage === 1}
-                className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-black hover:text-white hover:border-black disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
@@ -607,7 +607,7 @@ export const AdminPage: React.FC = () => {
                   className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
                     usersPage === p 
                       ? 'bg-black text-white shadow-md' 
-                      : 'border border-zinc-200 text-zinc-600 hover:bg-zinc-50 bg-white'
+                      : 'border border-zinc-200 text-zinc-600 hover:bg-black hover:text-white hover:border-black bg-white'
                   }`}
                 >
                   {p}
@@ -617,7 +617,7 @@ export const AdminPage: React.FC = () => {
               <button 
                 onClick={() => setUsersPage(p => Math.min(totalUsersPages, p + 1))}
                 disabled={usersPage === totalUsersPages}
-                className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-black hover:text-white hover:border-black disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
@@ -646,9 +646,9 @@ export const AdminPage: React.FC = () => {
                       <div className="flex items-center justify-between mb-3">
                         <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-sm ${
                           r.status === 'PENDING' 
-                            ? 'bg-white text-amber-500 border-amber-500' 
+                            ? 'bg-zinc-100 text-zinc-800 border-zinc-200' 
                             : r.status === 'RESOLVED' 
-                              ? 'bg-white text-emerald-600 border-emerald-500' 
+                              ? 'bg-black text-white border-black' 
                               : 'bg-zinc-50 text-zinc-600 border-zinc-300'
                         }`}>
                           {r.status === 'PENDING' ? 'Pendiente' : r.status === 'RESOLVED' ? 'Resuelto' : 'Descartado'}
@@ -679,7 +679,7 @@ export const AdminPage: React.FC = () => {
                         </button>
                         <button 
                           onClick={() => resolveReport(r.id, 'RESOLVED')} 
-                          className="px-4 py-2 rounded-xl bg-white border border-emerald-500 hover:bg-emerald-500 hover:text-white text-emerald-600 text-xs font-black shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5"
+                          className="px-4 py-2 rounded-xl bg-white border border-black hover:bg-black hover:text-white text-black text-xs font-black shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5"
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                           Resolver
@@ -696,7 +696,7 @@ export const AdminPage: React.FC = () => {
                   <button 
                     onClick={() => setReportsPage(p => Math.max(1, p - 1))}
                     disabled={reportsPage === 1}
-                    className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-black hover:text-white hover:border-black disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                   </button>
@@ -708,7 +708,7 @@ export const AdminPage: React.FC = () => {
                       className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
                         reportsPage === p 
                           ? 'bg-black text-white shadow-md' 
-                          : 'border border-zinc-200 text-zinc-600 hover:bg-zinc-50 bg-white'
+                          : 'border border-zinc-200 text-zinc-600 hover:bg-black hover:text-white hover:border-black bg-white'
                       }`}
                     >
                       {p}
@@ -718,7 +718,7 @@ export const AdminPage: React.FC = () => {
                   <button 
                     onClick={() => setReportsPage(p => Math.min(totalReportsPages, p + 1))}
                     disabled={reportsPage === totalReportsPages}
-                    className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="w-10 h-10 rounded-xl border border-zinc-200 text-black flex items-center justify-center hover:bg-black hover:text-white hover:border-black disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
@@ -843,7 +843,7 @@ export const AdminPage: React.FC = () => {
             <div className="flex justify-end pt-2">
               <button 
                 onClick={handleSaveParams}
-                className="w-full md:w-auto px-8 py-3 bg-black text-white hover:bg-zinc-800 font-bold rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-black hover:border-zinc-800 tracking-wide cursor-pointer shadow-md"
+                className="w-full md:w-auto px-8 py-3 bg-white text-black border border-black hover:bg-black hover:text-white font-bold rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 tracking-wide cursor-pointer shadow-md"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
