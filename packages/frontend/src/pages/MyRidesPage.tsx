@@ -1020,14 +1020,14 @@ export const MyRidesPage: React.FC = () => {
                     <>
                       <Link
                         to={`/tracking/${ride.id}`}
-                        className="px-4 py-2 text-xs font-bold bg-uber-blue text-white hover:bg-blue-700 rounded-lg transition-colors"
+                        className="px-4 py-2 text-xs font-bold bg-black text-white hover:bg-zinc-800 rounded-lg transition-colors shadow-sm"
                         style={{ textDecoration: 'none' }}
                       >
                         SEGUIMIENTO LIVE
                       </Link>
                       <button
                         onClick={() => completeRide(ride.id)}
-                        className="px-4 py-2 text-xs font-bold bg-uber-black text-white hover:bg-uber-gray-800 rounded-lg transition-colors border-none"
+                        className="px-4 py-2 text-xs font-bold bg-white text-black border border-black hover:bg-zinc-50 rounded-lg transition-colors"
                         style={{ cursor: 'pointer' }}
                       >
                         COMPLETAR

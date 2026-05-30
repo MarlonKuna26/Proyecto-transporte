@@ -37,8 +37,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
     if (!token) {
-      logger.warn('Missing authorization token', 'AUTH_MIDDLEWARE');
-      throw new UnauthorizedError('Missing authorization token');
+      logger.warn('Token de autorización ausente', 'AUTH_MIDDLEWARE');
+      throw new UnauthorizedError('Token de autorización ausente');
     }
 
     // 2. Validar token
@@ -60,7 +60,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     } else {
       res.status(401).json({
         success: false,
-        error: 'Unauthorized',
+        error: 'No autorizado',
       });
     }
   }
@@ -75,19 +75,19 @@ export const authorizeRole =
     if (!req.user) {
       res.status(401).json({
         success: false,
-        error: 'User not authenticated',
+        error: 'Usuario no autenticado',
       });
       return;
     }
 
     if (!allowedRoles.includes(req.user.role)) {
       logger.warn(
-        `User ${req.user.userId} attempted to access admin resource`,
+        `El usuario ${req.user.userId} intentó acceder a un recurso restringido`,
         'AUTH_MIDDLEWARE',
       );
       res.status(403).json({
         success: false,
-        error: 'Forbidden: insufficient permissions',
+        error: 'Acceso prohibido: permisos insuficientes',
       });
       return;
     }

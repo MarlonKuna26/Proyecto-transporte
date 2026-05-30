@@ -51,7 +51,7 @@ export class JWTService {
       const decoded = jwt.verify(token, this.ACCESS_SECRET) as JWTPayload;
       return decoded;
     } catch (error) {
-      throw new Error('Invalid or expired access token');
+      throw new Error('Token de acceso inválido o expirado');
     }
   }
 
@@ -63,7 +63,7 @@ export class JWTService {
       const decoded = jwt.verify(token, this.REFRESH_SECRET) as JWTPayload;
       return decoded;
     } catch (error) {
-      throw new Error('Invalid or expired refresh token');
+      throw new Error('Token de actualización inválido o expirado');
     }
   }
 

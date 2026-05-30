@@ -58,7 +58,7 @@ export class App {
     this.express.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
-        error: 'Route not found',
+        error: 'Ruta no encontrada',
         path: req.path,
       });
     });

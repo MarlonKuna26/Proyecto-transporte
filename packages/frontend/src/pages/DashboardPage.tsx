@@ -51,6 +51,14 @@ const animationStyles = `
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect admin users to admin panel
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
+
   const [recentRides, setRecentRides] = useState<Ride[]>([]);
   const [activeDrivers, setActiveDrivers] = useState<{ride: Ride, driver: UserProfile}[]>([]);
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);

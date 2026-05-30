@@ -28,72 +28,72 @@
 @layer components {
   /* ── Legacy classes (backward compat for other pages) ── */
   .glass-card {
-    @apply bg-white border border-primary-100/60 rounded-2xl shadow-card;
+    @apply bg-white border border-zinc-100 rounded-2xl shadow-sm;
   }
   .glass-card-dark {
-    @apply bg-navy-950 border border-navy-800 rounded-2xl shadow-card;
+    @apply bg-zinc-950 border border-zinc-800 rounded-2xl shadow-lg;
   }
   .btn-primary {
-    @apply bg-primary-500 text-white font-semibold rounded-xl
-           px-6 py-3 transition-all duration-300 hover:bg-primary-600
-           hover:shadow-blue active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-black text-white font-bold rounded-xl
+           px-6 py-3 transition-all duration-300 hover:bg-zinc-800
+           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-white text-navy-700 font-semibold rounded-xl px-6 py-3
-           border border-primary-200 transition-all duration-300
-           hover:bg-primary-50 active:scale-[0.98];
+    @apply bg-white text-black font-bold rounded-xl px-6 py-3
+           border border-zinc-200 transition-all duration-300
+           hover:bg-zinc-50 active:scale-[0.98];
   }
   .btn-accent {
-    @apply bg-navy-500 text-white font-semibold rounded-xl
-           px-6 py-3 transition-all duration-300 hover:bg-navy-600
+    @apply bg-zinc-100 text-black font-bold rounded-xl
+           px-6 py-3 transition-all duration-300 hover:bg-zinc-200
            active:scale-[0.98];
   }
   .btn-danger {
-    @apply bg-red-500 text-white font-semibold rounded-xl
-           px-6 py-3 transition-all duration-300 hover:bg-red-600
-           active:scale-[0.98];
+    @apply bg-white text-red-600 font-bold rounded-xl
+           px-6 py-3 transition-all duration-300 hover:bg-red-50
+           border border-red-100 active:scale-[0.98];
   }
   .input-field {
-    @apply w-full px-4 py-3 bg-white border border-primary-200 rounded-xl text-navy-900
-           placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40
-           focus:border-primary-500 transition-all duration-300;
+    @apply w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-black
+           placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-black/5
+           focus:border-black transition-all duration-300;
   }
   .input-field-light {
-    @apply w-full px-4 py-3 bg-dark-50 border border-dark-200 rounded-xl text-dark-900
-           placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40
-           focus:border-primary-500 transition-all duration-300;
+    @apply w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-black
+           placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-black/5
+           focus:border-black transition-all duration-300;
   }
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black;
   }
   .badge-success {
-    @apply badge bg-primary-50 text-primary-700;
+    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-100;
   }
   .badge-warning {
-    @apply badge bg-amber-50 text-amber-700;
+    @apply badge bg-amber-50 text-amber-700 border border-amber-100;
   }
   .badge-danger {
-    @apply badge bg-red-50 text-red-700;
+    @apply badge bg-red-50 text-red-700 border border-red-100;
   }
   .badge-info {
-    @apply badge bg-navy-50 text-navy-700;
+    @apply badge bg-zinc-100 text-zinc-700 border border-zinc-200;
   }
   .page-gradient {
-    @apply min-h-screen bg-gradient-to-br from-navy-950 via-navy-900 to-primary-950;
+    @apply min-h-screen bg-zinc-50;
   }
   .page-gradient-light {
-    @apply min-h-screen bg-gradient-to-br from-white via-primary-50 to-white;
+    @apply min-h-screen bg-white;
   }
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1;
+    @apply transition-all duration-400 hover:shadow-xl hover:-translate-y-1;
   }
   .nav-link {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-navy-300 font-medium
-           transition-all duration-200 hover:bg-white/10 hover:text-white;
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 font-bold
+           transition-all duration-200 hover:bg-black hover:text-white;
   }
   .nav-link-active {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium
-           bg-primary-500/20 border border-primary-500/30;
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white font-bold
+           bg-black border border-black shadow-lg shadow-black/10;
   }
   .stat-card {
     @apply glass-card p-6 animate-fade-in;
@@ -204,22 +204,22 @@
 
   /* Status badges - Uber style */
   .uber-badge {
-    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-black border;
   }
   .uber-badge-available {
-    @apply uber-badge bg-green-50 text-uber-green;
+    @apply uber-badge bg-emerald-50 text-emerald-700 border-emerald-100;
   }
   .uber-badge-full {
-    @apply uber-badge bg-amber-50 text-amber-600;
+    @apply uber-badge bg-amber-50 text-amber-700 border-amber-100;
   }
   .uber-badge-progress {
-    @apply uber-badge bg-blue-50 text-uber-blue;
+    @apply uber-badge bg-black text-white border-black;
   }
   .uber-badge-done {
-    @apply uber-badge bg-uber-gray-100 text-uber-gray-600;
+    @apply uber-badge bg-zinc-100 text-zinc-500 border-zinc-200;
   }
   .uber-badge-cancel {
-    @apply uber-badge bg-red-50 text-uber-red;
+    @apply uber-badge bg-red-50 text-red-700 border-red-100;
   }
 }
 

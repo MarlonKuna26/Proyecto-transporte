@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
+import { authenticateToken, authorizeRole } from '@shared/middlewares/AuthMiddleware';
 import { DatabaseConnection } from '@config/database';
 import { AppError, ValidationError, NotFoundError, ForbiddenError } from '@shared/errors/AppError';
 import { Logger } from '@config/logger';
@@ -13,14 +13,14 @@ export function createTrackingRoutes(): Router {
   // ======== GPS TRACKING ========
 
   // Conductor envía su ubicación actual
-  router.post('/:rideId/update', authenticateToken, async (req: Request, res: Response) => {
+  router.post('/:rideId/update', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const { rideId } = req.params;
       const { latitude, longitude, heading, speed } = req.body;
       const userId = req.user!.userId;
 
       if (latitude === undefined || longitude === undefined) {
-        throw new ValidationError('latitude and longitude are required');
+        throw new ValidationError('La latitud y longitud son obligatorias');
       }
 
       // Verificar que el usuario es el conductor del viaje
@@ -29,7 +29,7 @@ export function createTrackingRoutes(): Router {
         [rideId, userId],
       );
       if (!ride.rows[0]) {
-        throw new ForbiddenError('Only the driver of an active ride can update tracking');
+        throw new ForbiddenError('Solo el conductor de un viaje activo puede actualizar el seguimiento');
       }
 
       // Insertar punto de tracking
@@ -69,7 +69,7 @@ export function createTrackingRoutes(): Router {
   });
 
   // Historial de ubicaciones del viaje
-  router.get('/:rideId/history', authenticateToken, async (req: Request, res: Response) => {
+  router.get('/:rideId/history', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const result = await pool.query(
         `SELECT latitud_actual as lat, longitud_actual as lng, rumbo as heading, velocidad as speed, ultima_actualizacion as timestamp
@@ -85,7 +85,7 @@ export function createTrackingRoutes(): Router {
   // ======== RIDE LIFECYCLE ========
 
   // Iniciar viaje (conductor)
-  router.put('/rides/:rideId/start', authenticateToken, async (req: Request, res: Response) => {
+  router.put('/rides/:rideId/start', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const { rideId } = req.params;
       const userId = req.user!.userId;
@@ -95,7 +95,7 @@ export function createTrackingRoutes(): Router {
         [rideId, userId],
       );
       if (!ride.rows[0]) {
-        throw new NotFoundError('Ride not found or not eligible to start');
+        throw new NotFoundError('Viaje no encontrado o no apto para iniciar');
       }
 
       // Check for accepted passengers
@@ -131,7 +131,7 @@ export function createTrackingRoutes(): Router {
   });
 
   // Completar viaje (conductor)
-  router.put('/rides/:rideId/complete', authenticateToken, async (req: Request, res: Response) => {
+  router.put('/rides/:rideId/complete', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const { rideId } = req.params;
       const userId = req.user!.userId;
@@ -141,7 +141,7 @@ export function createTrackingRoutes(): Router {
         [rideId, userId],
       );
       if (!ride.rows[0]) {
-        throw new NotFoundError('Ride not found or not in progress');
+        throw new NotFoundError('Viaje no encontrado o no está en curso');
       }
 
       if (ride.rows[0].inicio_real) {

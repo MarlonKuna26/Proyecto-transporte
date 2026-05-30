@@ -52,7 +52,7 @@ export class AuthController {
       const { email, code } = req.body;
 
       if (!email || !code) {
-        throw new ValidationError('Email and verification code are required');
+        throw new ValidationError('El correo y el código de verificación son obligatorios');
       }
 
       const result = await this.verifyEmailUseCase.execute({ email, code });
@@ -73,7 +73,7 @@ export class AuthController {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        throw new ValidationError('Email and password are required');
+        throw new ValidationError('El correo y la contraseña son obligatorios');
       }
 
       const loginDTO = new LoginDTO(email, password);
@@ -95,7 +95,7 @@ export class AuthController {
       const { email } = req.body;
 
       if (!email) {
-        throw new ValidationError('Email is required');
+        throw new ValidationError('El correo es obligatorio');
       }
 
       const result = await this.requestPasswordResetUseCase.execute({ email });
@@ -137,7 +137,7 @@ export class AuthController {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        throw new ValidationError('Refresh token is required');
+        throw new ValidationError('El token de actualización es obligatorio');
       }
 
       const payload = JWTService.validateRefreshToken(refreshToken);

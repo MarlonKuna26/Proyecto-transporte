@@ -58,7 +58,7 @@ export const Layout: React.FC = () => {
     setDropdownOpen(false);
   }, [location.pathname]);
 
-  const allNav = user?.role === 'ADMIN' ? [...navItems, ...adminNav] : navItems;
+  const allNav = user?.role === 'ADMIN' ? adminNav : navItems;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -101,17 +101,19 @@ export const Layout: React.FC = () => {
 
         {/* Right: Activity + Profile dropdown */}
         <div className="flex items-center gap-3">
-          {/* Activity button */}
-          <Link
-            to="/my-rides"
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-uber-gray-700 hover:bg-uber-gray-50 rounded-full transition-colors"
-            style={{ textDecoration: 'none' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            <span>Actividad</span>
-          </Link>
+          {/* Activity button (Only for STUDENT) */}
+          {user?.role === 'STUDENT' && (
+            <Link
+              to="/my-rides"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-uber-gray-700 hover:bg-uber-gray-50 rounded-full transition-colors"
+              style={{ textDecoration: 'none' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span>Actividad</span>
+            </Link>
+          )}
 
           {/* Profile dropdown trigger */}
           <div className="relative" ref={desktopRef}>
@@ -161,64 +163,78 @@ export const Layout: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Quick action buttons (Uber style 3-column row) */}
-                <div className="px-6 pb-3 flex gap-3">
-                  <DropdownQuickBtn icon={<IconHelp />} label="Ayuda" onClick={() => { setDropdownOpen(false); navigate('/rides'); }} />
-                  <DropdownQuickBtn icon={<IconWallet />} label="Pagos" onClick={() => { setDropdownOpen(false); navigate('/payments'); }} />
-                  <DropdownQuickBtn icon={<IconActivity />} label="Actividad" onClick={() => { setDropdownOpen(false); navigate('/my-rides'); }} />
-                </div>
+                {/* Quick action buttons (Only for STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <div className="px-6 pb-3 flex gap-3">
+                    <DropdownQuickBtn icon={<IconHelp />} label="Ayuda" onClick={() => { setDropdownOpen(false); navigate('/rides'); }} />
+                    <DropdownQuickBtn icon={<IconWallet />} label="Pagos" onClick={() => { setDropdownOpen(false); navigate('/payments'); }} />
+                    <DropdownQuickBtn icon={<IconActivity />} label="Actividad" onClick={() => { setDropdownOpen(false); navigate('/my-rides'); }} />
+                  </div>
+                )}
 
                 <div className="h-px bg-uber-gray-100 mx-4 my-1" />
 
-                {/* ── All profile options (all functional) ── */}
+                {/* ── All profile options ── */}
 
-                {/* Gestionar cuenta → /profile */}
-                <Link to="/profile" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
-                  <span>Gestionar cuenta</span>
-                </Link>
+                {/* Gestionar cuenta → /profile (STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <Link to="/profile" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span>Gestionar cuenta</span>
+                  </Link>
+                )}
 
-                {/* Mis Viajes → /my-rides */}
-                <Link to="/my-rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/><circle cx="6.5" cy="15.5" r="1.5"/><circle cx="17.5" cy="15.5" r="1.5"/>
-                  </svg>
-                  <span>Mis Viajes</span>
-                </Link>
+                {/* Mis Viajes → /my-rides (STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <Link to="/my-rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/><circle cx="6.5" cy="15.5" r="1.5"/><circle cx="17.5" cy="15.5" r="1.5"/>
+                    </svg>
+                    <span>Mis Viajes</span>
+                  </Link>
+                )}
 
-                {/* Solicitudes → /my-requests */}
-                <Link to="/my-requests" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
-                  </svg>
-                  <span>Solicitudes</span>
-                </Link>
+                {/* Solicitudes → /my-requests (STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <Link to="/my-requests" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                    </svg>
+                    <span>Solicitudes</span>
+                  </Link>
+                )}
 
-                {/* Pagos → /payments */}
-                <Link to="/payments" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-                  </svg>
-                  <span>Pagos</span>
-                </Link>
+                {/* Pagos → /payments (STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <Link to="/payments" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                    <span>Pagos</span>
+                  </Link>
+                )}
 
-                {/* Mis Reportes → /my-reports */}
-                <Link to="/my-reports" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                  </svg>
-                  <span>Mis Reportes</span>
-                </Link>
+                {/* Mis Reportes → /my-reports (STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <Link to="/my-reports" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Mis Reportes</span>
+                  </Link>
+                )}
 
-                {/* Buscar viajes → /rides */}
-                <Link to="/rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                  <span>Buscar viajes</span>
-                </Link>
+                {/* Buscar viajes → /rides (STUDENT) */}
+                {user?.role === 'STUDENT' && (
+                  <Link to="/rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span>Buscar viajes</span>
+                  </Link>
+                )}
 
                 {/* Panel Admin (solo ADMIN) → /admin */}
                 {user?.role === 'ADMIN' && (
@@ -296,30 +312,35 @@ export const Layout: React.FC = () => {
 
               <div className="h-px bg-uber-gray-100 mx-4 my-1" />
 
-              <Link to="/profile" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span>Mi perfil</span>
-              </Link>
-              <Link to="/my-rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/><circle cx="6.5" cy="15.5" r="1.5"/><circle cx="17.5" cy="15.5" r="1.5"/></svg>
-                <span>Mis Viajes</span>
-              </Link>
-              <Link to="/my-requests" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-                <span>Solicitudes</span>
-              </Link>
-              <Link to="/payments" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                <span>Pagos</span>
-              </Link>
-              <Link to="/my-reports" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                <span>Mis Reportes</span>
-              </Link>
-              <Link to="/rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>Buscar viajes</span>
-              </Link>
+              {/* STUDENT mobile options */}
+              {user?.role === 'STUDENT' && (
+                <>
+                  <Link to="/profile" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Mi perfil</span>
+                  </Link>
+                  <Link to="/my-rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/><circle cx="6.5" cy="15.5" r="1.5"/><circle cx="17.5" cy="15.5" r="1.5"/></svg>
+                    <span>Mis Viajes</span>
+                  </Link>
+                  <Link to="/my-requests" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                    <span>Solicitudes</span>
+                  </Link>
+                  <Link to="/payments" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    <span>Pagos</span>
+                  </Link>
+                  <Link to="/my-reports" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span>Mis Reportes</span>
+                  </Link>
+                  <Link to="/rides" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span>Buscar viajes</span>
+                  </Link>
+                </>
+              )}
 
               {user?.role === 'ADMIN' && (
                 <Link to="/admin" className="uber-dropdown-item" onClick={() => setDropdownOpen(false)}>
@@ -349,41 +370,43 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* ═══ MOBILE BOTTOM TAB BAR (Uber style) ═══ */}
-      <nav className="uber-bottom-bar md:hidden">
-        {mobileBottomTabs.map((tab) => {
-          const active = isActive(tab.path);
-          if (tab.path === '/profile') {
+      {user?.role === 'STUDENT' && (
+        <nav className="uber-bottom-bar md:hidden">
+          {mobileBottomTabs.map((tab) => {
+            const active = isActive(tab.path);
+            if (tab.path === '/profile') {
+              return (
+                <Link
+                  key={tab.path}
+                  to={tab.path}
+                  className={active ? 'uber-bottom-tab-active' : 'uber-bottom-tab'}
+                >
+                  {user?.photoUrl ? (
+                    <div className={`w-[22px] h-[22px] rounded-full overflow-hidden border ${active ? 'border-black' : 'border-zinc-300'} flex items-center justify-center shrink-0`}>
+                      <img src={user.photoUrl} alt="Account" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <MobileAccountIcon active={active} />
+                  )}
+                  <span>{tab.label}</span>
+                </Link>
+              );
+            }
+            
+            const Icon = tab.icon;
             return (
               <Link
                 key={tab.path}
                 to={tab.path}
                 className={active ? 'uber-bottom-tab-active' : 'uber-bottom-tab'}
               >
-                {user?.photoUrl ? (
-                  <div className={`w-[22px] h-[22px] rounded-full overflow-hidden border ${active ? 'border-black' : 'border-zinc-300'} flex items-center justify-center shrink-0`}>
-                    <img src={user.photoUrl} alt="Account" className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <MobileAccountIcon active={active} />
-                )}
+                <Icon active={active} />
                 <span>{tab.label}</span>
               </Link>
             );
-          }
-          
-          const Icon = tab.icon;
-          return (
-            <Link
-              key={tab.path}
-              to={tab.path}
-              className={active ? 'uber-bottom-tab-active' : 'uber-bottom-tab'}
-            >
-              <Icon active={active} />
-              <span>{tab.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+          })}
+        </nav>
+      )}
     </div>
   );
 };

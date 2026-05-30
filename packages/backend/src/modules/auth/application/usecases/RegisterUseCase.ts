@@ -42,7 +42,7 @@ export class RegisterUseCase implements IUseCase<RegisterDTO, RegisterResponseDT
     // 2. Verificar que no exista
     const existingUser = await this.userRepository.findByEmail(normalizedEmail);
     if (existingUser) {
-      throw new ConflictError('A user with this email already exists');
+      throw new ConflictError('Ya existe un usuario con este correo');
     }
 
     // 3. Hashear contraseña

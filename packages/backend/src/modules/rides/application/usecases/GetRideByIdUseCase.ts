@@ -8,7 +8,7 @@ export class GetRideByIdUseCase implements IUseCase<string, Ride> {
 
   async execute(id: string): Promise<Ride> {
     const ride = await this.rideRepository.findById(id);
-    if (!ride) throw new NotFoundError('Ride not found');
+    if (!ride) throw new NotFoundError('Viaje no encontrado');
     return ride;
   }
 }

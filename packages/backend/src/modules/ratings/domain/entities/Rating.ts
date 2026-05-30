@@ -20,7 +20,7 @@ export class Rating {
     id: string = uuidv4(),
     createdAt: Date = new Date(),
   ) {
-    if (score < 1 || score > 5) throw new Error('Score must be between 1 and 5');
+    if (score < 1 || score > 5) throw new Error('La puntuación debe estar entre 1 y 5');
     this.id = id;
     this.rideId = rideId;
     this.raterId = raterId;

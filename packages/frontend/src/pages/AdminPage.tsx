@@ -174,8 +174,8 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setSuspendModal({ isOpen: false, userId: '' })} className="px-5 py-2.5 rounded-xl font-bold text-sm text-zinc-600 hover:bg-zinc-100 transition-colors">Cancelar</button>
-              <button onClick={executeSuspendUser} className="px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all">Suspender</button>
+              <button onClick={() => setSuspendModal({ isOpen: false, userId: '' })} className="px-5 py-2.5 rounded-xl font-bold text-sm text-zinc-500 hover:bg-zinc-100 transition-colors">Cancelar</button>
+              <button onClick={executeSuspendUser} className="px-5 py-2.5 rounded-xl font-bold text-sm text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-all">Suspender Usuario</button>
             </div>
           </div>
         </div>
@@ -193,8 +193,8 @@ export const AdminPage: React.FC = () => {
               onChange={(e) => setResolveNotes(e.target.value)}
             />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setResolveModal({ isOpen: false, reportId: '', status: 'RESOLVED' })} className="px-5 py-2.5 rounded-xl font-bold text-sm text-zinc-600 hover:bg-zinc-100 transition-colors">Cancelar</button>
-              <button onClick={executeResolveReport} className={`px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg ${resolveModal.status === 'RESOLVED' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-black hover:bg-zinc-800 shadow-black/20'}`}>Aceptar</button>
+              <button onClick={() => setResolveModal({ isOpen: false, reportId: '', status: 'RESOLVED' })} className="px-5 py-2.5 rounded-xl font-bold text-sm text-zinc-500 hover:bg-zinc-100 transition-colors">Cancelar</button>
+              <button onClick={executeResolveReport} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${resolveModal.status === 'RESOLVED' ? 'bg-black text-white hover:bg-zinc-800' : 'bg-red-600 text-white hover:bg-red-700'}`}>Aceptar Acción</button>
             </div>
           </div>
         </div>

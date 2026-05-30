@@ -61,16 +61,16 @@ export class VerifyEmailUseCase implements IUseCase<VerifyEmailInput, VerifyEmai
 
     if (pendingResult.rows.length === 0) {
       if (existingUser) {
-        throw new ValidationError('Invalid or expired verification code');
+        throw new ValidationError('Código de verificación inválido o expirado');
       }
-      throw new NotFoundError('No pending registration found for this email');
+      throw new NotFoundError('No se encontró un registro pendiente para este correo');
     }
 
     const pending = pendingResult.rows[0];
 
     // 3. Validar código (separado)
     if (pending.codigo.trim() !== normalizedCode) {
-      throw new ValidationError('Invalid verification code');
+      throw new ValidationError('Código de verificación inválido');
     }
 
     // 4. Validar expiración (separado)

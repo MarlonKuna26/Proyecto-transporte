@@ -29,20 +29,20 @@ export class ValidationError extends AppError {
 }
 
 export class AuthenticationError extends AppError {
-  constructor(message: string = 'Authentication failed') {
+  constructor(message: string = 'Autenticación fallida') {
     super(message, 401);
   }
 }
 
 // Alias para AuthenticationError
 export class UnauthorizedError extends AuthenticationError {
-  constructor(message: string = 'Unauthorized') {
+  constructor(message: string = 'No autorizado') {
     super(message);
   }
 }
 
 export class AuthorizationError extends AppError {
-  constructor(message: string = 'Access denied') {
+  constructor(message: string = 'Acceso denegado') {
     super(message, 403);
   }
 }
@@ -60,13 +60,13 @@ export class ConflictError extends AppError {
 }
 
 export class InternalServerError extends AppError {
-  constructor(message: string = 'Internal server error') {
+  constructor(message: string = 'Error interno del servidor') {
     super(message, 500, false);
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message: string = 'Forbidden') {
+  constructor(message: string = 'Acceso prohibido') {
     super(message, 403);
   }
 }

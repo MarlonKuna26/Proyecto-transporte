@@ -322,9 +322,9 @@ export const TrackingPage: React.FC = () => {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-uber-gray-200 h-2 rounded-full mt-3 overflow-hidden">
+                <div className="w-full bg-zinc-100 h-2 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-blue-500 h-full transition-all duration-1000 ease-out rounded-full" 
+                    className="bg-black h-full transition-all duration-1000 ease-out rounded-full" 
                     style={{ width: `${Math.min(100, (elapsedMinutes / Math.max(1, etaMinutes)) * 100)}%` }} 
                   />
                 </div>
@@ -372,14 +372,14 @@ export const TrackingPage: React.FC = () => {
                 {!gpsActive ? (
                   <button
                     onClick={startGPS}
-                    className="px-4 py-2.5 text-xs font-bold bg-uber-blue text-white hover:bg-blue-700 rounded-lg transition-colors border-none cursor-pointer shadow-sm uppercase tracking-wide"
+                    className="px-4 py-2.5 text-xs font-bold bg-black text-white hover:bg-zinc-800 rounded-lg transition-colors border-none cursor-pointer shadow-sm uppercase tracking-wide"
                   >
                     Activar GPS
                   </button>
                 ) : (
                   <button
                     onClick={stopGPS}
-                    className="px-4 py-2.5 text-xs font-bold bg-white text-uber-gray-700 hover:bg-uber-gray-100 border border-uber-gray-200 rounded-lg transition-all cursor-pointer uppercase tracking-wide"
+                    className="px-4 py-2.5 text-xs font-bold bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200 rounded-lg transition-all cursor-pointer uppercase tracking-wide"
                   >
                     Pausar GPS
                   </button>

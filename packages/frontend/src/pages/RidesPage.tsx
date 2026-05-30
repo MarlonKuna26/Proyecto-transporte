@@ -265,7 +265,7 @@ export const RidesPage: React.FC = () => {
           {(filters.originZone || filters.destinationZone || filters.departureDate) && (
             <button
               onClick={() => setFilters({ originZone: '', destinationZone: '', departureDate: '' })}
-              className="self-end md:self-center px-4 py-2.5 text-xs font-semibold text-uber-red hover:bg-red-50 rounded-xl transition-colors shrink-0"
+              className="self-end md:self-center px-4 py-2.5 text-xs font-bold text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-xl transition-all shrink-0"
               style={{ border: 'none', cursor: 'pointer', background: 'transparent' }}
             >
               Limpiar filtros
@@ -496,7 +496,7 @@ export const RidesPage: React.FC = () => {
                             href={`https://wa.me/${driverProfile.phone.startsWith('+') ? driverProfile.phone.replace('+', '') : (driverProfile.phone.startsWith('09') ? '593' + driverProfile.phone.substring(1) : driverProfile.phone)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 transition-colors shadow-sm"
+                            className="w-9 h-9 rounded-full bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm"
                             title="Enviar WhatsApp"
                           >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>

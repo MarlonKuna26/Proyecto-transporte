@@ -18,7 +18,7 @@ export class UpdateProfileUseCase implements IUseCase<UpdateProfileInput, Profil
   async execute(input: UpdateProfileInput): Promise<ProfileResponseDTO> {
     const user = await this.userRepository.findById(input.userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('Usuario no encontrado');
     }
 
     // Actualizar nombre en users si se proporciona

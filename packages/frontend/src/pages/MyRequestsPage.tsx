@@ -517,7 +517,7 @@ export const MyRequestsPage: React.FC = () => {
                     {(req.status === 'PENDING' || (req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && ride.status !== 'IN_PROGRESS')) && (
                       <button
                         onClick={() => setCancelRequestId(req.id)}
-                        className="px-4 py-2.5 text-xs font-bold text-uber-red bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all self-start md:self-auto cursor-pointer"
+                        className="px-4 py-2.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-100 rounded-xl transition-all self-start md:self-auto cursor-pointer"
                       >
                         Cancelar solicitud
                       </button>
@@ -531,8 +531,8 @@ export const MyRequestsPage: React.FC = () => {
                         
                         if (isPaidWithPayPal) {
                           return (
-                            <div className="px-4 py-2.5 text-xs font-bold rounded-xl text-green-700 bg-green-50 border border-green-200 self-start md:self-auto flex items-center gap-1.5 cursor-default">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <div className="px-4 py-2.5 text-[10px] uppercase tracking-wider font-black rounded-xl text-emerald-700 bg-emerald-50 border border-emerald-100 self-start md:self-auto flex items-center gap-1.5 cursor-default">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                               Pagado con PayPal
                             </div>
                           );
@@ -546,8 +546,8 @@ export const MyRequestsPage: React.FC = () => {
                             }}
                             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center gap-1.5 ${
                               paymentInfo.method.toLowerCase() === 'paypal' 
-                                ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 hover:border-indigo-300'
-                                : 'text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300'
+                                ? 'text-black bg-white hover:bg-zinc-50 border border-black shadow-sm'
+                                : 'text-black bg-white hover:bg-zinc-50 border border-zinc-200'
                             }`}
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -561,7 +561,7 @@ export const MyRequestsPage: React.FC = () => {
                     {req.status === 'ACCEPTED' && ride && ride.status !== 'COMPLETED' && ride.status !== 'CANCELLED' && (
                       <Link
                         to={`/tracking/${ride.id}`}
-                        className="px-4 py-2.5 text-xs font-bold text-white bg-uber-blue hover:bg-blue-700 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center justify-center gap-1.5"
+                        className="px-4 py-2.5 text-xs font-bold text-white bg-black hover:bg-zinc-800 rounded-xl transition-all self-start md:self-auto cursor-pointer flex items-center justify-center gap-1.5"
                         style={{ textDecoration: 'none' }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

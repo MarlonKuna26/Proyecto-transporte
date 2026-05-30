@@ -13,8 +13,8 @@ export class CreateRatingDTO {
   }
 
   private validate(): void {
-    if (!this.rideId) throw new Error('Ride ID is required');
-    if (!this.ratedId) throw new Error('Rated user ID is required');
-    if (!this.score || this.score < 1 || this.score > 5) throw new Error('Score must be between 1 and 5');
+    if (!this.rideId) throw new Error('El ID del viaje es obligatorio');
+    if (!this.ratedId) throw new Error('El ID del usuario calificado es obligatorio');
+    if (!this.score || this.score < 1 || this.score > 5) throw new Error('La puntuación debe estar entre 1 y 5');
   }
 }

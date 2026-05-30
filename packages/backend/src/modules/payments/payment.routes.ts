@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
+import { authenticateToken, authorizeRole } from '@shared/middlewares/AuthMiddleware';
 import { DatabaseConnection } from '@config/database';
 import { AppError, ValidationError, NotFoundError } from '@shared/errors/AppError';
 import { Logger } from '@config/logger';
@@ -11,13 +11,13 @@ export function createPaymentRoutes(): Router {
   const pool = DatabaseConnection.getInstance();
 
   // Crear pago (pasajero paga por su solicitud aceptada)
-  router.post('/', authenticateToken, async (req: Request, res: Response) => {
+  router.post('/', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const { rideRequestId, amount, paymentMethod, reference, comprobanteUrl } = req.body;
       const userId = req.user!.userId;
 
       if (!rideRequestId || amount === undefined) {
-        throw new ValidationError('rideRequestId and amount are required');
+        throw new ValidationError('El ID de solicitud de viaje y el monto son obligatorios');
       }
 
       // Verificar que la solicitud existe y pertenece al usuario
@@ -26,7 +26,7 @@ export function createPaymentRoutes(): Router {
         [rideRequestId, userId],
       );
       if (!reqResult.rows[0]) {
-        throw new NotFoundError('Accepted ride request not found');
+        throw new NotFoundError('No se encontró una solicitud de viaje aceptada');
       }
 
       const result = await pool.query(
@@ -87,13 +87,13 @@ export function createPaymentRoutes(): Router {
   };
 
   // Crear una orden en PayPal (Retorna el orderID al frontend)
-  router.post('/paypal/create-order', authenticateToken, async (req: Request, res: Response) => {
+  router.post('/paypal/create-order', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const { rideRequestId, amount } = req.body;
       const userId = req.user!.userId;
 
       if (!rideRequestId || amount === undefined) {
-        throw new ValidationError('rideRequestId and amount are required');
+        throw new ValidationError('El ID de solicitud de viaje y el monto son obligatorios');
       }
 
       // Validar que la solicitud de viaje pertenece al usuario y está aceptada
@@ -102,7 +102,7 @@ export function createPaymentRoutes(): Router {
         [rideRequestId, userId],
       );
       if (!reqResult.rows[0]) {
-        throw new NotFoundError('Accepted ride request not found');
+        throw new NotFoundError('No se encontró una solicitud de viaje aceptada');
       }
 
       const accessToken = await generatePayPalAccessToken();
@@ -143,7 +143,7 @@ export function createPaymentRoutes(): Router {
   });
 
   // Capturar una orden y guardarla de forma segura en la base de datos
-  router.post('/paypal/capture-order', authenticateToken, async (req: Request, res: Response) => {
+  router.post('/paypal/capture-order', authenticateToken, authorizeRole('STUDENT'), async (req: Request, res: Response) => {
     try {
       const { orderID, rideRequestId, amount } = req.body;
       const userId = req.user!.userId;
@@ -174,7 +174,7 @@ export function createPaymentRoutes(): Router {
         );
         
         if (!reqResult.rows[0]) {
-          throw new NotFoundError('Ride request not found for capture');
+          throw new NotFoundError('No se encontró la solicitud de viaje para capturar el pago');
         }
         
         const rideId = reqResult.rows[0].viaje_id;
@@ -254,7 +254,7 @@ export function createPaymentRoutes(): Router {
       );
       res.json({ success: true, data: result.rows });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to fetch payments' });
+      res.status(500).json({ success: false, error: 'Error al obtener pagos' });
     }
   });
 
@@ -265,10 +265,10 @@ export function createPaymentRoutes(): Router {
         "UPDATE pagos SET estado = 'COMPLETED', actualizado_en = NOW() WHERE id = $1 RETURNING *",
         [req.params.id],
       );
-      if (!result.rows[0]) { res.status(404).json({ success: false, error: 'Payment not found' }); return; }
-      res.json({ success: true, data: result.rows[0], message: 'Pago confirmado' });
+      if (!result.rows[0]) { res.status(404).json({ success: false, error: 'Pago no encontrado' }); return; }
+      res.json({ success: true, data: result.rows[0], message: 'Pago confirmado exitosamente' });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to confirm payment' });
+      res.status(500).json({ success: false, error: 'Error al confirmar el pago' });
     }
   });
 
@@ -279,10 +279,10 @@ export function createPaymentRoutes(): Router {
         "UPDATE pagos SET estado = 'REFUNDED', actualizado_en = NOW() WHERE id = $1 RETURNING *",
         [req.params.id],
       );
-      if (!result.rows[0]) { res.status(404).json({ success: false, error: 'Payment not found' }); return; }
-      res.json({ success: true, data: result.rows[0], message: 'Pago reembolsado' });
+      if (!result.rows[0]) { res.status(404).json({ success: false, error: 'Pago no encontrado' }); return; }
+      res.json({ success: true, data: result.rows[0], message: 'Pago reembolsado exitosamente' });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to refund payment' });
+      res.status(500).json({ success: false, error: 'Error al reembolsar el pago' });
     }
   });
 

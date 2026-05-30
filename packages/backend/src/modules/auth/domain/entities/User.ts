@@ -59,7 +59,7 @@ export class User {
    */
   updateReputation(newRating: number): void {
     if (newRating < 1.0 || newRating > 5.0) {
-      throw new Error('Rating must be between 1.0 and 5.0');
+      throw new Error('La calificación debe estar entre 1.0 y 5.0');
     }
     // Aquí iría lógica de cálculo de reputación más compleja
   }

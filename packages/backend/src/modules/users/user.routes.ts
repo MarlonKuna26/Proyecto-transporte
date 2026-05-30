@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
+import { authenticateToken, authorizeRole } from '@shared/middlewares/AuthMiddleware';
 import { UserRepository } from '@modules/auth/infrastructure/repositories/UserRepository';
 import { UserProfileRepository } from './infrastructure/repositories/UserProfileRepository';
 import { VehicleRepository } from './infrastructure/repositories/VehicleRepository';
@@ -38,10 +38,10 @@ export function createUserRoutes(): Router {
   router.put('/profile', authenticateToken, (req, res) => userController.updateProfile(req, res));
 
   // === Rutas de Vehículos (protegidas) ===
-  router.post('/vehicles', authenticateToken, (req, res) => userController.createVehicle(req, res));
-  router.get('/vehicles', authenticateToken, (req, res) => userController.getMyVehicles(req, res));
-  router.delete('/vehicles/:vehicleId', authenticateToken, (req, res) => userController.deleteVehicle(req, res));
-  router.put('/vehicles/:vehicleId', authenticateToken, (req, res) => userController.updateVehicle(req, res));
+  router.post('/vehicles', authenticateToken, authorizeRole('STUDENT'), (req, res) => userController.createVehicle(req, res));
+  router.get('/vehicles', authenticateToken, authorizeRole('STUDENT'), (req, res) => userController.getMyVehicles(req, res));
+  router.delete('/vehicles/:vehicleId', authenticateToken, authorizeRole('STUDENT'), (req, res) => userController.deleteVehicle(req, res));
+  router.put('/vehicles/:vehicleId', authenticateToken, authorizeRole('STUDENT'), (req, res) => userController.updateVehicle(req, res));
 
   return router;
 }

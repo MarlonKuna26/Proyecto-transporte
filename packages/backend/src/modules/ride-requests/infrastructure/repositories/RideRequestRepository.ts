@@ -88,14 +88,14 @@ export class RideRequestRepository implements IRideRequestRepository {
     try {
       const query = `UPDATE solicitudes_viaje SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
       const result = await this.pool.query(query, values);
-      if (!result.rows[0]) throw new NotFoundError('Request not found');
+      if (!result.rows[0]) throw new NotFoundError('Solicitud no encontrada');
       return this.mapRow(result.rows[0]);
     } catch (e: any) {
       if (e.message && e.message.includes('column "motivo_rechazo" of relation "solicitudes_viaje" does not exist')) {
         await this.pool.query('ALTER TABLE solicitudes_viaje ADD COLUMN IF NOT EXISTS motivo_rechazo varchar(255)');
         const query = `UPDATE solicitudes_viaje SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
         const result = await this.pool.query(query, values);
-        if (!result.rows[0]) throw new NotFoundError('Request not found');
+        if (!result.rows[0]) throw new NotFoundError('Solicitud no encontrada');
         return this.mapRow(result.rows[0]);
       }
       throw e;

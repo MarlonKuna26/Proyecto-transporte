@@ -51,7 +51,7 @@ export class VehicleRepository implements IVehicleRepository {
 
   async update(id: string, data: Partial<Vehicle>): Promise<Vehicle> {
     const vehicle = await this.findById(id);
-    if (!vehicle) throw new NotFoundError('Vehicle not found');
+    if (!vehicle) throw new NotFoundError('Vehículo no encontrado');
 
     const updates: string[] = [];
     const values: any[] = [];

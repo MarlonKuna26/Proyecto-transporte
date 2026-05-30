@@ -149,7 +149,7 @@ export const ReportUserModal: React.FC<ReportUserModalProps> = ({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-3 text-sm font-bold text-white bg-uber-red hover:bg-red-700 transition-colors rounded-xl border-none cursor-pointer disabled:opacity-50"
+              className="flex-1 py-3 text-sm font-bold text-white bg-black hover:bg-zinc-800 transition-colors rounded-xl border-none cursor-pointer disabled:opacity-50"
             >
               {submitting ? 'Enviando...' : 'Enviar Reporte'}
             </button>

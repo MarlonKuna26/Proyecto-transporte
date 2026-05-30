@@ -33,7 +33,7 @@ export function createAdminRoutes(): Router {
       });
     } catch (error: unknown) {
       logger.error(`Admin stats error: ${error}`, 'ADMIN');
-      res.status(500).json({ success: false, error: 'Failed to fetch stats' });
+      res.status(500).json({ success: false, error: 'Error al obtener estadísticas' });
     }
   });
 
@@ -43,7 +43,7 @@ export function createAdminRoutes(): Router {
       const result = await pool.query('SELECT id, correo as email, nombre as name, rol as role, esta_verificado as is_verified, esta_suspendido as is_suspended, reputacion as reputation, creado_en as created_at FROM usuarios ORDER BY creado_en DESC');
       res.json({ success: true, data: result.rows });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to fetch users' });
+      res.status(500).json({ success: false, error: 'Error al obtener usuarios' });
     }
   });
 
@@ -51,7 +51,7 @@ export function createAdminRoutes(): Router {
   router.put('/users/:id/suspend', authenticateToken, authorizeRole('ADMIN'), async (req: Request, res: Response) => {
     try {
       const { reason, days } = req.body;
-      if (!reason) { res.status(400).json({ success: false, error: 'Reason is required' }); return; }
+      if (!reason) { res.status(400).json({ success: false, error: 'La razón es obligatoria' }); return; }
 
       const suspendedUntil = new Date();
       suspendedUntil.setDate(suspendedUntil.getDate() + (days || 7));
@@ -61,10 +61,10 @@ export function createAdminRoutes(): Router {
         [reason, suspendedUntil, req.params.id],
       );
 
-      logger.info(`User ${req.params.id} suspended by admin`, 'ADMIN');
-      res.json({ success: true, message: 'User suspended' });
+      logger.info(`Usuario ${req.params.id} suspendido por el administrador`, 'ADMIN');
+      res.json({ success: true, message: 'Usuario suspendido exitosamente' });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to suspend user' });
+      res.status(500).json({ success: false, error: 'Error al suspender al usuario' });
     }
   });
 
@@ -75,10 +75,10 @@ export function createAdminRoutes(): Router {
         'UPDATE usuarios SET esta_suspendido = false, motivo_suspension = NULL, suspendido_hasta = NULL, actualizado_en = NOW() WHERE id = $1',
         [req.params.id],
       );
-      logger.info(`User ${req.params.id} unsuspended by admin`, 'ADMIN');
-      res.json({ success: true, message: 'User unsuspended' });
+      logger.info(`Usuario ${req.params.id} reactivado por el administrador`, 'ADMIN');
+      res.json({ success: true, message: 'Usuario reactivado exitosamente' });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to unsuspend user' });
+      res.status(500).json({ success: false, error: 'Error al reactivar al usuario' });
     }
   });
 
@@ -86,17 +86,17 @@ export function createAdminRoutes(): Router {
   router.post('/users/:id/warn', authenticateToken, authorizeRole('ADMIN'), async (req: Request, res: Response) => {
     try {
       const { message } = req.body;
-      if (!message) { res.status(400).json({ success: false, error: 'Warning message is required' }); return; }
+      if (!message) { res.status(400).json({ success: false, error: 'El mensaje de advertencia es obligatorio' }); return; }
 
       await pool.query(
         `INSERT INTO registros_auditoria (tipo_entidad, id_entidad, accion, cambios, realizado_por) VALUES ('USER', $1, 'WARNING', $2, $3)`,
         [req.params.id, JSON.stringify({ message }), req.user!.userId],
       );
 
-      logger.info(`Warning issued to user ${req.params.id}`, 'ADMIN');
-      res.json({ success: true, message: 'Warning issued' });
+      logger.info(`Advertencia enviada al usuario ${req.params.id}`, 'ADMIN');
+      res.json({ success: true, message: 'Advertencia enviada exitosamente' });
     } catch (error: unknown) {
-      res.status(500).json({ success: false, error: 'Failed to issue warning' });
+      res.status(500).json({ success: false, error: 'Error al enviar la advertencia' });
     }
   });
 

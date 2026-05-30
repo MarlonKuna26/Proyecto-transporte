@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
+import { authenticateToken, authorizeRole } from '@shared/middlewares/AuthMiddleware';
 import { RideRepository } from './infrastructure/repositories/RideRepository';
 import { VehicleRepository } from '@modules/users/infrastructure/repositories/VehicleRepository';
 import { CreateRideUseCase } from './application/usecases/CreateRideUseCase';
@@ -26,12 +26,12 @@ export function createRideRoutes(): Router {
   );
 
   // === Rutas públicas (requiere auth) ===
-  router.get('/', authenticateToken, (req, res) => rideController.list(req, res));
-  router.get('/my-rides', authenticateToken, (req, res) => rideController.getMyRides(req, res));
-  router.get('/:id', authenticateToken, (req, res) => rideController.getById(req, res));
-  router.post('/', authenticateToken, (req, res) => rideController.create(req, res));
-  router.put('/:id', authenticateToken, (req, res) => rideController.update(req, res));
-  router.put('/:id/cancel', authenticateToken, (req, res) => rideController.cancel(req, res));
+  router.get('/', authenticateToken, authorizeRole('STUDENT'), (req, res) => rideController.list(req, res));
+  router.get('/my-rides', authenticateToken, authorizeRole('STUDENT'), (req, res) => rideController.getMyRides(req, res));
+  router.get('/:id', authenticateToken, authorizeRole('STUDENT'), (req, res) => rideController.getById(req, res));
+  router.post('/', authenticateToken, authorizeRole('STUDENT'), (req, res) => rideController.create(req, res));
+  router.put('/:id', authenticateToken, authorizeRole('STUDENT'), (req, res) => rideController.update(req, res));
+  router.put('/:id/cancel', authenticateToken, authorizeRole('STUDENT'), (req, res) => rideController.cancel(req, res));
 
   return router;
 }

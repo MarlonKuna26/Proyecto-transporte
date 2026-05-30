@@ -16,15 +16,15 @@ export class LoginDTO {
 
   private validate(): void {
     if (!this.email || typeof this.email !== 'string') {
-      throw new Error('Email is required and must be a string');
+      throw new Error('El correo es obligatorio y debe ser una cadena de texto');
     }
 
     if (!this.password || this.password.length < 6) {
-      throw new Error('Password is required and must be at least 6 characters');
+      throw new Error('La contraseña es obligatoria y debe tener al menos 6 caracteres');
     }
 
     if (!this.isValidEmail(this.email)) {
-      throw new Error('Invalid email format');
+      throw new Error('Formato de correo inválido');
     }
   }
 
