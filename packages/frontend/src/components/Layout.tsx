@@ -180,7 +180,7 @@ export const Layout: React.FC = () => {
                 {/* Quick action buttons (Only for STUDENT) */}
                 {user?.role === 'STUDENT' && (
                   <div className="px-6 pb-3 flex gap-3">
-                    <DropdownQuickBtn icon={<IconHelp />} label="Ayuda" onClick={() => { setDropdownOpen(false); navigate('/rides'); }} />
+                    <DropdownQuickBtn icon={<IconHelp />} label="Ayuda" onClick={() => { setDropdownOpen(false); navigate('/my-reports'); }} />
                     <DropdownQuickBtn icon={<IconWallet />} label="Pagos" onClick={() => { setDropdownOpen(false); navigate('/payments'); }} />
                     <DropdownQuickBtn icon={<IconActivity />} label="Actividad" onClick={() => { setDropdownOpen(false); navigate('/my-rides'); }} />
                   </div>

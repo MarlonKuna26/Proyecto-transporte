@@ -11,12 +11,20 @@ interface ReportUserModalProps {
   onSuccess: () => void;
 }
 
-const REPORT_REASONS = [
+const DRIVER_REPORT_REASONS = [
   'Conducta inapropiada',
   'Conducción temeraria',
   'Vehículo en mal estado',
   'No se presentó',
   'Cobro indebido',
+  'Otro'
+];
+
+const PASSENGER_REPORT_REASONS = [
+  'Conducta inapropiada',
+  'No se presentó',
+  'No pagó el valor acordado',
+  'Daños al vehículo',
   'Otro'
 ];
 
@@ -28,7 +36,8 @@ export const ReportUserModal: React.FC<ReportUserModalProps> = ({
   onClose,
   onSuccess
 }) => {
-  const [reason, setReason] = useState(REPORT_REASONS[0]);
+  const reasonsList = reportedUserRole === 'DRIVER' ? DRIVER_REPORT_REASONS : PASSENGER_REPORT_REASONS;
+  const [reason, setReason] = useState(reasonsList[0]);
   const [description, setDescription] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -104,7 +113,7 @@ export const ReportUserModal: React.FC<ReportUserModalProps> = ({
                 className="w-full pl-4 pr-10 py-3 bg-uber-gray-50 rounded-xl text-sm text-black font-medium border border-uber-gray-200 outline-none focus:border-black appearance-none"
                 required
               >
-                {REPORT_REASONS.map(r => (
+                {reasonsList.map(r => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
@@ -149,14 +158,14 @@ export const ReportUserModal: React.FC<ReportUserModalProps> = ({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-3 text-sm font-bold text-white bg-black hover:bg-zinc-800 transition-colors rounded-xl border-none cursor-pointer disabled:opacity-50"
+              className="flex-1 py-3 text-sm font-bold text-white bg-black hover:bg-zinc-900 border border-black hover:border-zinc-900 transition-all rounded-xl cursor-pointer disabled:opacity-50"
             >
               {submitting ? 'Enviando...' : 'Enviar Reporte'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 text-sm font-semibold bg-uber-gray-50 hover:bg-uber-gray-100 text-black border border-uber-gray-200 rounded-xl transition-all cursor-pointer"
+              className="flex-1 py-3 text-sm font-semibold bg-uber-gray-50 text-black border border-uber-gray-200 rounded-xl transition-all cursor-pointer hover:bg-black hover:text-white hover:border-black"
             >
               Cancelar
             </button>

@@ -360,16 +360,16 @@ export const ProfilePage: React.FC = () => {
       {/* ═══ PROFILE PROGRESS BAR ═══ */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-5 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                <div
-                  className="flex items-center gap-1.5 bg-white border border-amber-500 rounded-xl px-3 py-2.5 mb-4 text-xs text-black font-black">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Solo puedes tener hasta {MAX_VEHICLES} vehículos. Elimina uno para agregar otro.
-              </div>
+          <div>
+            <h3 className="text-sm font-bold text-black">Completa tu perfil</h3>
+            <p className="text-zinc-400 text-xs mt-0.5">Un perfil completo genera más confianza en la comunidad.</p>
+          </div>
+          <span className="text-sm font-extrabold text-black shrink-0">{completionPercent}% completado</span>
         </div>
         <div className="w-full bg-zinc-100 h-2.5 rounded-full overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${completionPercent}%`, backgroundColor: completionPercent === 100 ? '#10B981' : '#000000' }}
+            className="h-full bg-black rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${completionPercent}%` }}
           />
         </div>
       </div>
@@ -517,7 +517,7 @@ export const ProfilePage: React.FC = () => {
 
             {/* Banner informativo cuando se llega al límite */}
             {vehicleLimitReached && !showVehicleForm && (
-              <div className="flex items-center gap-2.5 bg-white border border-amber-500 rounded-xl px-3 py-2.5 mb-4 text-xs text-black font-medium">
+              <div className="flex items-center gap-2.5 bg-white border border-black rounded-xl px-3 py-2.5 mb-4 text-xs text-black font-medium animate-fade-in">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 Solo puedes tener hasta {MAX_VEHICLES} vehículos. Elimina uno para agregar otro.
               </div>
@@ -612,33 +612,33 @@ export const ProfilePage: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {vehicles.map(v => (
-                  <div key={v.id} className="border border-zinc-200/80 rounded-xl p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-zinc-300 transition-colors duration-150">
+                  <div key={v.id} className="border border-zinc-200/80 rounded-xl p-4 bg-white hover:border-zinc-300 transition-colors duration-150 space-y-3.5 shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="relative shrink-0 w-24 h-12 bg-white border-2 border-zinc-400 rounded-md shadow-sm overflow-hidden flex items-center justify-center">
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-600 flex flex-col items-center justify-between py-0.5">
+                      <div className="relative shrink-0 w-24 h-12 bg-white border border-black rounded-md shadow-sm overflow-hidden flex items-center justify-center">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-black flex flex-col items-center justify-between py-0.5">
                           <span className="text-[3px] text-white font-bold tracking-tighter leading-none select-none">EC</span>
                         </div>
                         <span className="text-xs font-mono font-extrabold text-zinc-800 pl-1.5 tracking-wider select-none">
                           {v.plate}
                         </span>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-black truncate">{v.brand} {v.model}</p>
-                        <p className="text-[10px] text-zinc-400 mt-0.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-extrabold text-black truncate">{v.brand} {v.model}</p>
+                        <p className="text-[10px] text-zinc-400 mt-0.5 font-semibold">
                           {v.color} · {v.capacity} asientos {v.year ? `· ${v.year}` : ''}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-1.5 justify-end shrink-0">
+                    <div className="flex gap-1.5 justify-end pt-2.5 border-t border-zinc-100">
                       <button
                         onClick={() => handleEditVehicle(v)}
-                        className="text-[10px] font-bold px-2 py-1 rounded bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-all cursor-pointer"
+                        className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer shadow-sm"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => deleteVehicle(v.id)}
-                        className="text-[10px] font-bold px-2 py-1 rounded bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 transition-all cursor-pointer"
+                        className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-white border border-zinc-200 text-red-600 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer shadow-sm"
                       >
                         Borrar
                       </button>

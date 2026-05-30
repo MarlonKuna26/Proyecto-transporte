@@ -656,6 +656,35 @@ export const AdminPage: React.FC = () => {
                         <span className="text-zinc-400 text-[10px] font-semibold">{new Date(r.createdAt).toLocaleDateString('es-ES', { dateStyle: 'medium' })}</span>
                       </div>
                       
+                      {/* Users Involved */}
+                      {(() => {
+                        const reporter = users.find(u => u.id === r.reporterId);
+                        const reported = users.find(u => u.id === r.reportedId);
+                        return (
+                          <div className="grid grid-cols-2 gap-3 text-xs bg-zinc-50 border border-zinc-150 p-3 rounded-xl mb-3.5">
+                            <div>
+                              <span className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider mb-0.5">Reportante</span>
+                              <span className="font-bold text-black block truncate" title={reporter ? `${reporter.name} (${reporter.email})` : 'Cargando...'}>
+                                {reporter ? reporter.name : 'Usuario Desconocido'}
+                              </span>
+                              <span className="text-[10px] text-zinc-500 block truncate">{reporter ? reporter.email : r.reporterId}</span>
+                            </div>
+                            <div className="border-l border-zinc-200 pl-3">
+                              <span className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider mb-0.5">Reportado</span>
+                              <div className="flex items-center gap-1 max-w-full">
+                                <span className="font-bold text-red-600 block truncate" title={reported ? `${reported.name} (${reported.email})` : 'Cargando...'}>
+                                  {reported ? reported.name : 'Usuario Desconocido'}
+                                </span>
+                                {reported?.is_suspended && (
+                                  <span className="px-1 py-0.2 bg-red-50 text-red-600 border border-red-250 text-[8px] font-black rounded uppercase">Susp.</span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-zinc-500 block truncate">{reported ? reported.email : r.reportedId}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       <h4 className="text-black font-extrabold text-base mb-1.5 flex items-center gap-1.5">
                         <svg className="text-red-500 flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -667,23 +696,55 @@ export const AdminPage: React.FC = () => {
                       <p className="text-zinc-600 text-xs mt-1.5 leading-relaxed bg-zinc-50 p-3 rounded-xl border border-zinc-100 min-h-[70px]">
                         {r.description}
                       </p>
+
+                      {r.evidenceUrl && (
+                        <div className="mt-3 text-xs flex items-center gap-1.5">
+                          <span className="font-semibold text-zinc-500">Evidencia:</span>
+                          <a 
+                            href={r.evidenceUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-black font-bold underline hover:text-zinc-600 transition-colors inline-flex items-center gap-0.5"
+                          >
+                            Ver capturas / pruebas
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="ml-0.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     {r.status === 'PENDING' && (
-                      <div className="border-t border-zinc-100 pt-4 flex justify-end gap-2">
-                        <button 
-                          onClick={() => resolveReport(r.id, 'DISMISSED')} 
-                          className="px-4 py-2 rounded-xl bg-white border border-zinc-300 hover:bg-black hover:text-white hover:border-black text-black text-xs font-black shadow-sm transition-all duration-300 cursor-pointer"
-                        >
-                          Descartar
-                        </button>
-                        <button 
-                          onClick={() => resolveReport(r.id, 'RESOLVED')} 
-                          className="px-4 py-2 rounded-xl bg-white border border-black hover:bg-black hover:text-white text-black text-xs font-black shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                          Resolver
-                        </button>
+                      <div className="border-t border-zinc-100 pt-4 flex justify-between items-center gap-2">
+                        {(() => {
+                          const reported = users.find(u => u.id === r.reportedId);
+                          if (reported && !reported.is_suspended) {
+                            return (
+                              <button
+                                onClick={() => suspendUser(r.reportedId)}
+                                className="px-3.5 py-2 rounded-xl bg-white border border-red-200 hover:bg-black hover:text-white hover:border-black text-red-600 text-xs font-black shadow-sm transition-all duration-300 cursor-pointer"
+                              >
+                                Suspender Reportado
+                              </button>
+                            );
+                          }
+                          return <div />;
+                        })()}
+
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => resolveReport(r.id, 'DISMISSED')} 
+                            className="px-4 py-2 rounded-xl bg-white border border-zinc-300 hover:bg-black hover:text-white hover:border-black text-black text-xs font-black shadow-sm transition-all duration-300 cursor-pointer"
+                          >
+                            Descartar
+                          </button>
+                          <button 
+                            onClick={() => resolveReport(r.id, 'RESOLVED')} 
+                            className="px-4 py-2 rounded-xl bg-white border border-black hover:bg-black hover:text-white text-black text-xs font-black shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Resolver
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
