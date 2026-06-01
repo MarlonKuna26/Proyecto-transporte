@@ -1,42 +1,44 @@
+
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { Logger } from './config/logger';
 import { AppError, InternalServerError } from './shared/errors/AppError';
+import { createAuthRoutes } from './modules/auth/auth.routes';
 
 const logger = new Logger();
 
-class App {
+export class App {
   public express: Express;
 
   constructor() {
     this.express = express();
     this.setupMiddlewares();
+    this.setupRoutes();
   }
 
   private setupMiddlewares(): void {
-    // Seguridad
+    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'];
+
     this.express.use(helmet());
 
-    // CORS
     this.express.use(
       cors({
-        origin: process.env.CORS_ORIGIN?.split(',') || 'http://localhost:5173',
+        origin: process.env.CORS_ORIGIN?.split(',') || defaultAllowedOrigins,
         credentials: true,
       }),
     );
 
-    // Body parser
-    this.express.use(express.json());
-    this.express.use(express.urlencoded({ extended: true }));
+    
+    // Body parser con límite aumentado para fotos de perfil (base64)
+    this.express.use(express.json({ limit: '5mb' }));
+    this.express.use(express.urlencoded({ limit: '5mb', extended: true }));
 
-    // Logging middleware
     this.express.use((req: Request, res: Response, next: NextFunction) => {
       logger.info(`${req.method} ${req.path}`, 'HTTP');
       next();
     });
 
-    // Health check route
     this.express.get('/health', (req: Request, res: Response) => {
       res.json({
         success: true,
@@ -46,20 +48,21 @@ class App {
     });
   }
 
-  /**
-   * Registrar error handlers (debe ser llamado DESPUÉS de registrar todas las rutas)
-   */
+  private setupRoutes(): void {
+    this.express.use('/auth', createAuthRoutes());
+    // Compatibilidad: exponer también el prefijo /api/v1/auth usado en tests y en main
+    this.express.use('/api/v1/auth', createAuthRoutes());
+  }
+
   public setupErrorHandlers(): void {
-    // 404 handler (debe ser ANTES del error handler)
     this.express.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
-        error: 'Route not found',
+        error: 'Ruta no encontrada',
         path: req.path,
       });
     });
 
-    // Global error handler (siempre debe ser el último)
     this.express.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       logger.error(`Error: ${err.message}`, 'ERROR_HANDLER', err);
 
@@ -71,10 +74,10 @@ class App {
         });
       }
 
-      // Unknown errors
       const internalError = new InternalServerError(
         err.message || 'An unexpected error occurred',
       );
+
       res.status(internalError.statusCode).json({
         success: false,
         error: internalError.message,
@@ -84,4 +87,6 @@ class App {
   }
 }
 
-export { App };
+const appInstance = new App();
+
+export default appInstance.express;

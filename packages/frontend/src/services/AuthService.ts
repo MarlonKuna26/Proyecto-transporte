@@ -22,6 +22,21 @@ interface AuthResponse {
   };
 }
 
+interface LoginApiResponse {
+  success: boolean;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+    };
+  };
+  message: string;
+}
+
 export class AuthService {
   static async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -34,10 +49,16 @@ export class AuthService {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Login failed');
+      throw new Error(error.error || error.message || 'Login failed');
     }
 
-    return response.json();
+    const body: LoginApiResponse = await response.json();
+
+    return {
+      token: body.data.accessToken,
+      refreshToken: body.data.refreshToken,
+      user: body.data.user,
+    };
   }
 
   static async logout(): Promise<void> {

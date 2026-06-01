@@ -24,10 +24,10 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const variantClasses = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-300 text-black hover:bg-gray-400',
-    success: 'bg-green-600 text-white hover:bg-green-700',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
+    primary: 'bg-black text-white hover:bg-zinc-800 shadow-sm border border-transparent',
+    secondary: 'bg-white text-black border border-zinc-200 hover:bg-zinc-50',
+    success: 'bg-black text-white hover:bg-zinc-800 border-2 border-green-500/30',
+    danger: 'bg-white text-red-600 border border-red-200 hover:bg-red-50',
   };
 
   const sizeClasses = {
@@ -42,7 +42,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       className={`
-        rounded-md font-semibold transition-all
+        rounded-xl font-semibold transition-all
         ${baseClass}
         ${loading || disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}
@@ -53,4 +53,3 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
-

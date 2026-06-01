@@ -1,175 +1,238 @@
-/* Global Styles */
-:root {
-  /* Colors */
-  --primary: #0066cc;
-  --primary-dark: #004a99;
-  --secondary: #f0f0f0;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
-  --info: #3b82f6;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.5rem;
-  --font-size-2xl: 2rem;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  html { height: 100%; scroll-behavior: smooth; }
 
-  /* Border Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
+  body {
+    height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #ffffff;
+    color: #000000;
+  }
 
-  /* Transitions */
-  --transition-fast: 150ms ease-in-out;
-  --transition-normal: 300ms ease-in-out;
+  #root { height: 100%; }
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer components {
+  /* ── Legacy classes (backward compat for other pages) ── */
+  .glass-card {
+    @apply bg-white border border-zinc-100 rounded-2xl shadow-sm;
+  }
+  .glass-card-dark {
+    @apply bg-zinc-950 border border-zinc-800 rounded-2xl shadow-lg;
+  }
+  .btn-primary {
+    @apply bg-black text-white font-bold rounded-xl
+           px-6 py-3 transition-all duration-300 hover:bg-zinc-800
+           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-black font-bold rounded-xl px-6 py-3
+           border border-zinc-200 transition-all duration-300
+           hover:bg-zinc-50 active:scale-[0.98];
+  }
+  .btn-accent {
+    @apply bg-zinc-100 text-black font-bold rounded-xl
+           px-6 py-3 transition-all duration-300 hover:bg-zinc-200
+           active:scale-[0.98];
+  }
+  .btn-danger {
+    @apply bg-white text-red-600 font-bold rounded-xl
+           px-6 py-3 transition-all duration-300 hover:bg-red-50
+           border border-red-100 active:scale-[0.98];
+  }
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-black
+           placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-black/5
+           focus:border-black transition-all duration-300;
+  }
+  .input-field-light {
+    @apply w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-black
+           placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-black/5
+           focus:border-black transition-all duration-300;
+  }
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black;
+  }
+  .badge-success {
+    @apply badge bg-white text-black border border-emerald-500;
+  }
+  .badge-warning {
+    @apply badge bg-white text-black border border-amber-500;
+  }
+  .badge-danger {
+    @apply badge bg-white text-black border border-red-500;
+  }
+  .badge-info {
+    @apply badge bg-white text-black border border-zinc-200;
+  }
+  .page-gradient {
+    @apply min-h-screen bg-zinc-50;
+  }
+  .page-gradient-light {
+    @apply min-h-screen bg-white;
+  }
+  .card-hover {
+    @apply transition-all duration-400 hover:shadow-xl hover:-translate-y-1;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 font-bold
+           transition-all duration-200 hover:bg-black hover:text-white;
+  }
+  .nav-link-active {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white font-bold
+           bg-black border border-black shadow-lg shadow-black/10;
+  }
+  .stat-card {
+    @apply glass-card p-6 animate-fade-in;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     UBER DESIGN SYSTEM
+     ═══════════════════════════════════════════════════════ */
+
+  /* Top Navbar */
+  .uber-navbar {
+    @apply sticky top-0 z-50 bg-white flex items-center justify-between h-16 px-6;
+    border-bottom: 1px solid #E2E2E2;
+  }
+
+  /* Nav tabs (desktop) */
+  .uber-nav-tab {
+    @apply relative flex items-center gap-2 px-4 h-16 text-sm font-medium text-uber-gray-600
+           transition-colors duration-200 cursor-pointer;
+    text-decoration: none;
+  }
+  .uber-nav-tab:hover {
+    @apply text-uber-black;
+  }
+  .uber-nav-tab-active {
+    @apply relative flex items-center gap-2 px-4 h-16 text-sm font-medium text-uber-black
+           cursor-pointer;
+    text-decoration: none;
+  }
+  .uber-nav-tab-active::after {
+    content: '';
+    @apply absolute bottom-0 left-2 right-2 h-[3px] bg-uber-black rounded-t-full;
+  }
+
+  /* Profile Dropdown */
+  .uber-dropdown {
+    @apply absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl py-4 animate-dropdown-in;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16);
+    z-index: 100;
+  }
+  .uber-dropdown-item {
+    @apply flex items-center gap-4 px-6 py-3 text-sm text-uber-gray-700 font-medium
+           transition-colors duration-150 cursor-pointer;
+    text-decoration: none;
+  }
+  .uber-dropdown-item:hover {
+    @apply bg-uber-gray-50;
+  }
+
+  /* Uber Buttons */
+  .uber-btn-primary {
+    @apply bg-uber-black text-white font-semibold rounded-lg
+           px-6 py-3 text-sm transition-all duration-200 hover:bg-uber-gray-800
+           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .uber-btn-secondary {
+    @apply bg-uber-gray-50 text-uber-black font-semibold rounded-lg
+           px-6 py-3 text-sm transition-all duration-200 hover:bg-uber-gray-100
+           active:scale-[0.98];
+  }
+
+  /* Uber Cards */
+  .uber-card {
+    @apply bg-white rounded-2xl p-6 transition-all duration-200;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .uber-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  .uber-card-flat {
+    @apply bg-uber-gray-50 rounded-2xl p-6 transition-all duration-200;
+  }
+  .uber-card-flat:hover {
+    @apply bg-uber-gray-100;
+  }
+
+  /* Uber Inputs */
+  .uber-input {
+    @apply w-full px-4 py-3 bg-uber-gray-50 rounded-lg text-uber-black text-sm
+           placeholder-uber-gray-400 border-none outline-none
+           transition-all duration-200;
+  }
+  .uber-input:focus {
+    @apply bg-uber-gray-100 ring-2 ring-uber-black/10;
+  }
+
+  /* Bottom Tab Bar (Mobile) */
+  .uber-bottom-bar {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-white flex items-center justify-around
+           h-16 px-2;
+    border-top: 1px solid #E2E2E2;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .uber-bottom-tab {
+    @apply flex flex-col items-center justify-center gap-0.5 flex-1 py-2
+           text-uber-gray-400 transition-colors duration-200 cursor-pointer;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .uber-bottom-tab-active {
+    @apply flex flex-col items-center justify-center gap-0.5 flex-1 py-2
+           text-uber-black transition-colors duration-200 cursor-pointer;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* Status badges - Uber style */
+  .uber-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-black border;
+  }
+  .uber-badge-available {
+    @apply uber-badge bg-white text-black border-emerald-500;
+  }
+  .uber-badge-full {
+    @apply uber-badge bg-white text-black border-amber-500;
+  }
+  .uber-badge-progress {
+    @apply uber-badge bg-black text-white border-black;
+  }
+  .uber-badge-done {
+    @apply uber-badge bg-white text-black border-zinc-200;
+  }
+  .uber-badge-cancel {
+    @apply uber-badge bg-red-50 text-red-700 border-red-100;
+  }
 }
 
-html,
-body {
-  height: 100%;
-  width: 100%;
-}
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+  }
 
-body {
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  color: #333;
-  background-color: #fff;
-  line-height: 1.5;
-}
-
-#root {
-  height: 100%;
-}
-
-/* Typography */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  line-height: 1.2;
-  margin-bottom: var(--spacing-md);
-}
-
-h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-}
-
-h2 {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-}
-
-h3 {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-}
-
-p {
-  margin-bottom: var(--spacing-md);
-}
-
-/* Links */
-a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-a:hover {
-  color: var(--primary-dark);
-}
-
-/* Lists */
-ul,
-ol {
-  margin-left: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-}
-
-li {
-  margin-bottom: var(--spacing-sm);
-}
-
-/* Form Elements */
-input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: inherit;
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid #ddd;
-  border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast);
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
-}
-
-button {
-  font-family: inherit;
-  font-size: inherit;
-  cursor: pointer;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  transition: all var(--transition-fast);
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-/* Utility Classes */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-lg);
-}
-
-.text-center {
-  text-align: center;
-}
-
-.mt-1 {
-  margin-top: var(--spacing-md);
-}
-
-.mb-1 {
-  margin-bottom: var(--spacing-md);
-}
-
-.p-1 {
-  padding: var(--spacing-md);
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

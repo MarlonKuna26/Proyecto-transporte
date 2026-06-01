@@ -27,10 +27,18 @@ export class LoginUseCase implements IUseCase<LoginDTO, LoginResponseDTO> {
 
     if (!user) {
       // No revelar si el email existe (seguridad)
-      throw new AuthenticationError('Invalid email or password');
+      throw new AuthenticationError('Correo o contraseña inválidos');
     }
 
-    // 2. Verificar que el usuario esté verificado
+    // 2. Verificar si está suspendido
+    if (user.isSuspended && user.suspendedUntil && user.suspendedUntil > new Date()) {
+      const formattedDate = user.suspendedUntil.toLocaleDateString('es-ES', { 
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+      });
+      throw new AuthenticationError(`Tu cuenta está suspendida hasta el ${formattedDate}. Motivo: ${user.suspensionReason || 'Violación de políticas'}.`);
+    }
+
+    // 3. Verificar que el usuario esté verificado
     if (!user.isVerified) {
       throw new AuthenticationError('Email not verified. Please check your inbox.');
     }
@@ -39,7 +47,7 @@ export class LoginUseCase implements IUseCase<LoginDTO, LoginResponseDTO> {
     const isPasswordValid = await PasswordService.compare(input.password, user.hashedPassword);
 
     if (!isPasswordValid) {
-      throw new AuthenticationError('Invalid email or password');
+      throw new AuthenticationError('Correo o contraseña inválidos');
     }
 
     // 4. Generar tokens JWT

@@ -1,28 +1,54 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
+.pnpm-store/
+.npm/
+.yarn/
 package-lock.json
 yarn.lock
 
 # Build
 dist/
 build/
+out/
 *.tsbuildinfo
+*.tsbuildinfo.*
+
+# Tool caches
+.eslintcache
+.stylelintcache
+.vite/
+.vitest/
+.turbo/
+.cache/
+.parcel-cache/
 
 # Environment
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+!**/.env.example
 
 # Logs
 *.log
+*.pid
+*.seed
+*.pid.lock
 npm-debug.log*
 pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 lerna-debug.log
 
+# Temp
+tmp/
+temp/
+
 # IDE
-.vscode/
+.vscode/*
 !.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
@@ -32,9 +58,13 @@ lerna-debug.log
 # Testing
 coverage/
 .nyc_output/
+playwright-report/
+test-results/
 
 # Docker
 .docker/
 
 # OS
 Thumbs.db
+ehthumbs.db
+Desktop.ini

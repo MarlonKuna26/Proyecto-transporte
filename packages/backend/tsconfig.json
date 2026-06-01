@@ -1,14 +1,23 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "module": "CommonJS",
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@config/*": ["./src/config/*"],
-      "@modules/*": ["./src/modules/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@shared/*": [
+        "./src/shared/*"
+      ],
+      "@config/*": [
+        "./src/config/*"
+      ],
+      "@modules/*": [
+        "./src/modules/*"
+      ]
     },
     "strict": true,
     "esModuleInterop": true,
@@ -17,8 +26,9 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["jest", "node"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "build", "tests"]
+  "exclude": ["node_modules", "dist", "build"]
 }

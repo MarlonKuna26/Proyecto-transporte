@@ -19,10 +19,10 @@ class DatabaseConnection {
   static getInstance(): Pool {
     if (!this.instance) {
       const config: DatabaseConfig = {
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || '182004',
+        user: process.env.DB_USER || 'u_ride_user',
+        password: process.env.DB_PASSWORD || 'secure_password_123',
         host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '5432'),
+        port: parseInt(process.env.DB_PORT || '5433'),
         database: process.env.DB_NAME || 'u_ride_dev',
       };
 
@@ -34,7 +34,11 @@ class DatabaseConnection {
         process.exit(-1);
       });
     }
-
+    console.log("🔥 ENV CHECK:");
+console.log("DB_HOST =", process.env.DB_HOST);
+console.log("DB_PORT =", process.env.DB_PORT);
+console.log("DB_NAME =", process.env.DB_NAME);
+console.log("DB_USER =", process.env.DB_USER);
     return this.instance;
   }
 
@@ -43,6 +47,22 @@ class DatabaseConnection {
     try {
       const client = await pool.connect();
       console.log('✅ Database connected successfully');
+      
+      // Run the migration automatically
+      try {
+        await client.query('ALTER TABLE public.solicitudes_viaje ADD COLUMN IF NOT EXISTS motivo_rechazo character varying(255);');
+        console.log('✅ SQL Migration: motivo_rechazo column verified/added successfully');
+      } catch (migrationError) {
+        console.error('❌ SQL Migration failed:', migrationError);
+      }
+
+      try {
+        await client.query('ALTER TABLE public.pagos ADD COLUMN IF NOT EXISTS comprobante_url text;');
+        console.log('✅ SQL Migration: comprobante_url column verified/added successfully');
+      } catch (migrationError) {
+        console.error('❌ SQL Migration failed for comprobante_url:', migrationError);
+      }
+
       client.release();
     } catch (error) {
       console.error('❌ Database connection failed:', error);

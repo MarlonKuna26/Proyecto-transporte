@@ -1,36 +1,84 @@
 import { Request, Response } from 'express';
 import { LoginUseCase } from '../../application/usecases/LoginUseCase';
+import { RegisterUseCase } from '../../application/usecases/RegisterUseCase';
+import { VerifyEmailUseCase } from '../../application/usecases/VerifyEmailUseCase';
+import { RequestPasswordResetUseCase } from '../../application/usecases/RequestPasswordResetUseCase';
+import { ResetPasswordUseCase } from '../../application/usecases/ResetPasswordUseCase';
 import { LoginDTO } from '../../application/dtos/LoginDTO';
+import { RegisterDTO } from '../../application/dtos/RegisterDTO';
 import { AppError, ValidationError } from '@shared/errors/AppError';
 import { Logger } from '@config/logger';
 import { JWTService } from '@shared/services';
 
 /**
  * AuthController
- * Capa de presentación HTTP
- * Maneja requests/responses y traduce a DTOs
+ * Capa de presentación HTTP - Autenticación
  */
 export class AuthController {
   private logger = new Logger();
 
-  constructor(private loginUseCase: LoginUseCase) {}
+  constructor(
+    private loginUseCase: LoginUseCase,
+    private registerUseCase: RegisterUseCase,
+    private verifyEmailUseCase: VerifyEmailUseCase,
+    private requestPasswordResetUseCase: RequestPasswordResetUseCase,
+    private resetPasswordUseCase: ResetPasswordUseCase,
+  ) {}
+
+  async register(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, name, password } = req.body;
+
+      if (!email || !name || !password) {
+        throw new ValidationError('Email, name and password are required');
+      }
+
+      const registerDTO = new RegisterDTO(email, name, password);
+      const result = await this.registerUseCase.execute(registerDTO);
+
+      this.logger.info(`New user registered: ${email}`, 'AUTH_CONTROLLER');
+      res.status(201).json({
+        success: true,
+        data: result,
+        message: 'Registration successful. Please verify your email.',
+      });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'register');
+    }
+  }
+
+  async verifyEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, code } = req.body;
+
+      if (!email || !code) {
+        throw new ValidationError('El correo y el código de verificación son obligatorios');
+      }
+
+      const result = await this.verifyEmailUseCase.execute({ email, code });
+
+      this.logger.info(`Email verified: ${email}`, 'AUTH_CONTROLLER');
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: result.message,
+      });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'verify_email');
+    }
+  }
 
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
 
-      // Validar entrada
       if (!email || !password) {
-        throw new ValidationError('Email and password are required');
+        throw new ValidationError('El correo y la contraseña son obligatorios');
       }
 
-      // Crear DTO (valida internamente)
       const loginDTO = new LoginDTO(email, password);
-
-      // Ejecutar UseCase
       const result = await this.loginUseCase.execute(loginDTO);
 
-      // Respuesta exitosa
       this.logger.info(`User logged in: ${email}`, 'AUTH_CONTROLLER');
       res.status(200).json({
         success: true,
@@ -42,18 +90,57 @@ export class AuthController {
     }
   }
 
+  async requestPasswordReset(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw new ValidationError('El correo es obligatorio');
+      }
+
+      const result = await this.requestPasswordResetUseCase.execute({ email });
+
+      this.logger.info(`Password reset requested: ${email}`, 'AUTH_CONTROLLER');
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: 'Si el correo existe, enviaremos un enlace de recuperación',
+      });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'request_password_reset');
+    }
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, code, newPassword } = req.body;
+
+      if (!email || !code || !newPassword) {
+        throw new ValidationError('Email, code, and new password are required');
+      }
+
+      const result = await this.resetPasswordUseCase.execute({ email, code, newPassword });
+
+      this.logger.info('Password reset completed', 'AUTH_CONTROLLER');
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: result.message,
+      });
+    } catch (error: unknown) {
+      this.handleError(error, res, 'reset_password');
+    }
+  }
+
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        throw new ValidationError('Refresh token is required');
+        throw new ValidationError('El token de actualización es obligatorio');
       }
 
-      // Validar refresh token
       const payload = JWTService.validateRefreshToken(refreshToken);
-
-      // Generar nuevo access token
       const newAccessToken = JWTService.generateAccessToken({
         userId: payload.userId,
         email: payload.email,
@@ -63,9 +150,7 @@ export class AuthController {
       this.logger.info(`Token refreshed for user: ${payload.email}`, 'AUTH_CONTROLLER');
       res.status(200).json({
         success: true,
-        data: {
-          accessToken: newAccessToken,
-        },
+        data: { accessToken: newAccessToken },
         message: 'Token refreshed',
       });
     } catch (error: unknown) {
@@ -75,9 +160,6 @@ export class AuthController {
 
   async logout(req: Request, res: Response): Promise<void> {
     try {
-      // En una implementación real, aquí se podría invalidar el token
-      // en una blacklist en Redis
-
       this.logger.info(`User logged out: ${req.user?.email}`, 'AUTH_CONTROLLER');
       res.status(200).json({
         success: true,
@@ -90,9 +172,6 @@ export class AuthController {
 
   async getCurrentUser(req: Request, res: Response): Promise<void> {
     try {
-      // El middleware de autenticación ya validó el token
-      // y metió el payload en req.user
-
       res.status(200).json({
         success: true,
         data: req.user,
@@ -112,7 +191,7 @@ export class AuthController {
       });
     } else if (error instanceof Error) {
       this.logger.error(`${context} error: ${error.message}`, 'AUTH_CONTROLLER');
-      res.status(500).json({
+      res.status(400).json({
         success: false,
         error: error.message || 'Internal server error',
       });

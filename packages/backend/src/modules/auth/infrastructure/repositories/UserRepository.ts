@@ -5,29 +5,26 @@ import { NotFoundError } from '@shared/errors/AppError';
 
 interface UserRow {
   id: string;
-  email: string;
-  name: string;
-  hashed_password: string;
-  role: 'STUDENT' | 'ADMIN';
-  is_verified: boolean;
-  reputation: number;
-  created_at: Date;
-  updated_at: Date;
+  correo: string;
+  nombre: string;
+  contrasena_hash: string;
+  rol: 'STUDENT' | 'ADMIN';
+  esta_verificado: boolean;
+  reputacion: number;
+  creado_en: Date;
+  actualizado_en: Date;
+  esta_suspendido: boolean;
+  motivo_suspension: string | null;
+  suspendido_hasta: Date | null;
 }
 
-/**
- * Repository - Capa de infraestructura
- * Implementa IUserRepository usando PostgreSQL
- * Toda la lógica de BD va aquí
- * Si mañana cambias de BD (MongoDB, etc.), solo cambias esta clase
- */
 export class UserRepository implements IUserRepository {
   private readonly pool = DatabaseConnection.getInstance();
 
   async create(user: User): Promise<User> {
     const query = `
-      INSERT INTO users (
-        id, email, name, hashed_password, role, is_verified, reputation, created_at, updated_at
+      INSERT INTO usuarios (
+        id, correo, nombre, contrasena_hash, rol, esta_verificado, reputacion, creado_en, actualizado_en
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *;
@@ -57,19 +54,19 @@ export class UserRepository implements IUserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    const query = 'SELECT * FROM users WHERE id = $1;';
+    const query = 'SELECT * FROM usuarios WHERE id = $1;';
     const result = await this.pool.query(query, [id]);
     return result.rows[0] ? this.mapRowToUser(result.rows[0]) : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const query = 'SELECT * FROM users WHERE email = $1;';
+    const query = 'SELECT * FROM usuarios WHERE correo = $1;';
     const result = await this.pool.query(query, [email]);
     return result.rows[0] ? this.mapRowToUser(result.rows[0]) : null;
   }
 
   async findAll(): Promise<User[]> {
-    const query = 'SELECT * FROM users ORDER BY created_at DESC;';
+    const query = 'SELECT * FROM usuarios ORDER BY creado_en DESC;';
     const result = await this.pool.query(query);
     return result.rows.map((row: UserRow) => this.mapRowToUser(row));
   }
@@ -77,7 +74,7 @@ export class UserRepository implements IUserRepository {
   async update(id: string, userData: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
-      throw new NotFoundError(`User ${id} not found`);
+      throw new NotFoundError(`Usuario ${id} no encontrado`);
     }
 
     const updates: string[] = [];
@@ -85,60 +82,64 @@ export class UserRepository implements IUserRepository {
     let paramIndex = 1;
 
     if (userData.name) {
-      updates.push(`name = $${paramIndex++}`);
+      updates.push(`nombre = $${paramIndex++}`);
       values.push(userData.name);
     }
     if (userData.reputation !== undefined) {
-      updates.push(`reputation = $${paramIndex++}`);
+      updates.push(`reputacion = $${paramIndex++}`);
       values.push(userData.reputation);
     }
     if (userData.isVerified !== undefined) {
-      updates.push(`is_verified = $${paramIndex++}`);
+      updates.push(`esta_verificado = $${paramIndex++}`);
       values.push(userData.isVerified);
     }
+    if ((userData as any).hashedPassword) {
+      updates.push(`contrasena_hash = $${paramIndex++}`);
+      values.push((userData as any).hashedPassword);
+    }
 
-    updates.push(`updated_at = $${paramIndex++}`);
+    updates.push(`actualizado_en = $${paramIndex++}`);
     values.push(new Date());
 
     values.push(id);
 
-    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *;`;
+    const query = `UPDATE usuarios SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *;`;
     const result = await this.pool.query(query, values);
 
     return this.mapRowToUser(result.rows[0]);
   }
 
   async delete(id: string): Promise<void> {
-    const query = 'DELETE FROM users WHERE id = $1;';
+    const query = 'DELETE FROM usuarios WHERE id = $1;';
     await this.pool.query(query, [id]);
   }
 
   async findByRole(role: 'STUDENT' | 'ADMIN'): Promise<User[]> {
-    const query = 'SELECT * FROM users WHERE role = $1 ORDER BY created_at DESC;';
+    const query = 'SELECT * FROM usuarios WHERE rol = $1 ORDER BY creado_en DESC;';
     const result = await this.pool.query(query, [role]);
     return result.rows.map((row: UserRow) => this.mapRowToUser(row));
   }
 
   async findVerifiedUsers(): Promise<User[]> {
-    const query = 'SELECT * FROM users WHERE is_verified = true ORDER BY created_at DESC;';
+    const query = 'SELECT * FROM usuarios WHERE esta_verificado = true ORDER BY creado_en DESC;';
     const result = await this.pool.query(query);
     return result.rows.map((row: UserRow) => this.mapRowToUser(row));
   }
 
-  /**
-   * Private: Mapear fila de BD a entidad User
-   */
   private mapRowToUser(row: UserRow): User {
     return new User(
-      row.email,
-      row.name,
-      row.hashed_password,
-      row.role,
-      row.is_verified,
-      row.reputation,
+      row.correo,
+      row.nombre,
+      row.contrasena_hash,
+      row.rol,
+      row.esta_verificado,
+      row.reputacion,
       row.id,
-      new Date(row.created_at),
-      new Date(row.updated_at),
+      new Date(row.creado_en),
+      new Date(row.actualizado_en),
+      row.esta_suspendido,
+      row.motivo_suspension,
+      row.suspendido_hasta ? new Date(row.suspendido_hasta) : null,
     );
   }
 }

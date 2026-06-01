@@ -15,6 +15,9 @@ export class User {
   readonly reputation: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly isSuspended: boolean;
+  readonly suspensionReason: string | null;
+  readonly suspendedUntil: Date | null;
 
   constructor(
     email: string,
@@ -26,6 +29,9 @@ export class User {
     id: string = uuidv4(),
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
+    isSuspended: boolean = false,
+    suspensionReason: string | null = null,
+    suspendedUntil: Date | null = null,
   ) {
     this.id = id;
     this.email = email;
@@ -36,6 +42,9 @@ export class User {
     this.reputation = reputation;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.isSuspended = isSuspended;
+    this.suspensionReason = suspensionReason;
+    this.suspendedUntil = suspendedUntil;
   }
 
   /**
@@ -50,7 +59,7 @@ export class User {
    */
   updateReputation(newRating: number): void {
     if (newRating < 1.0 || newRating > 5.0) {
-      throw new Error('Rating must be between 1.0 and 5.0');
+      throw new Error('La calificación debe estar entre 1.0 y 5.0');
     }
     // Aquí iría lógica de cálculo de reputación más compleja
   }

@@ -1,6 +1,13 @@
-/**
- * Barrel Export - Páginas
- */
-
 export { LoginPage } from './LoginPage';
+export { RegisterPage } from './RegisterPage';
+export { ForgotPasswordPage } from './ForgotPasswordPage';
+export { ResetPasswordPage } from './ResetPasswordPage';
 export { DashboardPage } from './DashboardPage';
+export { RidesPage } from './RidesPage';
+export { MyRidesPage } from './MyRidesPage';
+export { MyRequestsPage } from './MyRequestsPage';
+export { ProfilePage } from './ProfilePage';
+export { AdminPage } from './AdminPage';
+export { TrackingPage } from './TrackingPage';
+export { PaymentsPage } from './PaymentsPage';
+export { MyReportsPage } from './MyReportsPage';

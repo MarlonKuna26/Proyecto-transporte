@@ -1,18 +1,19 @@
 /**
  * Servicio: RideService
- * Comunicación con el backend para viajes
+ * Comunicación con el backend para viajes (u_ride_esp)
  */
 
-const API_URL = 'http://localhost:3000/api/v1';
+const API_URL = 'http://localhost:3002/api/v1';
 
 interface Ride {
   id: string;
   driverId: string;
-  departureLocation: string;
-  destinationLocation: string;
+  originZone: string;
+  destinationZone: string;
+  departureDate: string;
   departureTime: string;
   availableSeats: number;
-  fare: number;
+  pricePerSeat: number;
   status: string;
 }
 
@@ -76,5 +77,22 @@ export class RideService {
     if (!response.ok) {
       throw new Error('Failed to cancel ride');
     }
+  }
+  
+  static async updateRide(id: string, rideData: Partial<Ride>): Promise<Ride> {
+    const response = await fetch(`${API_URL}/rides/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(rideData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update ride');
+    }
+
+    return response.json();
   }
 }
