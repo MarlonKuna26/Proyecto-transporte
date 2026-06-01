@@ -83,7 +83,7 @@ export const RegisterPage: React.FC = () => {
       <ToastContainer messages={messages} onClose={removeToast} />
 
       <div className="w-full max-w-[420px] space-y-6">
-        
+
         {/* Logo / Header */}
         <div className="text-center space-y-2.5">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-black rounded-2xl shadow-lg border border-zinc-800 transition-transform duration-300 hover:scale-105">
@@ -101,7 +101,7 @@ export const RegisterPage: React.FC = () => {
 
         {/* Card */}
         <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-xl p-8 space-y-6">
-          
+
           {/* Progress Indicators */}
           <div className="flex gap-2">
             <div className="flex-1 h-1 rounded-full bg-black transition-all duration-350" />

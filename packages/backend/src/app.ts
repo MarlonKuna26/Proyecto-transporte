@@ -24,9 +24,13 @@ export class App {
 
     this.express.use(
       cors({
-        origin: process.env.CORS_ORIGIN?.split(',') || defaultAllowedOrigins,
-        credentials: true,
-      }),
+        origin: [
+          'http://localhost:5173', // Para cuando programas en tu laptop
+          'https://proyecto-transporte-frontend.vercel.app' // Tu nueva URL de Vercel
+        ],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        credentials: true
+      })
     );
 
     
