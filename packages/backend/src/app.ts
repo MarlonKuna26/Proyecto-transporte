@@ -22,19 +22,20 @@ export class App {
 
     this.express.use(helmet());
 
-    this.express.use(
-      cors({
-        origin: function (origin, callback) {
-          if (!origin || origin.includes('localhost') || origin.includes('vercel.app')) {
-            callback(null, true);
-          } else {
-            callback(new Error('Not allowed by CORS'));
-          }
-        },
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        credentials: true
-      })
-    );
+    const corsOptions = {
+      origin: function (origin: any, callback: any) {
+        if (!origin || origin.includes('localhost') || origin.includes('vercel.app')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true
+    };
+
+    this.express.use(cors(corsOptions));
+    this.express.options('*', cors(corsOptions));
 
     
     // Body parser con límite aumentado para fotos de perfil (base64)
