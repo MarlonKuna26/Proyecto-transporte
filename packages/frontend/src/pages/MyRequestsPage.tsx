@@ -1043,57 +1043,61 @@ export const MyRequestsPage: React.FC = () => {
                     {/* Bank account details */}
                     <div className="space-y-3.5 p-4 bg-uber-gray-50 border border-uber-gray-100 rounded-2xl">
                       <div className="flex flex-col sm:flex-row items-center gap-4">
-                        {/* SVG Mock QR Code */}
-                        <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0">
-                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
-                            <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
-                            <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
-                            <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
-                            <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
-                            
-                            <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                            <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
-                            
-                            <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                            <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
-                            
-                            <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
-                            <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
+                        {/* QR Code */}
+                        <div className="p-2 bg-white rounded-xl border border-uber-gray-200 shadow-sm shrink-0 w-28 h-28 flex items-center justify-center overflow-hidden">
+                          {driverProfile?.accountQrUrl ? (
+                            <img src={driverProfile.accountQrUrl} alt="QR del Conductor" className="w-full h-full object-cover" />
+                          ) : (
+                            <svg width="100" height="100" viewBox="0 0 100 100" className="text-black">
+                              <path d="M5 5 h20 v5 h-15 v15 h-5 z" fill="currentColor"/>
+                              <path d="M5 95 h20 v-5 h-15 v-15 h-5 z" fill="currentColor"/>
+                              <path d="M95 5 h-20 v5 h15 v15 h5 z" fill="currentColor"/>
+                              <path d="M95 95 h-20 v-5 h15 v-15 h5 z" fill="currentColor"/>
+                              
+                              <rect x="10" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                              <rect x="14" y="14" width="4" height="4" fill="currentColor"/>
+                              
+                              <rect x="78" y="10" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                              <rect x="82" y="14" width="4" height="4" fill="currentColor"/>
+                              
+                              <rect x="10" y="78" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"/>
+                              <rect x="14" y="82" width="4" height="4" fill="currentColor"/>
 
-                            <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
-                            <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
-                            <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
-                            <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
-                            
-                            <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
-                            <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
-                            <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
-                            
-                            <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
-                            <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
-                            <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
-                            <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
-                            <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
-                            
-                            <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
-                            <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
-                            <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
-                            <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
-                            <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
-                            
-                            <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
-                            <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
-                            <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
-                            
-                            <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
-                            <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
-                            <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
-                            <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
-                            
-                            <rect x="42" y="42" width="16" height="16" fill="white"/>
-                            <rect x="45" y="45" width="10" height="10" fill="black"/>
-                            <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
-                          </svg>
+                              <rect x="30" y="10" width="4" height="8" fill="currentColor"/>
+                              <rect x="38" y="10" width="8" height="4" fill="currentColor"/>
+                              <rect x="50" y="10" width="4" height="4" fill="currentColor"/>
+                              <rect x="60" y="12" width="8" height="4" fill="currentColor"/>
+                              
+                              <rect x="30" y="24" width="12" height="4" fill="currentColor"/>
+                              <rect x="46" y="20" width="4" height="12" fill="currentColor"/>
+                              <rect x="54" y="24" width="8" height="8" fill="currentColor"/>
+                              
+                              <rect x="10" y="34" width="16" height="4" fill="currentColor"/>
+                              <rect x="30" y="38" width="4" height="16" fill="currentColor"/>
+                              <rect x="38" y="38" width="12" height="4" fill="currentColor"/>
+                              <rect x="54" y="38" width="4" height="8" fill="currentColor"/>
+                              <rect x="64" y="34" width="16" height="8" fill="currentColor"/>
+                              
+                              <rect x="10" y="54" width="8" height="4" fill="currentColor"/>
+                              <rect x="22" y="50" width="4" height="8" fill="currentColor"/>
+                              <rect x="38" y="50" width="8" height="12" fill="currentColor"/>
+                              <rect x="50" y="54" width="24" height="4" fill="currentColor"/>
+                              <rect x="78" y="50" width="4" height="16" fill="currentColor"/>
+                              
+                              <rect x="30" y="68" width="16" height="4" fill="currentColor"/>
+                              <rect x="50" y="68" width="4" height="12" fill="currentColor"/>
+                              <rect x="58" y="64" width="12" height="8" fill="currentColor"/>
+                              
+                              <rect x="30" y="80" width="8" height="8" fill="currentColor"/>
+                              <rect x="42" y="84" width="16" height="4" fill="currentColor"/>
+                              <rect x="62" y="80" width="4" height="12" fill="currentColor"/>
+                              <rect x="70" y="84" width="4" height="4" fill="currentColor"/>
+                              
+                              <rect x="42" y="42" width="16" height="16" fill="white"/>
+                              <rect x="45" y="45" width="10" height="10" fill="black"/>
+                              <text x="50" y="53" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">U</text>
+                            </svg>
+                          )}
                         </div>
 
                         <div className="text-xs text-uber-gray-700 space-y-1.5 min-w-0 flex-1">

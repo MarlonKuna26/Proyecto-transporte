@@ -55,6 +55,7 @@ export class UpdateProfileUseCase implements IUseCase<UpdateProfileInput, Profil
       bio: profile?.bio || null,
       emergencyContact: profile?.emergencyContact || null,
       emergencyPhone: profile?.emergencyPhone || null,
+      accountQrUrl: profile?.accountQrUrl || null,
     });
   }
 }

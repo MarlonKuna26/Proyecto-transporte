@@ -15,6 +15,7 @@ export class UserProfile {
   readonly bio: string | null;
   readonly emergencyContact: string | null;
   readonly emergencyPhone: string | null;
+  readonly accountQrUrl: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 
@@ -28,6 +29,7 @@ export class UserProfile {
     bio: string | null = null,
     emergencyContact: string | null = null,
     emergencyPhone: string | null = null,
+    accountQrUrl: string | null = null,
     id: string = uuidv4(),
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
@@ -42,6 +44,7 @@ export class UserProfile {
     this.bio = bio;
     this.emergencyContact = emergencyContact;
     this.emergencyPhone = emergencyPhone;
+    this.accountQrUrl = accountQrUrl;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

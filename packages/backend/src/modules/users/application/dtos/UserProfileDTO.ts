@@ -11,6 +11,7 @@ export class UpdateProfileDTO {
   bio?: string;
   emergencyContact?: string;
   emergencyPhone?: string;
+  accountQrUrl?: string;
 
   constructor(data: Partial<UpdateProfileDTO>) {
     Object.assign(this, data);
@@ -33,6 +34,7 @@ export class ProfileResponseDTO {
   bio: string | null;
   emergencyContact: string | null;
   emergencyPhone: string | null;
+  accountQrUrl: string | null;
 
   constructor(data: any) {
     this.userId = data.userId;
@@ -50,5 +52,6 @@ export class ProfileResponseDTO {
     this.bio = data.bio;
     this.emergencyContact = data.emergencyContact;
     this.emergencyPhone = data.emergencyPhone;
+    this.accountQrUrl = data.accountQrUrl;
   }
 }

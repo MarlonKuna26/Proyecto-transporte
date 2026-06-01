@@ -22,6 +22,7 @@ export const ProfilePage: React.FC = () => {
   const [vehiclePhotoPreview, setVehiclePhotoPreview] = useState<string | null>(null);
   const [facultadSeleccionada, setFacultadSeleccionada] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [accountQrPreview, setAccountQrPreview] = useState<string | null>(null);
 
   // ===== TOAST FUNCTIONS =====
   const addToast = (msg: string, type: 'success' | 'error' = 'success', duration = 3000) => {
@@ -73,6 +74,22 @@ export const ProfilePage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleQrFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      addToast('La imagen es muy pesada (máximo 2MB)', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setAccountQrPreview(base64String);
+      setEditData({ ...editData, accountQrUrl: base64String });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleVehicleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let finalValue = value;
@@ -119,6 +136,7 @@ export const ProfilePage: React.FC = () => {
         setRatings(r.data);
         setEditData(p.data || {});
         if (p.data?.photoUrl) setPhotoPreview(p.data.photoUrl);
+        if (p.data?.accountQrUrl) setAccountQrPreview(p.data.accountQrUrl);
         if (p.data?.faculty) setFacultadSeleccionada(p.data.faculty);
       } catch { }
       setLoading(false);
@@ -430,6 +448,27 @@ export const ProfilePage: React.FC = () => {
                   <input name="emergencyPhone" type="text" className={inputClass} placeholder="Ej: 0991234567" value={editData.emergencyPhone || ''} onChange={handlePhoneInputChange} />
                 </div>
               </div>
+              <div className="border-t border-zinc-100 pt-4 mt-4">
+                <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">QR de Cuenta para Transferencias</h3>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-zinc-100 rounded-lg border-2 border-dashed border-zinc-300 flex items-center justify-center overflow-hidden relative shrink-0">
+                    {accountQrPreview ? (
+                      <img src={accountQrPreview} alt="QR" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className="inline-block px-3 py-1.5 text-xs font-bold text-zinc-700 bg-zinc-100 border border-zinc-200 rounded-lg hover:bg-zinc-200 cursor-pointer transition-colors">
+                      Subir QR
+                      <input type="file" accept="image/*" className="hidden" onChange={handleQrFileChange} />
+                    </label>
+                    <p className="text-[10px] text-zinc-400 mt-1.5 leading-relaxed">
+                      Este QR será visible para los pasajeros cuando seleccionen el método de pago por transferencia.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div className="pt-2">
                 <button type="submit" className="w-full bg-black text-white hover:bg-zinc-800 text-sm font-semibold py-2.5 px-4 rounded-lg active:scale-[0.99] transition-all duration-150">
                   Guardar Cambios
@@ -462,6 +501,22 @@ export const ProfilePage: React.FC = () => {
                   </div>
                 ))}
               </div>
+              {profile?.accountQrUrl && (
+                <div className="mt-6 border-t border-zinc-100 pt-5">
+                  <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">QR de Cuenta para Transferencias</h3>
+                  <div className="flex gap-4 items-center p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-zinc-200 shadow-sm shrink-0">
+                      <img src={profile.accountQrUrl} alt="QR Transferencia" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-black">Código QR Registrado</p>
+                      <p className="text-[10px] text-zinc-500 mt-1">
+                        Visible para pasajeros al pagar por transferencia.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

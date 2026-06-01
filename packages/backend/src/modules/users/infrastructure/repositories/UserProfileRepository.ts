@@ -13,6 +13,7 @@ interface ProfileRow {
   biografia: string | null;
   contacto_emergencia: string | null;
   telefono_emergencia: string | null;
+  url_qr_cuenta: string | null;
   creado_en: Date;
   actualizado_en: Date;
 }
@@ -30,14 +31,14 @@ export class UserProfileRepository implements IUserProfileRepository {
 
   async create(profile: UserProfile): Promise<UserProfile> {
     const query = `
-      INSERT INTO perfiles_usuario (id, usuario_id, carrera, url_foto, telefono, zona, barrio, biografia, contacto_emergencia, telefono_emergencia)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO perfiles_usuario (id, usuario_id, carrera, url_foto, telefono, zona, barrio, biografia, contacto_emergencia, telefono_emergencia, url_qr_cuenta)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `;
     const values = [
       profile.id, profile.userId, profile.career, profile.photoUrl,
       profile.phone, profile.zone, profile.neighborhood, profile.bio,
-      profile.emergencyContact, profile.emergencyPhone,
+      profile.emergencyContact, profile.emergencyPhone, profile.accountQrUrl
     ];
     const result = await this.pool.query(query, values);
     return this.mapRow(result.rows[0]);
@@ -57,6 +58,7 @@ export class UserProfileRepository implements IUserProfileRepository {
       bio: 'biografia',
       emergencyContact: 'contacto_emergencia',
       emergencyPhone: 'telefono_emergencia',
+      accountQrUrl: 'url_qr_cuenta',
     };
 
     for (const [key, col] of Object.entries(fieldMap)) {
@@ -91,6 +93,7 @@ export class UserProfileRepository implements IUserProfileRepository {
       row.biografia,
       row.contacto_emergencia,
       row.telefono_emergencia,
+      row.url_qr_cuenta,
       row.id,
       new Date(row.creado_en),
       new Date(row.actualizado_en),
