@@ -1,4 +1,5 @@
 import 'reflect-metadata'; // Para decoradores
+import 'module-alias/register'; // Soporte de alias de ruta en producción
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
