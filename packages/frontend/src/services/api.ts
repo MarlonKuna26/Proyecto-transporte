@@ -2,8 +2,7 @@
  * API Service — cliente HTTP centralizado (conectado a u_ride_esp)
  */
 
-// @ts-ignore
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api/v1';
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api/v1';
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token');
