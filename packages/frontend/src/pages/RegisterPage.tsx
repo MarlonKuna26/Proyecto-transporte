@@ -150,7 +150,7 @@ export const RegisterPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="usuario@uta.edu.ec"
-                  pattern="^[a-z0-9._%+-]+@uta\.edu\.ec$"
+                  pattern="^[-a-zA-Z0-9._%]+@uta\.edu\.ec$"
                   title="Ingresa un correo institucional @uta.edu.ec"
                   required
                   disabled={loading}
