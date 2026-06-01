@@ -18,7 +18,7 @@ export class App {
   }
 
   private setupMiddlewares(): void {
-    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'];
 
     this.express.use(helmet());
 
