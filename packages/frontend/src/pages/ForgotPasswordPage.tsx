@@ -127,10 +127,12 @@ export const ForgotPasswordPage: React.FC = () => {
 
               <form onSubmit={handleRequestCode} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  <label htmlFor="email" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Email institucional
                   </label>
                   <input
+                    id="email"
+                    name="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -173,10 +175,12 @@ export const ForgotPasswordPage: React.FC = () => {
 
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  <label htmlFor="code" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Código de verificación
                   </label>
                   <input
+                    id="code"
+                    name="code"
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value.slice(0, 6))}
@@ -189,10 +193,12 @@ export const ForgotPasswordPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  <label htmlFor="password" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Nueva contraseña
                   </label>
                   <input
+                    id="password"
+                    name="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -209,10 +215,12 @@ export const ForgotPasswordPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                  <label htmlFor="confirmPassword" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Confirmar contraseña
                   </label>
                   <input
+                    id="confirmPassword"
+                    name="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
