@@ -43,6 +43,33 @@ export class EmailService {
   }
 
   private static async sendMail(options: nodemailer.SendMailOptions): Promise<void> {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendFromEmail = process.env.MAIL_RESEND || 'onboarding@resend.dev';
+
+    // Si tenemos RESEND_API_KEY, usamos su API HTTP (soluciona el bloqueo SMTP de Render Free Tier)
+    if (resendApiKey) {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: `"U-Ride" <${resendFromEmail}>`,
+          to: options.to,
+          subject: options.subject,
+          html: options.html
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Error de Resend API: ${errorData.message || response.statusText}`);
+      }
+      return;
+    }
+
+    // Fallback a Nodemailer (SMTP)
     const transporter = this.createTransporter();
 
     if (!transporter) {
