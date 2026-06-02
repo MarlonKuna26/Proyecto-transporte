@@ -127,10 +127,12 @@ export const RegisterPage: React.FC = () => {
           {step === 'register' ? (
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="name" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Nombre completo
                 </label>
                 <input
+                  id="name"
+                  name="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -142,15 +144,17 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="email" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Email institucional
                 </label>
                 <input
+                  id="email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="usuario@uta.edu.ec"
-                  pattern="^[-a-zA-Z0-9._%]+@uta\.edu\.ec$"
+                  pattern="^[a-zA-Z0-9._%-]+@uta\.edu\.ec$"
                   title="Ingresa un correo institucional @uta.edu.ec"
                   required
                   disabled={loading}
@@ -159,10 +163,12 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="password" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Contraseña
                 </label>
                 <input
+                  id="password"
+                  name="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -177,10 +183,12 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="confirmPassword" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Confirmar contraseña
                 </label>
                 <input
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -224,10 +232,12 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-center">
+                <label htmlFor="code" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-center">
                   Código de verificación
                 </label>
                 <input
+                  id="code"
+                  name="code"
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
