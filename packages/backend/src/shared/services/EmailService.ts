@@ -63,8 +63,8 @@ export class EmailService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Error de Resend API: ${errorData.message || response.statusText}`);
+        const errorData = (await response.json().catch(() => ({}))) as any;
+        throw new Error(`Error de Resend API: ${errorData?.message || response.statusText}`);
       }
       return;
     }
@@ -97,8 +97,8 @@ export class EmailService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Error de Brevo API: ${errorData.message || response.statusText}`);
+        const errorData = (await response.json().catch(() => ({}))) as any;
+        throw new Error(`Error de Brevo API: ${errorData?.message || response.statusText}`);
       }
       return;
     }
