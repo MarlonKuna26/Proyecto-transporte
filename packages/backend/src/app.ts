@@ -18,16 +18,24 @@ export class App {
   }
 
   private setupMiddlewares(): void {
-    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+    const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'];
 
     this.express.use(helmet());
 
-    this.express.use(
-      cors({
-        origin: process.env.CORS_ORIGIN?.split(',') || defaultAllowedOrigins,
-        credentials: true,
-      }),
-    );
+    const corsOptions = {
+      origin: function (origin: any, callback: any) {
+        if (!origin || origin.includes('localhost') || origin.includes('vercel.app')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true
+    };
+
+    this.express.use(cors(corsOptions));
+    this.express.options('*', cors(corsOptions));
 
     
     // Body parser con límite aumentado para fotos de perfil (base64)

@@ -71,10 +71,12 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+              <label htmlFor="email" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                 Email institucional
               </label>
               <input
+                id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -87,11 +89,13 @@ export const LoginPage: React.FC = () => {
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="password" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Contraseña
                 </label>
               </div>
               <input
+                id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

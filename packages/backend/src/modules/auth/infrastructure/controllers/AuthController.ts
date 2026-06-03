@@ -191,7 +191,7 @@ export class AuthController {
       });
     } else if (error instanceof Error) {
       this.logger.error(`${context} error: ${error.message}`, 'AUTH_CONTROLLER');
-      res.status(400).json({
+      res.status(500).json({
         success: false,
         error: error.message || 'Internal server error',
       });

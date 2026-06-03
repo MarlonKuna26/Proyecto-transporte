@@ -27,6 +27,7 @@ export interface UserProfile {
   bio: string | null;
   emergencyContact: string | null;
   emergencyPhone: string | null;
+  accountQrUrl?: string | null;
 }
 
 export interface Vehicle {

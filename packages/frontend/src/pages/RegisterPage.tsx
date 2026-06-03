@@ -83,7 +83,7 @@ export const RegisterPage: React.FC = () => {
       <ToastContainer messages={messages} onClose={removeToast} />
 
       <div className="w-full max-w-[420px] space-y-6">
-        
+
         {/* Logo / Header */}
         <div className="text-center space-y-2.5">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-black rounded-2xl shadow-lg border border-zinc-800 transition-transform duration-300 hover:scale-105">
@@ -101,7 +101,7 @@ export const RegisterPage: React.FC = () => {
 
         {/* Card */}
         <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-xl p-8 space-y-6">
-          
+
           {/* Progress Indicators */}
           <div className="flex gap-2">
             <div className="flex-1 h-1 rounded-full bg-black transition-all duration-350" />
@@ -127,10 +127,12 @@ export const RegisterPage: React.FC = () => {
           {step === 'register' ? (
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="name" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Nombre completo
                 </label>
                 <input
+                  id="name"
+                  name="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -142,15 +144,17 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="email" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Email institucional
                 </label>
                 <input
+                  id="email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="usuario@uta.edu.ec"
-                  pattern="^[a-z0-9._%+-]+@uta\.edu\.ec$"
+                  pattern="^[a-zA-Z0-9._%-]+@uta\.edu\.ec$"
                   title="Ingresa un correo institucional @uta.edu.ec"
                   required
                   disabled={loading}
@@ -159,10 +163,12 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="password" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Contraseña
                 </label>
                 <input
+                  id="password"
+                  name="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -177,10 +183,12 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                <label htmlFor="confirmPassword" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                   Confirmar contraseña
                 </label>
                 <input
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -224,10 +232,12 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-center">
+                <label htmlFor="code" className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-center">
                   Código de verificación
                 </label>
                 <input
+                  id="code"
+                  name="code"
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}

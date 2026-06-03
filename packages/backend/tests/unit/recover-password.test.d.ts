@@ -1,0 +1,2 @@
+export {};
+//# sourceMappingURL=recover-password.test.d.ts.map

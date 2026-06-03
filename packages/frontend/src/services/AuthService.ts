@@ -4,7 +4,7 @@
  */
 
 // API URL - usar variable de entorno o default
-const API_URL = 'http://localhost:3002/api/v1';
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api/v1';
 
 interface LoginRequest {
   email: string;

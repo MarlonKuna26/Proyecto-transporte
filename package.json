@@ -18,10 +18,17 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:reset": "docker-compose down -v && docker-compose up -d",
-    "install-global": "pnpm add -g pnpm"
+    "install-global": "pnpm add -g pnpm",
+    "pm2:setup": "pnpm install && pnpm exec pm2 install pm2-windows-startup",
+    "pm2:start": "pnpm --filter @u-ride/backend build && pnpm exec pm2 start ecosystem.config.js",
+    "pm2:save": "pnpm exec pm2 save",
+    "pm2:stop": "pnpm exec pm2 stop ecosystem.config.js || true",
+    "pm2:restart": "pnpm exec pm2 reload ecosystem.config.js",
+    "pm2:delete": "pnpm exec pm2 delete ecosystem.config.js || true"
   },
   "devDependencies": {
     "jest": "^30.3.0",
+    "pm2": "^5.2.0",
     "supertest": "^7.2.2"
   }
 }

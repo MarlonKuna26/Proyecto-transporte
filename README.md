@@ -1,4 +1,3 @@
-# 🚗 U-Ride - Sistema de Viajes Compartidos Universitario
 
 **U-Ride** es una plataforma web que permite a estudiantes de una institución educativa coordinar viajes compartidos de manera segura y verificada.
 

@@ -155,7 +155,8 @@ CREATE TABLE public.perfiles_usuario (
     contacto_emergencia character varying(255),
     telefono_emergencia character varying(20),
     creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    actualizado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    url_qr_cuenta text
 );
 
 
