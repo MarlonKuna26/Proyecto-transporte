@@ -46,7 +46,7 @@ export class EmailService {
     const resendApiKey = process.env.RESEND_API_KEY;
     const resendFromEmail = process.env.MAIL_RESEND || 'onboarding@resend.dev';
 
-    // Si tenemos RESEND_API_KEY, usamos su API HTTP (soluciona el bloqueo SMTP de Render Free Tier)
+    // Si tenemos RESEND_API_KEY, usamos su API HTTP
     if (resendApiKey) {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -65,6 +65,40 @@ export class EmailService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(`Error de Resend API: ${errorData.message || response.statusText}`);
+      }
+      return;
+    }
+
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    const brevoSenderEmail = process.env.EMAIL_USER || 'no-reply@u-ride.local';
+
+    // Usar la API de Brevo (Sendinblue) que permite enviar a cualquiera verificando solo el correo de origen
+    if (brevoApiKey) {
+      const toAddresses = Array.isArray(options.to) 
+        ? options.to.map(email => ({ email: email.toString() }))
+        : [{ email: options.to?.toString() || '' }];
+
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': brevoApiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { 
+            name: "U-Ride", 
+            email: brevoSenderEmail 
+          },
+          to: toAddresses,
+          subject: options.subject,
+          htmlContent: options.html
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Error de Brevo API: ${errorData.message || response.statusText}`);
       }
       return;
     }
