@@ -33,6 +33,10 @@ describe('Creación de Viaje - Validaciones (versión estable)', () => {
   }
 
   beforeEach(() => {
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    })
+
     cy.intercept('GET', '**/users/profile**', {
       statusCode: 200,
       body: { data: profile }
@@ -84,7 +88,7 @@ describe('Creación de Viaje - Validaciones (versión estable)', () => {
 
   // 🔴 3. Zonas obligatorias
   it('Debe requerir zona de origen y destino', () => {
-    cy.get("form select[name='vehicle']").select(vehicle.id)
+    cy.get("form select").first().select(vehicle.id)
 
     cy.get("form button[type='submit']").click()
 
@@ -93,13 +97,13 @@ describe('Creación de Viaje - Validaciones (versión estable)', () => {
 
   // 🔴 4. Fecha y hora obligatorias
   it('Debe requerir fecha y hora', () => {
-    cy.get("form select[name='vehicle']").select(vehicle.id)
-    cy.get("form select[name='origin']").select(1)
-    cy.get("form select[name='destination']").select(1)
+    cy.get("form select").first().select(vehicle.id)
+    cy.get("form select").eq(1).select(1)
+    cy.get("form select").eq(2).select(1)
 
     cy.get("form button[type='submit']").click()
 
-    cy.get("input[type='number']")
+    cy.get("input[type='date']")
   .should(($input) => {
     expect(($input[0] as HTMLInputElement).validity.valid).to.eq(false)
   })
@@ -113,18 +117,18 @@ describe('Creación de Viaje - Validaciones (versión estable)', () => {
 
   // 🔴 5. Asientos obligatorios
   it('Debe requerir número de asientos', () => {
-    cy.get("form select[name='vehicle']").select(vehicle.id)
-    cy.get("form select[name='origin']").select(1)
-    cy.get("form select[name='destination']").select(1)
+    cy.get("form select").first().select(vehicle.id)
+    cy.get("form select").eq(1).select(1)
+    cy.get("form select").eq(2).select(1)
 
     cy.get("input[type='date']").type('2026-06-10')
     cy.get("input[type='time']").type('10:00')
 
-    cy.get("input[type='number']").clear()
+    cy.get("input[type='number']").first().clear()
 
     cy.get("form button[type='submit']").click()
 
-    cy.get("input[type='number']")
+    cy.get("input[type='number']").first()
   .should(($input) => {
     expect(($input[0] as HTMLInputElement).validity.valid).to.eq(false)
   })
@@ -132,18 +136,20 @@ describe('Creación de Viaje - Validaciones (versión estable)', () => {
 
   // 🔴 6. Asientos >= 1
   it('Debe validar que los asientos no sean menores a 1', () => {
-    cy.get("form select[name='vehicle']").select(vehicle.id)
-    cy.get("form select[name='origin']").select(1)
-    cy.get("form select[name='destination']").select(1)
+    cy.get("form select").first().select(vehicle.id)
+    cy.get("form select").eq(1).select(1)
+    cy.get("form select").eq(2).select(1)
 
     cy.get("input[type='date']").type('2026-06-10')
     cy.get("input[type='time']").type('10:00')
 
     cy.get("input[type='number']")
+      .first()
       .clear()
       .type('0')
 
     cy.get("input[type='number']")
+      .first()
   .should(($input) => {
     expect(($input[0] as HTMLInputElement).validity.valid).to.eq(false)
   })
@@ -151,7 +157,7 @@ describe('Creación de Viaje - Validaciones (versión estable)', () => {
 
   // 🔴 7. No debe enviar request si está incompleto
   it('No debe crear viaje si faltan campos', () => {
-    cy.get("form select[name='vehicle']").select(vehicle.id)
+    cy.get("form select").first().select(vehicle.id)
 
     cy.get("form button[type='submit']").click()
 

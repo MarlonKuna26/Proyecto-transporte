@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/10</span>
+                <span class='fraction'>5/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.21% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>16/19</span>
+                <span class='fraction'>0/21</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/10</span>
+                <span class='fraction'>5/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -102,7 +102,8 @@
 <a name='L37'></a><a href='#L37'>37</a>
 <a name='L38'></a><a href='#L38'>38</a>
 <a name='L39'></a><a href='#L39'>39</a>
-<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -115,14 +116,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,15 +155,15 @@ export class GetProfileUseCase implements IUseCase&lt;string, ProfileResponseDTO
     private userRepository: IUserRepository,
   ) {}
 &nbsp;
-  async execute(userId: string): Promise&lt;ProfileResponseDTO&gt; {
-    const user = await this.userRepository.findById(userId);
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!user) {
-<span class="cstat-no" title="statement not covered" >      throw new NotFoundError('User not found');</span>
+<span class="fstat-no" title="function not covered" >  async </span>execute(userId: string): Promise&lt;ProfileResponseDTO&gt; {
+    const user = <span class="cstat-no" title="statement not covered" >await this.userRepository.findById(userId);</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!user) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new NotFoundError('Usuario no encontrado');</span>
     }
 &nbsp;
-    const profile = await this.userProfileRepository.findByUserId(userId);
+    const profile = <span class="cstat-no" title="statement not covered" >await this.userProfileRepository.findByUserId(userId);</span>
 &nbsp;
-    return new ProfileResponseDTO({
+<span class="cstat-no" title="statement not covered" >    return new ProfileResponseDTO({</span>
       userId: user.id,
       email: user.email,
       name: user.name,
@@ -171,12 +173,13 @@ export class GetProfileUseCase implements IUseCase&lt;string, ProfileResponseDTO
       isVerified: user.isVerified,
       career: profile?.career || null,
       photoUrl: profile?.photoUrl || null,
-      phone: profile?.phone || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-      zone: profile?.zone || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
+      phone: profile?.phone || null,
+      zone: profile?.zone || null,
       neighborhood: profile?.neighborhood || null,
       bio: profile?.bio || null,
       emergencyContact: profile?.emergencyContact || null,
       emergencyPhone: profile?.emergencyPhone || null,
+      accountQrUrl: profile?.accountQrUrl || null,
     });
   }
 }
@@ -187,7 +190,7 @@ export class GetProfileUseCase implements IUseCase&lt;string, ProfileResponseDTO
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-06T18:53:44.110Z
+                at 2026-06-05T05:18:40.810Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

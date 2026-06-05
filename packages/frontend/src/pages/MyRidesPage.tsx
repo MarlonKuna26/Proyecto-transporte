@@ -791,10 +791,8 @@ export const MyRidesPage: React.FC = () => {
                       const maxSeats = vehicle ? vehicle.capacity : 8;
                       if (val > maxSeats) {
                         setFormData(prev => ({ ...prev, availableSeats: String(maxSeats) }));
-                      } else if (val < 1) {
-                        setFormData(prev => ({ ...prev, availableSeats: '1' }));
                       } else {
-                        setFormData(prev => ({ ...prev, availableSeats: String(val) }));
+                        setFormData(prev => ({ ...prev, availableSeats: valStr }));
                       }
                     }
                   }}
