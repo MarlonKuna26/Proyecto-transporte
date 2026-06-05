@@ -29,6 +29,8 @@ async function seed() {
     console.log('👥 Creando usuarios...');
     const hashedPass = await bcrypt.hash('Test1234!', 10);
     const customHashedPass = await bcrypt.hash('Marlon182004@', 10);
+    const heidiPass = await bcrypt.hash('Josu123456', 10);
+    const martaPass = await bcrypt.hash('Marta123', 10);
     
     const users = [
       { id: uuidv4(), correo: 'admin@uride.edu.ec', nombre: 'Admin Sistema', rol: 'ADMIN', verificado: true },
@@ -39,13 +41,15 @@ async function seed() {
       { id: uuidv4(), correo: 'diego.herrera@uride.edu.ec', nombre: 'Diego Herrera', rol: 'STUDENT', verificado: true },
       { id: uuidv4(), correo: 'sofia.ramirez@uride.edu.ec', nombre: 'Sofía Ramírez', rol: 'STUDENT', verificado: false },
       { id: uuidv4(), correo: 'jfiallos7065@uta.edu.ec', nombre: 'Juan Fiallos', rol: 'STUDENT', verificado: true, customHash: true },
+      { id: uuidv4(), correo: 'hvillavicencio8210@uta.edu.ec', nombre: 'Heidi Villavicencio', rol: 'STUDENT', verificado: true, passwordHash: heidiPass },
+      { id: uuidv4(), correo: 'mguevara4348@uta.edu.ec', nombre: 'Marta Guevara', rol: 'STUDENT', verificado: true, passwordHash: martaPass },
     ];
 
     for (const u of users) {
       await client.query(
         `INSERT INTO usuarios (id, correo, nombre, contrasena_hash, rol, esta_verificado, reputacion) 
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [u.id, u.correo, u.nombre, u.customHash ? customHashedPass : hashedPass, u.rol, u.verificado, 5.0]
+        [u.id, u.correo, u.nombre, u.passwordHash || (u.customHash ? customHashedPass : hashedPass), u.rol, u.verificado, 5.0]
       );
     }
     console.log(`  ✅ ${users.length} usuarios creados (contraseñas listas)`);
@@ -59,6 +63,8 @@ async function seed() {
       { userId: users[4].id, carrera: 'Administración', telefono: '+593 95 456 7890', zona: 'Huachi Chico', barrio: 'Cdla. Presidencial', bio: 'Me gusta viajar acompañada, más seguro así!', contacto_emergencia: 'Esposo - Juan Carlos', telefono_emergencia: '+593 96 444 5555' },
       { userId: users[5].id, carrera: 'Ingeniería Civil', telefono: '+593 97 567 8901', zona: 'Izamba', barrio: 'San José', bio: 'Puntualidad ante todo', contacto_emergencia: 'Madre - Carmen Herrera', telefono_emergencia: '+593 95 555 6666' },
       { userId: users[7].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 98 123 4567', zona: 'Ficoa', barrio: 'Las Palmas', bio: 'Estudiante, viajo a diario con U-Ride', contacto_emergencia: 'Madre - María Fiallos', telefono_emergencia: '+593 99 999 9999' },
+      { userId: users[8].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 98 222 2222', zona: 'Ficoa', barrio: 'Las Palmas', bio: 'Administradora y Conductora', contacto_emergencia: 'Padre - Juan Villavicencio', telefono_emergencia: '+593 99 222 3333' },
+      { userId: users[9].id, carrera: 'Derecho', telefono: '+593 99 333 3333', zona: 'Miraflores', barrio: 'Cdla. España', bio: 'Estudiante de Derecho, busco viajes', contacto_emergencia: 'Madre - Ana Guevara', telefono_emergencia: '+593 98 333 4444' },
     ];
 
     for (const p of profiles) {
@@ -77,6 +83,7 @@ async function seed() {
       { id: uuidv4(), owner: users[3].id, placa: 'TBA-5678', marca: 'Kia', modelo: 'Rio', color: 'Blanco', anio: 2023, capacidad: 4 },
       { id: uuidv4(), owner: users[5].id, placa: 'TBA-9012', marca: 'Hyundai', modelo: 'Accent', color: 'Gris', anio: 2021, capacidad: 3 },
       { id: uuidv4(), owner: users[7].id, placa: 'TBA-4321', marca: 'Toyota', modelo: 'Yaris', color: 'Rojo', anio: 2023, capacidad: 4 },
+      { id: uuidv4(), owner: users[8].id, placa: 'TST-1234', marca: 'Toyota', modelo: 'Yaris', color: 'Rojo', anio: 2023, capacidad: 4 },
     ];
 
     for (const v of vehicles) {
