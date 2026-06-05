@@ -21,13 +21,13 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.log('Escribiendo email...');
     cy.get('input[type="email"]')
       .should('be.visible')
-      .type('pepe@uta.edu.ec');
+      .type('hvillavicencio8210@uta.edu.ec');
     cy.wait(700);
     
     cy.log('Escribiendo contraseña...');
     cy.get('input[type="password"]')
       .should('be.visible')
-      .type('Pepe1234');
+      .type('Josu123456');
     cy.wait(700);
     
     cy.log('Clickeando botón submit...');

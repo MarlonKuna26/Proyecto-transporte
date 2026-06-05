@@ -5,8 +5,8 @@
 
 describe('U-Ride – Pagos (Pasajero)', () => {
 
-  const PASSENGER_EMAIL    = 'pepe@uta.edu.ec';
-  const PASSENGER_PASSWORD = 'Pepe1234';
+  const PASSENGER_EMAIL    = 'mguevara4348@uta.edu.ec';
+  const PASSENGER_PASSWORD = 'Marta123';
   const PAYMENT_CARD       = '.grid div.rounded-2xl.bg-white';
 
   // ─── Login + ir a Pagos ───────────────────────────────

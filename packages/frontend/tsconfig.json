@@ -31,7 +31,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src","cypress"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "build"]
 }
 
