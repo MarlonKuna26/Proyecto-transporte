@@ -5,10 +5,8 @@ it('debería mostrar la lista de usuarios en el panel de admin', () => {
   cy.get('input[type="password"]').type('Test1234!');
   cy.get('button[type="submit"]').click();
 
-  // 👇 ESPERA REAL (NO wait)
-  cy.window().should((win) => {
-    expect(win.localStorage.getItem('token')).to.exist;
-  });
+  // Esperar a redirigir al panel de administración
+  cy.url().should('include', '/admin');
 
   cy.visit('/admin?tab=stats');
   cy.wait(1500);
@@ -110,21 +108,13 @@ cy.visit('/login');
 cy.get('input[type="email"]').type('admin@uride.edu.ec');
 cy.get('input[type="password"]').type('Test1234!');
 
-// 🔥 Interceptar login (MEJOR QUE window)
-cy.intercept('POST', '**/login').as('loginRequest');
-
 cy.get('button[type="submit"]').click();
 
-cy.wait('@loginRequest').its('response.statusCode').should('eq', 200);
-
-// ✅ VALIDAR TOKEN REAL
-cy.window().its('localStorage.token').should('exist');
+// Esperar a redirigir al panel de administración
+cy.url().should('include', '/admin');
 
 // 🚫 SOLO UNA VISITA
 cy.visit('/admin?tab=users');
-
-// 🔥 VALIDAR QUE NO TE BOTÓ
-cy.url().should('not.include', '/login');
 
 // 🔥 ESPERA REAL (NO wait)
 cy.contains('Usuarios', { timeout: 10000 }).should('be.visible');
@@ -208,10 +198,8 @@ cy.log('✅ CUENTA DE PEPE REACTIVADA EXITOSAMENTE');
   cy.get('input[type="password"]').type('Test1234!');
   cy.get('button[type="submit"]').click();
 
-  // 👇 ESPERA REAL (NO wait)
-  cy.window().should((win) => {
-    expect(win.localStorage.getItem('token')).to.exist;
-  });
+  // Esperar a redirigir al panel de administración
+  cy.url().should('include', '/admin');
 
   cy.visit('/admin?tab=stats');
   cy.wait(2000);

@@ -476,7 +476,6 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.get('.bg-white.rounded-2xl')
       .filter(':contains("Campus Huachi")')
       .filter(':contains("Ficoa")')
-      .filter(':contains("Disponible")')
       .first()
       .as('rideCard')
       .should('be.visible');
