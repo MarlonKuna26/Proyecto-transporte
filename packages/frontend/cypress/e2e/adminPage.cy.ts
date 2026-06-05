@@ -8,6 +8,7 @@ it('debería mostrar la lista de usuarios en el panel de admin', () => {
   // 👇 ESPERA REAL (NO wait)
   cy.window().should((win) => {
     expect(win.localStorage.getItem('token')).to.exist;
+    expect(win.localStorage.getItem('user')).to.exist;
   });
 
   cy.visit('/admin?tab=stats');
@@ -117,8 +118,9 @@ cy.get('button[type="submit"]').click();
 
 cy.wait('@loginRequest').its('response.statusCode').should('eq', 200);
 
-// ✅ VALIDAR TOKEN REAL
+// ✅ VALIDAR TOKEN Y USUARIO REALES
 cy.window().its('localStorage.token').should('exist');
+cy.window().its('localStorage.user').should('exist');
 
 // 🚫 SOLO UNA VISITA
 cy.visit('/admin?tab=users');
@@ -211,6 +213,7 @@ cy.log('✅ CUENTA DE PEPE REACTIVADA EXITOSAMENTE');
   // 👇 ESPERA REAL (NO wait)
   cy.window().should((win) => {
     expect(win.localStorage.getItem('token')).to.exist;
+    expect(win.localStorage.getItem('user')).to.exist;
   });
 
   cy.visit('/admin?tab=stats');

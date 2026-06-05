@@ -27,25 +27,29 @@ async function seed() {
 
     // ============ USUARIOS ============
     console.log('👥 Creando usuarios...');
-    const hashedPass = await bcrypt.hash('Test1234!', 10);
-    const customHashedPass = await bcrypt.hash('Marlon182004@', 10);
     
     const users = [
-      { id: uuidv4(), correo: 'admin@uride.edu.ec', nombre: 'Admin Sistema', rol: 'ADMIN', verificado: true },
-      { id: uuidv4(), correo: 'carlos.martinez@uride.edu.ec', nombre: 'Carlos Martínez', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'laura.gonzalez@uride.edu.ec', nombre: 'Laura González', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'andres.lopez@uride.edu.ec', nombre: 'Andrés López', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'maria.rodriguez@uride.edu.ec', nombre: 'María Rodríguez', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'diego.herrera@uride.edu.ec', nombre: 'Diego Herrera', rol: 'STUDENT', verificado: true },
-      { id: uuidv4(), correo: 'sofia.ramirez@uride.edu.ec', nombre: 'Sofía Ramírez', rol: 'STUDENT', verificado: false },
-      { id: uuidv4(), correo: 'jfiallos7065@uta.edu.ec', nombre: 'Juan Fiallos', rol: 'STUDENT', verificado: true, customHash: true },
+      { id: uuidv4(), correo: 'admin@uride.edu.ec', nombre: 'Admin Sistema', rol: 'ADMIN', verificado: true, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'carlos.martinez@uride.edu.ec', nombre: 'Carlos Martínez', rol: 'STUDENT', verificado: true, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'laura.gonzalez@uride.edu.ec', nombre: 'Laura González', rol: 'STUDENT', verificado: true, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'andres.lopez@uride.edu.ec', nombre: 'Andrés López', rol: 'STUDENT', verificado: true, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'maria.rodriguez@uride.edu.ec', nombre: 'María Rodríguez', rol: 'STUDENT', verificado: true, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'diego.herrera@uride.edu.ec', nombre: 'Diego Herrera', rol: 'STUDENT', verificado: true, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'sofia.ramirez@uride.edu.ec', nombre: 'Sofía Ramírez', rol: 'STUDENT', verificado: false, password: 'Test1234!' },
+      { id: uuidv4(), correo: 'jfiallos7065@uta.edu.ec', nombre: 'Juan Fiallos', rol: 'STUDENT', verificado: true, password: 'Marlon182004@' },
+      { id: uuidv4(), correo: 'hvillavicencio8210@uta.edu.ec', nombre: 'Heidi Villavicencio', rol: 'ADMIN', verificado: true, password: 'Heidi2003' },
+      { id: uuidv4(), correo: 'pepe@uta.edu.ec', nombre: 'Pepe', rol: 'STUDENT', verificado: true, password: 'Pepe1234' },
+      { id: uuidv4(), correo: 'marta@uta.edu.ec', nombre: 'Marta', rol: 'STUDENT', verificado: true, password: 'Marta123' },
+      { id: uuidv4(), correo: 'vsarco7769@uta.edu.ec', nombre: 'Viviana Sarco', rol: 'STUDENT', verificado: true, password: 'Viviana_123' },
+      { id: uuidv4(), correo: 'test@uta.edu.ec', nombre: 'Usuario Test', rol: 'STUDENT', verificado: true, password: 'Test1234!' }
     ];
 
     for (const u of users) {
+      const hash = await bcrypt.hash(u.password, 10);
       await client.query(
         `INSERT INTO usuarios (id, correo, nombre, contrasena_hash, rol, esta_verificado, reputacion) 
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [u.id, u.correo, u.nombre, u.customHash ? customHashedPass : hashedPass, u.rol, u.verificado, 5.0]
+        [u.id, u.correo, u.nombre, hash, u.rol, u.verificado, 5.0]
       );
     }
     console.log(`  ✅ ${users.length} usuarios creados (contraseñas listas)`);
@@ -59,6 +63,12 @@ async function seed() {
       { userId: users[4].id, carrera: 'Administración', telefono: '+593 95 456 7890', zona: 'Huachi Chico', barrio: 'Cdla. Presidencial', bio: 'Me gusta viajar acompañada, más seguro así!', contacto_emergencia: 'Esposo - Juan Carlos', telefono_emergencia: '+593 96 444 5555' },
       { userId: users[5].id, carrera: 'Ingeniería Civil', telefono: '+593 97 567 8901', zona: 'Izamba', barrio: 'San José', bio: 'Puntualidad ante todo', contacto_emergencia: 'Madre - Carmen Herrera', telefono_emergencia: '+593 95 555 6666' },
       { userId: users[7].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 98 123 4567', zona: 'Ficoa', barrio: 'Las Palmas', bio: 'Estudiante, viajo a diario con U-Ride', contacto_emergencia: 'Madre - María Fiallos', telefono_emergencia: '+593 99 999 9999' },
+      
+      { userId: users[8].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 99 999 9991', zona: 'Huachi Chico', barrio: 'La Presidencial', bio: 'Administradora del sistema', contacto_emergencia: 'Emergencia', telefono_emergencia: '+593 99 999 9999' }, // Heidi (Admin)
+      { userId: users[9].id, carrera: 'Ingeniería de Sistemas', telefono: '+593 99 999 9992', zona: 'Ficoa', barrio: 'Las Palmas', bio: 'Hola, soy Pepe', contacto_emergencia: 'Emergencia', telefono_emergencia: '+593 99 999 9999' }, // Pepe
+      { userId: users[10].id, carrera: 'Derecho', telefono: '+593 99 999 9993', zona: 'Miraflores', barrio: 'Las Flores', bio: 'Hola, soy Marta', contacto_emergencia: 'Emergencia', telefono_emergencia: '+593 99 999 9999' }, // Marta
+      { userId: users[11].id, carrera: 'Medicina', telefono: '+593 99 999 9994', zona: 'Centro', barrio: 'La Merced', bio: 'Hola, soy Viviana', contacto_emergencia: 'Emergencia', telefono_emergencia: '+593 99 999 9999' }, // Viviana
+      { userId: users[12].id, carrera: 'Administración', telefono: '+593 99 999 9995', zona: 'Huachi Chico', barrio: 'La Presidencial', bio: 'Usuario de pruebas', contacto_emergencia: 'Emergencia', telefono_emergencia: '+593 99 999 9999' }, // Test User
     ];
 
     for (const p of profiles) {
@@ -77,6 +87,7 @@ async function seed() {
       { id: uuidv4(), owner: users[3].id, placa: 'TBA-5678', marca: 'Kia', modelo: 'Rio', color: 'Blanco', anio: 2023, capacidad: 4 },
       { id: uuidv4(), owner: users[5].id, placa: 'TBA-9012', marca: 'Hyundai', modelo: 'Accent', color: 'Gris', anio: 2021, capacidad: 3 },
       { id: uuidv4(), owner: users[7].id, placa: 'TBA-4321', marca: 'Toyota', modelo: 'Yaris', color: 'Rojo', anio: 2023, capacidad: 4 },
+      { id: uuidv4(), owner: users[9].id, placa: 'TBA-7777', marca: 'Chevrolet', modelo: 'Sail', color: 'Negro', anio: 2023, capacidad: 4 }, // Pepe's vehicle
     ];
 
     for (const v of vehicles) {
