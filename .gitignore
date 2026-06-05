@@ -68,3 +68,6 @@ test-results/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+packages/frontend/cypress/screenshots/
+packages/frontend/cypress/videos/
