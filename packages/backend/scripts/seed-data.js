@@ -37,9 +37,9 @@ async function seed() {
       { id: uuidv4(), correo: 'diego.herrera@uride.edu.ec', nombre: 'Diego Herrera', rol: 'STUDENT', verificado: true, password: 'Test1234!' },
       { id: uuidv4(), correo: 'sofia.ramirez@uride.edu.ec', nombre: 'Sofía Ramírez', rol: 'STUDENT', verificado: false, password: 'Test1234!' },
       { id: uuidv4(), correo: 'jfiallos7065@uta.edu.ec', nombre: 'Juan Fiallos', rol: 'STUDENT', verificado: true, password: 'Marlon182004@' },
-      { id: uuidv4(), correo: 'hvillavicencio8210@uta.edu.ec', nombre: 'Heidi Villavicencio', rol: 'ADMIN', verificado: true, password: 'Heidi2003' },
+      { id: uuidv4(), correo: 'hvillavicencio8210@uta.edu.ec', nombre: 'Heidi Villavicencio', rol: 'ADMIN', verificado: true, password: 'Josu123456' },
       { id: uuidv4(), correo: 'pepe@uta.edu.ec', nombre: 'Pepe', rol: 'STUDENT', verificado: true, password: 'Pepe1234' },
-      { id: uuidv4(), correo: 'marta@uta.edu.ec', nombre: 'Marta', rol: 'STUDENT', verificado: true, password: 'Marta123' },
+      { id: uuidv4(), correo: 'mguevara4348@uta.edu.ec', nombre: 'Marta', rol: 'STUDENT', verificado: true, password: 'Marta123' },
       { id: uuidv4(), correo: 'vsarco7769@uta.edu.ec', nombre: 'Viviana Sarco', rol: 'STUDENT', verificado: true, password: 'Viviana_123' },
       { id: uuidv4(), correo: 'test@uta.edu.ec', nombre: 'Usuario Test', rol: 'STUDENT', verificado: true, password: 'Test1234!' }
     ];
@@ -165,7 +165,7 @@ async function seed() {
       { solicitud: requests[0].id, monto: 0.75, metodo: 'CASH', estado: 'COMPLETED' },
       { solicitud: requests[2].id, monto: 0.50, metodo: 'TRANSFER', estado: 'COMPLETED', referencia: 'TRF-2026-001' },
       { solicitud: requests[4].id, monto: 1.00, metodo: 'CASH', estado: 'PENDING' },
-      { solicitud: requests[5].id, monto: 0.75, metodo: 'WALLET', estado: 'COMPLETED' },
+      { solicitud: requests[5].id, monto: 0.75, metodo: 'PAYPAL', estado: 'COMPLETED' },
       { solicitud: requests[6].id, monto: 0.75, metodo: 'CASH', estado: 'COMPLETED' },
       { solicitud: requests[7].id, monto: 1.00, metodo: 'TRANSFER', estado: 'PENDING', referencia: 'TRF-2026-002' },
     ];
