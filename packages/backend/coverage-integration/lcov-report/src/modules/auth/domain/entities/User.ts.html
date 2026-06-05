@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78.57% </span>
+                <span class="strong">82.35% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/14</span>
+                <span class='fraction'>14/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">42.85% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>6/14</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78.57% </span>
+                <span class="strong">82.35% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>11/14</span>
+                <span class='fraction'>14/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -120,14 +120,23 @@
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -149,15 +158,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -194,6 +212,9 @@ export class User {
   readonly reputation: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly isSuspended: boolean;
+  readonly suspensionReason: string | null;
+  readonly suspendedUntil: Date | null;
 &nbsp;
   constructor(
     email: string,
@@ -202,9 +223,12 @@ export class User {
     role: 'STUDENT' | 'ADMIN' = <span class="branch-0 cbranch-no" title="branch not covered" >'STUDENT',</span>
     isVerified: boolean = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span>
     reputation: number = <span class="branch-0 cbranch-no" title="branch not covered" >5.0,</span>
-    id: string = <span class="branch-0 cbranch-no" title="branch not covered" >uuidv4(),</span>
-    createdAt: Date = <span class="branch-0 cbranch-no" title="branch not covered" >new Date(),</span>
-    updatedAt: Date = <span class="branch-0 cbranch-no" title="branch not covered" >new Date(),</span>
+    id: string = uuidv4(),
+    createdAt: Date = new Date(),
+    updatedAt: Date = new Date(),
+    isSuspended: boolean = false,
+    suspensionReason: string | null = null,
+    suspendedUntil: Date | null = null,
   ) {
     this.id = id;
     this.email = email;
@@ -215,6 +239,9 @@ export class User {
     this.reputation = reputation;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.isSuspended = isSuspended;
+    this.suspensionReason = suspensionReason;
+    this.suspendedUntil = suspendedUntil;
   }
 &nbsp;
   /**
@@ -229,7 +256,7 @@ export class User {
    */
 <span class="fstat-no" title="function not covered" >  updateReputation(</span>newRating: number): void {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (newRating &lt; 1.0 || newRating &gt; 5.0) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new Error('Rating must be between 1.0 and 5.0');</span>
+<span class="cstat-no" title="statement not covered" >      throw new Error('La calificación debe estar entre 1.0 y 5.0');</span>
     }
     // Aquí iría lógica de cálculo de reputación más compleja
   }
@@ -241,7 +268,7 @@ export class User {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-06T18:53:44.110Z
+                at 2026-06-05T05:03:29.827Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.47% </span>
+                <span class="strong">29.41% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>13/17</span>
+                <span class='fraction'>5/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.19% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>16/21</span>
+                <span class='fraction'>0/23</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/3</span>
+                <span class='fraction'>1/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.47% </span>
+                <span class="strong">29.41% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>13/17</span>
+                <span class='fraction'>5/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -123,7 +123,8 @@
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -141,30 +142,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -200,31 +202,31 @@ export class UpdateProfileUseCase implements IUseCase&lt;UpdateProfileInput, Pro
     private userRepository: IUserRepository,
   ) {}
 &nbsp;
-  async execute(input: UpdateProfileInput): Promise&lt;ProfileResponseDTO&gt; {
-    const user = await this.userRepository.findById(input.userId);
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!user) {
-<span class="cstat-no" title="statement not covered" >      throw new NotFoundError('User not found');</span>
+<span class="fstat-no" title="function not covered" >  async </span>execute(input: UpdateProfileInput): Promise&lt;ProfileResponseDTO&gt; {
+    const user = <span class="cstat-no" title="statement not covered" >await this.userRepository.findById(input.userId);</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!user) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new NotFoundError('Usuario no encontrado');</span>
     }
 &nbsp;
     // Actualizar nombre en users si se proporciona
-    <span class="missing-if-branch" title="if path not taken" >I</span>if ((input.data as any).name) {
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if ((input.data as any).name) {</span>
 <span class="cstat-no" title="statement not covered" >      await this.userRepository.update(input.userId, { name: (input.data as any).name });</span>
     }
 &nbsp;
     // Crear o actualizar perfil
-    let profile = await this.userProfileRepository.findByUserId(input.userId);
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!profile) {
+    let profile = <span class="cstat-no" title="statement not covered" >await this.userProfileRepository.findByUserId(input.userId);</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!profile) {</span>
       const { UserProfile } = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >await import('</span>../../domain/entities/UserProfile');</span>
 <span class="cstat-no" title="statement not covered" >      profile = await this.userProfileRepository.create(</span>
         new UserProfile(input.userId),
       );
     }
 &nbsp;
-    profile = await this.userProfileRepository.update(input.userId, input.data as any);
+<span class="cstat-no" title="statement not covered" >    profile = await this.userProfileRepository.update(input.userId, input.data as any);</span>
 &nbsp;
-    const updatedUser = await this.userRepository.findById(input.userId);
+    const updatedUser = <span class="cstat-no" title="statement not covered" >await this.userRepository.findById(input.userId);</span>
 &nbsp;
-    return new ProfileResponseDTO({
+<span class="cstat-no" title="statement not covered" >    return new ProfileResponseDTO({</span>
       userId: updatedUser!.id,
       email: updatedUser!.email,
       name: updatedUser!.name,
@@ -234,12 +236,13 @@ export class UpdateProfileUseCase implements IUseCase&lt;UpdateProfileInput, Pro
       isVerified: updatedUser!.isVerified,
       career: profile?.career || null,
       photoUrl: profile?.photoUrl || null,
-      phone: profile?.phone || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-      zone: profile?.zone || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
+      phone: profile?.phone || null,
+      zone: profile?.zone || null,
       neighborhood: profile?.neighborhood || null,
       bio: profile?.bio || null,
       emergencyContact: profile?.emergencyContact || null,
       emergencyPhone: profile?.emergencyPhone || null,
+      accountQrUrl: profile?.accountQrUrl || null,
     });
   }
 }
@@ -250,7 +253,7 @@ export class UpdateProfileUseCase implements IUseCase&lt;UpdateProfileInput, Pro
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-06T18:53:44.110Z
+                at 2026-06-05T05:03:29.827Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">13.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>2/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">13.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>2/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -111,7 +111,10 @@
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,18 +148,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { v4 as uuidv4 } from 'uuid';
@@ -176,10 +182,11 @@ export class UserProfile {
   readonly bio: string | null;
   readonly emergencyContact: string | null;
   readonly emergencyPhone: string | null;
+  readonly accountQrUrl: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 &nbsp;
-  constructor(
+<span class="fstat-no" title="function not covered" >  constructor(</span>
     userId: string,
     career: string | null = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
     photoUrl: string | null = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
@@ -189,22 +196,24 @@ export class UserProfile {
     bio: string | null = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
     emergencyContact: string | null = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
     emergencyPhone: string | null = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
+    accountQrUrl: string | null = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
     id: string = <span class="branch-0 cbranch-no" title="branch not covered" >uuidv4(),</span>
     createdAt: Date = <span class="branch-0 cbranch-no" title="branch not covered" >new Date(),</span>
     updatedAt: Date = <span class="branch-0 cbranch-no" title="branch not covered" >new Date(),</span>
   ) {
-    this.id = id;
-    this.userId = userId;
-    this.career = career;
-    this.photoUrl = photoUrl;
-    this.phone = phone;
-    this.zone = zone;
-    this.neighborhood = neighborhood;
-    this.bio = bio;
-    this.emergencyContact = emergencyContact;
-    this.emergencyPhone = emergencyPhone;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+<span class="cstat-no" title="statement not covered" >    this.id = id;</span>
+<span class="cstat-no" title="statement not covered" >    this.userId = userId;</span>
+<span class="cstat-no" title="statement not covered" >    this.career = career;</span>
+<span class="cstat-no" title="statement not covered" >    this.photoUrl = photoUrl;</span>
+<span class="cstat-no" title="statement not covered" >    this.phone = phone;</span>
+<span class="cstat-no" title="statement not covered" >    this.zone = zone;</span>
+<span class="cstat-no" title="statement not covered" >    this.neighborhood = neighborhood;</span>
+<span class="cstat-no" title="statement not covered" >    this.bio = bio;</span>
+<span class="cstat-no" title="statement not covered" >    this.emergencyContact = emergencyContact;</span>
+<span class="cstat-no" title="statement not covered" >    this.emergencyPhone = emergencyPhone;</span>
+<span class="cstat-no" title="statement not covered" >    this.accountQrUrl = accountQrUrl;</span>
+<span class="cstat-no" title="statement not covered" >    this.createdAt = createdAt;</span>
+<span class="cstat-no" title="statement not covered" >    this.updatedAt = updatedAt;</span>
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -214,7 +223,7 @@ export class UserProfile {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-06T18:53:44.110Z
+                at 2026-06-05T05:03:29.827Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>
