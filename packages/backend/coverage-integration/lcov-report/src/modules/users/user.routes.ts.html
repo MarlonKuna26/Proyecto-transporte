@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.57% </span>
+                <span class="strong">82.05% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>31/35</span>
+                <span class='fraction'>32/39</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.85% </span>
+                <span class="strong">12.5% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/7</span>
+                <span class='fraction'>1/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>29/29</span>
+                <span class='fraction'>32/32</span>
             </div>
         
             
@@ -106,11 +106,31 @@
 <a name='L41'></a><a href='#L41'>41</a>
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
-<a name='L44'></a><a href='#L44'>44</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -119,30 +139,18 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -150,7 +158,7 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Router } from 'express';
-import { authenticateToken } from '@shared/middlewares/AuthMiddleware';
+import { authenticateToken, authorizeRole } from '@shared/middlewares/AuthMiddleware';
 import { UserRepository } from '@modules/auth/infrastructure/repositories/UserRepository';
 import { UserProfileRepository } from './infrastructure/repositories/UserProfileRepository';
 import { VehicleRepository } from './infrastructure/repositories/VehicleRepository';
@@ -159,6 +167,7 @@ import { UpdateProfileUseCase } from './application/usecases/UpdateProfileUseCas
 import { CreateVehicleUseCase } from './application/usecases/CreateVehicleUseCase';
 import { GetUserVehiclesUseCase } from './application/usecases/GetUserVehiclesUseCase';
 import { DeleteVehicleUseCase } from './application/usecases/DeleteVehicleUseCase';
+import { UpdateVehicleUseCase } from './application/usecases/UpdateVehicleUseCase';
 import { UserController } from './infrastructure/controllers/UserController';
 &nbsp;
 export function createUserRoutes(): Router {
@@ -174,21 +183,24 @@ export function createUserRoutes(): Router {
   const createVehicleUseCase = new CreateVehicleUseCase(vehicleRepository);
   const getUserVehiclesUseCase = new GetUserVehiclesUseCase(vehicleRepository);
   const deleteVehicleUseCase = new DeleteVehicleUseCase(vehicleRepository);
+  const updateVehicleUseCase = new UpdateVehicleUseCase(vehicleRepository);
 &nbsp;
   const userController = new UserController(
     getProfileUseCase, updateProfileUseCase,
     createVehicleUseCase, getUserVehiclesUseCase, deleteVehicleUseCase,
+    updateVehicleUseCase
   );
 &nbsp;
   // === Rutas de Perfil (protegidas) ===
-  router.get('/profile', authenticateToken, (req, res) =&gt; userController.getProfile(req, res));
+  router.get('/profile', authenticateToken, <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.getProfile(req, res))</span>;
   router.get('/profile/:userId', authenticateToken, <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.getProfile(req, res))</span>;
-  router.put('/profile', authenticateToken, (req, res) =&gt; userController.updateProfile(req, res));
+  router.put('/profile', authenticateToken, <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.updateProfile(req, res))</span>;
 &nbsp;
   // === Rutas de Vehículos (protegidas) ===
-  router.post('/vehicles', authenticateToken, <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.createVehicle(req, res))</span>;
-  router.get('/vehicles', authenticateToken, <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.getMyVehicles(req, res))</span>;
-  router.delete('/vehicles/:vehicleId', authenticateToken, <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.deleteVehicle(req, res))</span>;
+  router.post('/vehicles', authenticateToken, authorizeRole('STUDENT'), <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.createVehicle(req, res))</span>;
+  router.get('/vehicles', authenticateToken, authorizeRole('STUDENT'), <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.getMyVehicles(req, res))</span>;
+  router.delete('/vehicles/:vehicleId', authenticateToken, authorizeRole('STUDENT'), <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.deleteVehicle(req, res))</span>;
+  router.put('/vehicles/:vehicleId', authenticateToken, authorizeRole('STUDENT'), <span class="fstat-no" title="function not covered" >(r</span>eq, res) =&gt; <span class="cstat-no" title="statement not covered" >userController.updateVehicle(req, res))</span>;
 &nbsp;
   return router;
 }
@@ -199,7 +211,7 @@ export function createUserRoutes(): Router {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-06T18:53:44.110Z
+                at 2026-06-05T05:18:40.810Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
