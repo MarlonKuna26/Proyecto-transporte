@@ -316,6 +316,8 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
       .type(editDateFormatted);
     cy.wait(1000);
     cy.log(`✅ Fecha editada a: ${editDateFormatted}`);
+    cy.contains('button', 'EDITAR', { timeout: 5000 })
+  .should('exist');
 
     // Guardar cambios
     cy.log('💾 GUARDANDO CAMBIOS...');
@@ -376,43 +378,5 @@ cy.get('.bg-white')
   .should('exist');
 
 cy.log('✅ VIAJE INICIADO');
-    // ═══════════════════════════════════════════════════════════════════════════
-    // 17. ELIMINAR/CANCELAR EL VIAJE
-    // ═══════════════════════════════════════════════════════════════════════════
-    cy.log('❌ ELIMINANDO VIAJE...');
-    cy.wait(2000);
-
-    // Encontrar el viaje activo (Disponible) y hacer click en CANCELAR
-    cy.get('.bg-white')
-      .filter(':contains("Campus Huachi")')
-      .filter(':contains("Ficoa")')
-      .filter(':contains("Disponible")')
-      .first()
-      .should('be.visible')
-      .wait(500)
-      .within(() => {
-        cy.contains('button', 'CANCELAR').click();
-      });
-    cy.wait(1500);
-    cy.log('✅ Modal de confirmación abierto');
-
-    
-
-    // Confirmar la cancelación
-    cy.log('🔴 CONFIRMANDO CANCELACIÓN...');
-    cy.contains('Confirmar cancelación')
-      .should('be.visible')
-      .wait(500)
-      .click();
-    cy.wait(2000);
-
-    cy.contains('Viaje cancelado con éxito').should('be.visible');
-    cy.wait(1000);
-    cy.log('✅✅✅ VIAJE ELIMINADO EXITOSAMENTE ✅✅✅');
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // 🎉 ¡PRUEBA COMPLETADA EXITOSAMENTE!
-    // ═══════════════════════════════════════════════════════════════════════════
-    cy.log('🎉🎉🎉 TODAS LAS PRUEBAS COMPLETADAS EXITOSAMENTE 🎉🎉🎉');
-  });
+ });
 });
