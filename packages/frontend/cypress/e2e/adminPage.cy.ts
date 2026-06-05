@@ -1,8 +1,8 @@
 it('debería mostrar la lista de usuarios en el panel de admin', () => {
   cy.visit('/login');
 
-  cy.get('input[type="email"]').type('hvillavicencio8210@uta.edu.ec');
-  cy.get('input[type="password"]').type('Heidi2003');
+  cy.get('input[type="email"]').type('admin@uride.edu.ec');
+  cy.get('input[type="password"]').type('Test1234!');
   cy.get('button[type="submit"]').click();
 
   // 👇 ESPERA REAL (NO wait)
@@ -14,16 +14,16 @@ it('debería mostrar la lista de usuarios en el panel de admin', () => {
   cy.wait(1500);
 cy.visit('/admin?tab=users');
   cy.contains('Usuarios').should('be.visible');
-  cy.log('🔍 BUSCANDO A PEPE...');
+  cy.log('🔍 BUSCANDO A MARTA...');
     cy.get('input[placeholder*="Buscar usuarios"]')
       .should('be.visible')
-      .type('pepe');
+      .type('marta');
     cy.wait(1500);
 
-    // Buscar la tarjeta de Pepe y click en Suspender
-    cy.log('🚫 SUSPENDIENDO A PEPE...');
+    // Buscar la tarjeta de Marta y click en Suspender
+    cy.log('🚫 SUSPENDIENDO A MARTA...');
     cy.get('.glass-card, .bg-white.rounded-2xl')
-      .filter(':contains("pepe@uta.edu.ec")')
+      .filter(':contains("mguevara4348@uta.edu.ec")')
       .first()
       .as('pepeCard')
       .should('be.visible')
@@ -76,12 +76,12 @@ cy.visit('/admin?tab=users');
     cy.wait(1500);
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // 7. LOGIN COMO PEPE - VERIFICAR SUSPENSIÓN
+    // 7. LOGIN COMO MARTA - VERIFICAR SUSPENSIÓN
     // ═══════════════════════════════════════════════════════════════════════════
-    cy.log('🚀 INICIANDO SESIÓN COMO PEPE (SUSPENDIDO)...');
-    cy.get('input[type="email"]').should('be.visible').type('pepe@uta.edu.ec');
+    cy.log('🚀 INICIANDO SESIÓN COMO MARTA (SUSPENDIDO)...');
+    cy.get('input[type="email"]').should('be.visible').type('mguevara4348@uta.edu.ec');
     cy.wait(700);
-    cy.get('input[type="password"]').should('be.visible').type('Pepe1234');
+    cy.get('input[type="password"]').should('be.visible').type('Marta123');
     cy.wait(700);
     cy.get('button[type="submit"]').should('be.visible').click();
     cy.wait(3000);
@@ -107,8 +107,8 @@ cy.visit('/admin?tab=users');
 
 cy.visit('/login');
 
-cy.get('input[type="email"]').type('hvillavicencio8210@uta.edu.ec');
-cy.get('input[type="password"]').type('Heidi2003');
+cy.get('input[type="email"]').type('admin@uride.edu.ec');
+cy.get('input[type="password"]').type('Test1234!');
 
 // 🔥 Interceptar login (MEJOR QUE window)
 cy.intercept('POST', '**/login').as('loginRequest');
@@ -131,22 +131,22 @@ cy.contains('Usuarios', { timeout: 10000 }).should('be.visible');
 
 
 // ═══════════════════════════════════════════════
-// 🔍 BUSCAR A PEPE
+// 🔍 BUSCAR A MARTA
 // ═══════════════════════════════════════════════
-cy.log('🔍 BUSCANDO A PEPE PARA REACTIVAR...');
+cy.log('🔍 BUSCANDO A MARTA PARA REACTIVAR...');
 
 cy.get('input[placeholder*="Buscar usuarios"]')
   .should('be.visible')
   .clear()
-  .type('pepe');
+  .type('marta');
 
 
 // ═══════════════════════════════════════════════
 // ✅ REACTIVAR CUENTA
 // ═══════════════════════════════════════════════
-cy.log('✅ REACTIVANDO CUENTA DE PEPE...');
+cy.log('✅ REACTIVANDO CUENTA DE MARTA...');
 
-cy.contains('.glass-card, .bg-white.rounded-2xl', 'pepe@uta.edu.ec')
+cy.contains('.glass-card, .bg-white.rounded-2xl', 'mguevara4348@uta.edu.ec')
   .as('pepeCardReactivate')
   .should('be.visible')
   .within(() => {
@@ -179,33 +179,33 @@ cy.log('✅ CUENTA DE PEPE REACTIVADA EXITOSAMENTE');
     cy.wait(1500);
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // 10. LOGIN COMO PEPE - VERIFICAR QUE PUEDE ENTRAR
+    // 10. LOGIN COMO MARTA - VERIFICAR QUE PUEDE ENTRAR
     // ═══════════════════════════════════════════════════════════════════════════
-    cy.log('🚀 VERIFICANDO QUE PEPE PUEDE INICIAR SESIÓN NUEVAMENTE...');
-    cy.get('input[type="email"]').should('be.visible').type('pepe@uta.edu.ec');
+    cy.log('🚀 VERIFICANDO QUE MARTA PUEDE INICIAR SESIÓN NUEVAMENTE...');
+    cy.get('input[type="email"]').should('be.visible').type('mguevara4348@uta.edu.ec');
     cy.wait(700);
-    cy.get('input[type="password"]').should('be.visible').type('Pepe1234');
+    cy.get('input[type="password"]').should('be.visible').type('Marta123');
     cy.wait(700);
     cy.get('button[type="submit"]').should('be.visible').click();
     cy.wait(3000);
 
     cy.url().should('include', '/dashboard');
     cy.wait(2000);
-    cy.log('✅ PEPE PUEDE ACCEDER NUEVAMENTE - CUENTA ACTIVA');
+    cy.log('✅ MARTA PUEDE ACCEDER NUEVAMENTE - CUENTA ACTIVA');
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // 11. CERRAR SESIÓN PEPE - VOLVER A ADMIN
+    // 11. CERRAR SESIÓN MARTA - VOLVER A ADMIN
     // ═══════════════════════════════════════════════════════════════════════════
-    cy.log('🔽 Cerrando sesión de Pepe...');
+    cy.log('🔽 Cerrando sesión de Marta...');
     cy.get('#profile-dropdown-trigger').should('be.visible').click();
     cy.contains('Cerrar sesión', { timeout: 10000 }).should('be.visible').click();
     cy.wait(1500);
     
     cy.log('🚀 INICIANDO SESIÓN COMO ADMINISTRADOR ..');
    
-
-  cy.get('input[type="email"]').type('hvillavicencio8210@uta.edu.ec');
-  cy.get('input[type="password"]').type('Heidi2003');
+ 
+  cy.get('input[type="email"]').type('admin@uride.edu.ec');
+  cy.get('input[type="password"]').type('Test1234!');
   cy.get('button[type="submit"]').click();
 
   // 👇 ESPERA REAL (NO wait)

@@ -12,8 +12,8 @@ describe('U-Ride - Filter Rides', () => {
     cy.log('🚀 INICIANDO SESIÓN...');
     cy.visit('/login');
 
-    cy.get('input[type="email"]').should('be.visible').type('pepe@uta.edu.ec');
-    cy.get('input[type="password"]').should('be.visible').type('Pepe1234');
+    cy.get('input[type="email"]').should('be.visible').type('mguevara4348@uta.edu.ec');
+    cy.get('input[type="password"]').should('be.visible').type('Marta123');
     cy.get('button[type="submit"]').should('be.visible').click();
 
     cy.url().should('include', '/dashboard');

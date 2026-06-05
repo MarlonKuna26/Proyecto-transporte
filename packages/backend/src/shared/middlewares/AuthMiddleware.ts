@@ -80,6 +80,11 @@ export const authorizeRole =
       return;
     }
 
+    if (req.user.role === 'ADMIN') {
+      next();
+      return;
+    }
+
     if (!allowedRoles.includes(req.user.role)) {
       logger.warn(
         `El usuario ${req.user.userId} intentó acceder a un recurso restringido`,
