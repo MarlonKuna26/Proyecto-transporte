@@ -22,9 +22,9 @@ pipeline {
       steps {
         script {
           if (isUnix()) {
-            sh 'corepack enable && pnpm install --frozen-lockfile'
+            sh 'pnpm install --frozen-lockfile'
           } else {
-            bat 'corepack enable && pnpm install --frozen-lockfile'
+            bat 'pnpm install --frozen-lockfile'
           }
         }
       }
