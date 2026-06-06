@@ -20,7 +20,7 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout scm
-        cleanWs() 
+         
       }
     }
 
@@ -213,6 +213,7 @@ pipeline {
       // Opcional: Limpiar contenedores después de las pruebas
       // Descomenta la siguiente línea si quieres limpiar automáticamente
       // sh 'docker compose -f "$COMPOSE_FILE" down'
+    cleanWs()
     }
     success {
       echo "========================================="
@@ -243,5 +244,6 @@ pipeline {
         docker compose -f "$COMPOSE_FILE" logs --tail=50
       '''
     }
+    
   }
 }
