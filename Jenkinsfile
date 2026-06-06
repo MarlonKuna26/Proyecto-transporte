@@ -92,13 +92,11 @@ pipeline {
             echo "========================================="
             echo "Running Unit Tests"
             echo "========================================="
+            echo "⚠️  Unit Tests run in ISOLATED mode - NO database variables exported"
+            echo "Tests must use mocks for all database operations"
+            echo "========================================="
             
-            export DB_HOST=${DB_HOST}
-            export DB_PORT=${DB_PORT}
-            export DB_USER=${DB_USER}
-            export DB_PASSWORD=${DB_PASSWORD}
-            export DB_NAME=${DB_NAME}
-            
+            # DO NOT export DB variables - Unit Tests should use .env.unit without BD config
             pnpm -r run test:unit
           '''
         }
