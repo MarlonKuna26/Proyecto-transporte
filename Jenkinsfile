@@ -49,33 +49,33 @@ pipeline {
           echo "========================================="
           
           echo "Waiting for database..."
-          for i in 1 2 3 4 5 6 7 8 9 10; do
+          for i in {1..20}; do
             if docker exec u-ride-db-jenkins pg_isready -U postgres 2>/dev/null; then
               echo "✅ Database is ready"
               break
             fi
-            echo "Attempt $i/10 - Waiting for database..."
-            sleep 3
+            echo "Attempt $i/20 - Waiting for database..."
+            sleep 2
           done
           
           echo "Waiting for backend..."
-          for i in 1 2 3 4 5 6 7 8 9 10; do
+          for i in {1..30}; do
             if curl -sf http://localhost:3002/health > /dev/null 2>&1; then
               echo "✅ Backend is ready"
               break
             fi
-            echo "Attempt $i/10 - Waiting for backend..."
-            sleep 3
+            echo "Attempt $i/30 - Waiting for backend..."
+            sleep 2
           done
           
           echo "Waiting for frontend..."
-          for i in 1 2 3 4 5 6 7 8 9 10; do
+          for i in {1..30}; do
             if curl -sf http://localhost:8081 > /dev/null 2>&1; then
               echo "✅ Frontend is ready"
               break
             fi
-            echo "Attempt $i/10 - Waiting for frontend..."
-            sleep 3
+            echo "Attempt $i/30 - Waiting for frontend..."
+            sleep 2
           done
           
           echo "========================================="
@@ -122,13 +122,22 @@ pipeline {
             echo "DB_USER=${DB_USER}"
             echo "========================================="
             
+            # Verify database connectivity
+            echo "Verifying database connectivity..."
+            docker exec u-ride-db-jenkins pg_isready -U postgres || true
+            
             export DB_HOST=${DB_HOST}
             export DB_PORT=${DB_PORT}
             export DB_USER=${DB_USER}
             export DB_PASSWORD=${DB_PASSWORD}
             export DB_NAME=${DB_NAME}
             
-            pnpm -r run test:integration
+            # Run integration tests with verbose output
+            pnpm -r run test:integration || (
+              echo "Integration tests failed - showing logs:"
+              docker compose -f "$COMPOSE_FILE" logs u-ride-backend || true
+              exit 1
+            )
           '''
         }
       }
@@ -145,22 +154,29 @@ pipeline {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
           sh '''
             echo "========================================="
-            echo "Running E2E Tests"
+            echo "Running E2E Tests with Cypress"
             echo "========================================="
             
             echo "Waiting for frontend to be ready for E2E tests..."
-            for i in 1 2 3 4 5 6 7 8 9 10; do
+            for i in {1..30}; do
               if curl -sf http://localhost:8081 > /dev/null 2>&1; then
                 echo "✅ Frontend is ready for E2E"
                 break
               fi
-              echo "Attempt $i/10 - Waiting for frontend..."
-              sleep 3
+              echo "Attempt $i/30 - Waiting for frontend..."
+              sleep 2
             done
             
-            cd tests
-            xvfb-run pnpm cypress run --e2e --config baseUrl=http://localhost:8081
-            cd ..
+            # Verify frontend is running
+            curl -v http://localhost:8081 || true
+            
+            # Run Cypress tests - use pnpm filter to ensure proper context
+            echo "Starting Cypress tests..."
+            pnpm --filter @u-ride/tests test:e2e -- --config baseUrl=http://localhost:8081 || (
+              echo "E2E tests failed - showing frontend logs:"
+              docker compose -f "$COMPOSE_FILE" logs u-ride-frontend || true
+              exit 1
+            )
           '''
         }
       }

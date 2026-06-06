@@ -28,6 +28,12 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:3002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
     environment:
       NODE_ENV: production
       PORT: 3002
@@ -61,7 +67,14 @@ services:
     ports:
       - "8081:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:80"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     networks:
       - u-ride-network
     restart: unless-stopped
