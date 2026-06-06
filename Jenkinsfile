@@ -111,30 +111,22 @@ pipeline {
     }
 
     stage('E2E Tests (Cypress)') {
-      steps {
-        script {
-          if (isUnix()) {
-            sh '''
-              for i in $(seq 1 30); do
-                if docker exec u-ride-frontend wget -qO- http://localhost:80; then
-                  break
-                fi
-                sleep 3
-              done
-              pnpm --filter @u-ride/tests run test:e2e -- --config baseUrl=http://localhost:${FRONTEND_PORT}
-            '''
-          } else {
-            bat '''
-            powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-              "for ($i=1; $i -le 30; $i++) { ^
-                try { Invoke-WebRequest -UseBasicParsing http://localhost:%FRONTEND_PORT% -TimeoutSec 5; break } catch { Start-Sleep -Seconds 3 } ^
-              }; ^
-              pnpm --filter @u-ride/tests run test:e2e -- --config baseUrl=http://localhost:%FRONTEND_PORT%"
-            '''
-          }
-        }
+  steps {
+    script {
+      if (isUnix()) {
+        sh '''
+          for i in $(seq 1 30); do
+            if docker exec u-ride-frontend wget -qO- http://localhost:80; then
+              break
+            fi
+            sleep 3
+          done
+          xvfb-run pnpm --filter @u-ride/tests run test:e2e -- --config baseUrl=http://localhost:${FRONTEND_PORT}
+        '''
       }
     }
+  }
+}
   }
 
   post {
