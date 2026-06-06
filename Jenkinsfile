@@ -9,6 +9,10 @@ pipeline {
     VITE_API_URL = 'http://localhost:3002/api/v1'
     FRONTEND_PORT = '8081'
     BACKEND_PORT = '3002'
+    DB_PORT = '5434'
+    DB_USER = 'postgres'
+    DB_PASSWORD = '182004'
+    DB_NAME = 'u_ride_esp'
   }
 
   stages {
@@ -42,6 +46,13 @@ pipeline {
           }
         }
       }
+      post {
+        always {
+          // Publicar resultados de tests unitarios si existen
+          junit allowEmptyResults: true, 
+                testResults: '**/test-results/unit/*.xml, **/coverage/*.xml'
+        }
+      }
     }
 
     stage('Build Docker Images') {
@@ -73,27 +84,46 @@ pipeline {
         script {
           if (isUnix()) {
             sh '''
+              echo "Waiting for database to be ready..."
+              for i in $(seq 1 30); do
+                if docker exec u-ride-db-jenkins pg_isready -U ${DB_USER}; then
+                  echo "✅ Database is ready!"
+                  break
+                fi
+                echo "Waiting for database... attempt $i"
+                sleep 2
+              done
+
+              echo "Waiting for backend to be ready..."
               for i in $(seq 1 30); do
                 if docker exec u-ride-backend wget -qO- http://localhost:3002/health; then
-                  exit 0
+                  echo "✅ Backend is ready!"
+                  break
                 fi
-                sleep 3
+                echo "Waiting for backend... attempt $i"
+                sleep 2
               done
-              docker compose -f "$COMPOSE_FILE" logs backend
-              exit 1
+
+              echo "Waiting for frontend to be ready..."
+              for i in $(seq 1 30); do
+                if curl -sf http://localhost:8081; then
+                  echo "✅ Frontend is ready!"
+                  break
+                fi
+                echo "Waiting for frontend... attempt $i"
+                sleep 2
+              done
             '''
           } else {
             bat '''
-            powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-              "$ErrorActionPreference='Stop'; ^
-              for ($i=1; $i -le 30; $i++) { ^
-                try { ^
-                  $r = Invoke-WebRequest -UseBasicParsing http://localhost:%BACKEND_PORT%/health; ^
-                  if ($r.StatusCode -eq 200) { exit 0 } ^
-                } catch { Start-Sleep -Seconds 3 } ^
-              }; ^
-              docker compose -f %COMPOSE_FILE% logs backend; ^
-              exit 1"
+              powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+                "Write-Host 'Waiting for backend...'; ^
+                for ($i=1; $i -le 30; $i++) { ^
+                  try { ^
+                    $r = Invoke-WebRequest -UseBasicParsing http://localhost:%BACKEND_PORT%/health; ^
+                    if ($r.StatusCode -eq 200) { Write-Host 'Backend is ready!'; break } ^
+                  } catch { Start-Sleep -Seconds 3 } ^
+                }"
             '''
           }
         }
@@ -105,52 +135,129 @@ pipeline {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
           script {
             if (isUnix()) {
-              sh 'pnpm -r run test:integration'
+              sh '''
+                export DB_HOST=localhost
+                export DB_PORT=5434
+                export DB_USER=${DB_USER}
+                export DB_PASSWORD=${DB_PASSWORD}
+                export DB_NAME=${DB_NAME}
+                pnpm -r run test:integration
+              '''
             } else {
-              bat 'pnpm -r run test:integration'
+              bat '''
+                set DB_HOST=localhost
+                set DB_PORT=5434
+                set DB_USER=%DB_USER%
+                set DB_PASSWORD=%DB_PASSWORD%
+                set DB_NAME=%DB_NAME%
+                pnpm -r run test:integration
+              '''
             }
           }
+        }
+      }
+      post {
+        always {
+          // Publicar resultados de tests de integración
+          junit allowEmptyResults: true, 
+                testResults: '**/test-results/integration/*.xml, **/coverage/*.xml'
         }
       }
     }
 
     stage('E2E Tests (Cypress)') {
-  steps {
-    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-      script {
-        if (isUnix()) {
-          sh '''
-            for i in $(seq 1 30); do
-              if curl -sf http://localhost:${FRONTEND_PORT}; then
-                break
-              fi
-              sleep 3
-            done
-            xvfb-run pnpm --filter @u-ride/tests run test:e2e -- --config baseUrl=http://localhost:${FRONTEND_PORT}
-          '''
+      steps {
+        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+          script {
+            if (isUnix()) {
+              sh '''
+                echo "Waiting for frontend to be ready for E2E tests..."
+                for i in $(seq 1 30); do
+                  if curl -sf http://localhost:${FRONTEND_PORT}; then
+                    echo "✅ Frontend is ready for E2E tests!"
+                    break
+                  fi
+                  echo "Waiting for frontend... attempt $i"
+                  sleep 3
+                done
+                
+                cd tests
+                export CYPRESS_BASE_URL=http://localhost:${FRONTEND_PORT}
+                xvfb-run pnpm cypress run --e2e --config baseUrl=http://localhost:${FRONTEND_PORT}
+                cd ..
+              '''
+            } else {
+              bat '''
+                cd tests
+                set CYPRESS_BASE_URL=http://localhost:%FRONTEND_PORT%
+                pnpm cypress run --e2e --config baseUrl=http://localhost:%FRONTEND_PORT%
+                cd ..
+              '''
+            }
+          }
+        }
+      }
+      post {
+        always {
+          // Publicar resultados de E2E
+          junit allowEmptyResults: true, 
+                testResults: 'tests/test-results/*.xml, tests/cypress/results/*.xml'
+          
+          // Publicar videos y screenshots si existen
+          publishHTML([
+            reportDir: 'tests/cypress/videos',
+            reportFiles: '*.mp4',
+            reportName: 'Cypress Videos',
+            allowMissing: true
+          ])
+          publishHTML([
+            reportDir: 'tests/cypress/screenshots',
+            reportFiles: '*.png',
+            reportName: 'Cypress Screenshots',
+            allowMissing: true
+          ])
         }
       }
     }
   }
-}
-  }
 
   post {
     success {
-      echo "Despliegue exitoso: frontend http://localhost:${FRONTEND_PORT}, backend http://localhost:${BACKEND_PORT}/health"
+      echo "✅ Despliegue exitoso!"
+      echo "📱 Frontend: http://localhost:${FRONTEND_PORT}"
+      echo "🔧 Backend: http://localhost:${BACKEND_PORT}/health"
+      echo "🗄️ Database: localhost:${DB_PORT}"
     }
     unstable {
-      echo "Despliegue completado con algunos tests fallidos. Revisa los resultados."
+      echo "⚠️ Despliegue completado con algunos tests fallidos"
+      echo "📊 Revisa los reportes de pruebas en Jenkins"
     }
     failure {
       script {
         if (isUnix()) {
-          sh 'docker compose -f "$COMPOSE_FILE" ps'
-          sh 'docker compose -f "$COMPOSE_FILE" logs --no-color'
+          sh '''
+            echo "❌ Pipeline failed! Printing logs..."
+            docker compose -f "$COMPOSE_FILE" ps
+            docker compose -f "$COMPOSE_FILE" logs --tail=100
+          '''
         } else {
-          bat 'docker compose -f %COMPOSE_FILE% ps'
-          bat 'docker compose -f %COMPOSE_FILE% logs --no-color'
+          bat '''
+            echo "❌ Pipeline failed! Printing logs..."
+            docker compose -f %COMPOSE_FILE% ps
+            docker compose -f %COMPOSE_FILE% logs --tail=100
+          '''
         }
+      }
+    }
+    always {
+      script {
+        // Opcional: Limpiar después de los tests (comentar si quieres mantener los contenedores para debug)
+        // if (isUnix()) {
+        //   sh 'docker compose -f "$COMPOSE_FILE" down'
+        // } else {
+        //   bat 'docker compose -f %COMPOSE_FILE% down'
+        // }
+        echo "🏁 Pipeline finished"
       }
     }
   }
