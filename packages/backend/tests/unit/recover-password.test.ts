@@ -36,7 +36,7 @@ describe('RequestPasswordResetUseCase - generación de token', () => {
 		const result = await usecase.execute({ email: '  NotFound@Example.COM ' });
 
 		expect(result.requested).toBe(true);
-		expect(result.expiresInMinutes).toBe(30);
+		expect(result.expiresInMinutes).toBe(15);
 
 		// Sólo debe haberse ejecutado la creación de tabla (CREATE TABLE)
 		const createTableCall = mockPool.query.mock.calls.find((c: any) =>
