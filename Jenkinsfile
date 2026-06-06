@@ -47,15 +47,15 @@ pipeline {
         script {
           if (isUnix()) {
             sh '''
-              for i in $(seq 1 30); do
-                if docker exec u-ride-backend curl -fsS http://localhost:3002/health; then
-                  exit 0
-                fi
-                sleep 3
-              done
-              docker compose -f "$COMPOSE_FILE" logs backend
-              exit 1
-            '''
+  for i in $(seq 1 30); do
+    if docker exec u-ride-backend wget -qO- http://localhost:3002/health; then
+      exit 0
+    fi
+    sleep 3
+  done
+  docker compose -f "$COMPOSE_FILE" logs backend
+  exit 1
+'''
           } else {
             bat '''
             powershell -NoProfile -ExecutionPolicy Bypass -Command ^
