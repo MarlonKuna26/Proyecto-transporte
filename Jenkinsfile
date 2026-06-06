@@ -7,9 +7,8 @@ pipeline {
     BACKEND_IMAGE = "u-ride-backend:${env.BUILD_NUMBER}"
     FRONTEND_IMAGE = "u-ride-frontend:${env.BUILD_NUMBER}"
     VITE_API_URL = 'http://localhost:3002/api/v1'
-    FRONTEND_PORT = '8080'
+    FRONTEND_PORT = '8081'
     BACKEND_PORT = '3002'
-    DB_PORT_HOST = '5433'
   }
 
   stages {
@@ -49,7 +48,7 @@ pipeline {
           if (isUnix()) {
             sh '''
               for i in $(seq 1 30); do
-                if curl -fsS "http://localhost:${BACKEND_PORT}/health"; then
+                if docker exec u-ride-backend curl -fsS http://localhost:3002/health; then
                   exit 0
                 fi
                 sleep 3
