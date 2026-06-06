@@ -16,5 +16,5 @@ module.exports = {
   setupFiles: ['<rootDir>/jest.integration.setup.js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coverageReporters: ['lcov', 'text', 'clover']
+  coverageReporters: ['lcov', 'text', 'clover', 'cobertura']
 };

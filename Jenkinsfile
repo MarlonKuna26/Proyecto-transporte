@@ -29,20 +29,6 @@ pipeline {
       }
     }
 
-    stage('Unit Tests') {
-      steps {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          sh 'pnpm -r run test:unit'
-        }
-      }
-      post {
-        always {
-          junit allowEmptyResults: true, 
-                testResults: '**/test-results/unit/*.xml, **/coverage/*.xml'
-        }
-      }
-    }
-
     stage('Build Docker Images') {
       steps {
         sh 'docker compose -f "$COMPOSE_FILE" build --pull'
@@ -96,6 +82,32 @@ pipeline {
           echo "All services are ready!"
           echo "========================================="
         '''
+      }
+    }
+
+    stage('Unit Tests (with DB available)') {
+      steps {
+        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+          sh '''
+            echo "========================================="
+            echo "Running Unit Tests"
+            echo "========================================="
+            
+            export DB_HOST=${DB_HOST}
+            export DB_PORT=${DB_PORT}
+            export DB_USER=${DB_USER}
+            export DB_PASSWORD=${DB_PASSWORD}
+            export DB_NAME=${DB_NAME}
+            
+            pnpm -r run test:unit
+          '''
+        }
+      }
+      post {
+        always {
+          junit allowEmptyResults: true, 
+                testResults: '**/test-results/unit/*.xml, **/coverage/*.xml'
+        }
       }
     }
 
@@ -164,6 +176,21 @@ pipeline {
   }
 
   post {
+    always {
+      // Archive coverage reports
+      archiveArtifacts artifacts: '**/coverage/**,**/test-results/**', 
+                        fingerprint: true,
+                        allowEmptyArchive: true
+      
+      // Publish coverage to Jenkins
+      publishHTML([
+        reportDir: 'packages/backend/coverage/lcov-report',
+        reportFiles: 'index.html',
+        reportName: 'Coverage Report',
+        allowMissing: true,
+        alwaysLinkToLastBuild: true
+      ])
+    }
     success {
       echo "========================================="
       echo "✅ Pipeline completed successfully!"

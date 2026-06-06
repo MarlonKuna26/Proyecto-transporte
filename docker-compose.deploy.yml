@@ -71,5 +71,4 @@ volumes:
 
 networks:
   u-ride-network:
-    external: true
-    name: proyecto-transporte_u-ride-network
+    driver: bridge
