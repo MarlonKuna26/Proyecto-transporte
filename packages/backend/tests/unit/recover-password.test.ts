@@ -75,7 +75,7 @@ describe('RequestPasswordResetUseCase - generación de token', () => {
 		const result = await usecase.execute({ email: ' USER@Example.COM ' });
 
 		expect(result.requested).toBe(true);
-		expect(result.expiresInMinutes).toBe(30);
+		expect(result.expiresInMinutes).toBe(15);
 		expect((result as any).resetToken).toBeDefined();
 		expect(((result as any).resetToken as string).length).toBe(64);
 
