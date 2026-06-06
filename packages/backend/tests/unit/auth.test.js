@@ -39,7 +39,7 @@ describe('LoginUseCase', () => {
     it('debe fallar si el usuario no existe', async () => {
         userRepositoryMock.findByEmail.mockResolvedValue(null);
         const input = new LoginDTO_1.LoginDTO('hvillavicencio8210@uta.edu.ec', 'Heidi2003');
-        await expect(useCase.execute(input)).rejects.toThrow('Invalid email or password');
+        await expect(useCase.execute(input)).rejects.toThrow('Correo o contraseña inválidos');
     });
     it('debe bloquear si el usuario no está verificado', async () => {
         userRepositoryMock.findByEmail.mockResolvedValue({
@@ -66,7 +66,7 @@ describe('LoginUseCase', () => {
             .spyOn(require('../../src/shared/services/PasswordService').PasswordService, 'compare')
             .mockResolvedValue(false);
         const input = new LoginDTO_1.LoginDTO('hvillavicencio8210@uta.edu.ec', 'malaclave');
-        await expect(useCase.execute(input)).rejects.toThrow('Invalid email or password');
+        await expect(useCase.execute(input)).rejects.toThrow('Correo o contraseña inválidos');
     });
 });
 //# sourceMappingURL=auth.test.js.map
