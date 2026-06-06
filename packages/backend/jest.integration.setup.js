@@ -1,0 +1,9 @@
+process.env.DB_HOST = 'u-ride-db';
+process.env.DB_PORT = '5432';
+process.env.DB_USER = 'postgres';
+process.env.DB_PASSWORD = '182004';
+process.env.DB_NAME = 'u_ride_esp';
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test_secret';
+process.env.JWT_REFRESH_SECRET = 'test_refresh_secret';
+process.env.EMAIL_DEV_MODE = 'true';

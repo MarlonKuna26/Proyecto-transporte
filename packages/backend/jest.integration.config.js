@@ -13,20 +13,5 @@ module.exports = {
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@modules/(.*)$': '<rootDir>/src/modules/$1'
   },
-  testEnvironmentOptions: {},
-  globalSetup: undefined,
-  setupFiles: [],
-  globals: {
-    'process.env': {
-      DB_HOST: 'u-ride-db',
-      DB_PORT: '5432',
-      DB_USER: 'postgres',
-      DB_PASSWORD: '182004',
-      DB_NAME: 'u_ride_esp',
-      NODE_ENV: 'test',
-      JWT_SECRET: 'test_secret',
-      JWT_REFRESH_SECRET: 'test_refresh_secret',
-      EMAIL_DEV_MODE: 'true'
-    }
-  }
+  setupFiles: ['<rootDir>/jest.integration.setup.js']
 };
