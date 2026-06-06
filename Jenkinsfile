@@ -18,6 +18,30 @@ pipeline {
       }
     }
 
+    stage('Install dependencies') {
+      steps {
+        script {
+          if (isUnix()) {
+            sh 'corepack enable && pnpm install --frozen-lockfile'
+          } else {
+            bat 'corepack enable && pnpm install --frozen-lockfile'
+          }
+        }
+      }
+    }
+
+    stage('Unit Tests') {
+      steps {
+        script {
+          if (isUnix()) {
+            sh 'pnpm -r run test:unit'
+          } else {
+            bat 'pnpm -r run test:unit'
+          }
+        }
+      }
+    }
+
     stage('Build Docker Images') {
       steps {
         script {
@@ -47,15 +71,15 @@ pipeline {
         script {
           if (isUnix()) {
             sh '''
-  for i in $(seq 1 30); do
-    if docker exec u-ride-backend wget -qO- http://localhost:3002/health; then
-      exit 0
-    fi
-    sleep 3
-  done
-  docker compose -f "$COMPOSE_FILE" logs backend
-  exit 1
-'''
+              for i in $(seq 1 30); do
+                if docker exec u-ride-backend wget -qO- http://localhost:3002/health; then
+                  exit 0
+                fi
+                sleep 3
+              done
+              docker compose -f "$COMPOSE_FILE" logs backend
+              exit 1
+            '''
           } else {
             bat '''
             powershell -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -68,6 +92,44 @@ pipeline {
               }; ^
               docker compose -f %COMPOSE_FILE% logs backend; ^
               exit 1"
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Integration Tests') {
+      steps {
+        script {
+          if (isUnix()) {
+            sh 'pnpm -r run test:integration'
+          } else {
+            bat 'pnpm -r run test:integration'
+          }
+        }
+      }
+    }
+
+    stage('E2E Tests (Cypress)') {
+      steps {
+        script {
+          if (isUnix()) {
+            sh '''
+              for i in $(seq 1 30); do
+                if docker exec u-ride-frontend wget -qO- http://localhost:80; then
+                  break
+                fi
+                sleep 3
+              done
+              pnpm --filter @u-ride/tests run test:e2e -- --config baseUrl=http://localhost:${FRONTEND_PORT}
+            '''
+          } else {
+            bat '''
+            powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+              "for ($i=1; $i -le 30; $i++) { ^
+                try { Invoke-WebRequest -UseBasicParsing http://localhost:%FRONTEND_PORT% -TimeoutSec 5; break } catch { Start-Sleep -Seconds 3 } ^
+              }; ^
+              pnpm --filter @u-ride/tests run test:e2e -- --config baseUrl=http://localhost:%FRONTEND_PORT%"
             '''
           }
         }
