@@ -1,26 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: u-ride-db
-    environment:
-      POSTGRES_USER: ${DB_USER:-u_ride_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_123}
-      POSTGRES_DB: ${DB_NAME:-u_ride_dev}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
-    ports:
-      - "${DB_PORT_HOST:-5433}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./base_completa.sql:/docker-entrypoint-initdb.d/01-base.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-u_ride_user} -d ${DB_NAME:-u_ride_dev}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - u-ride-network
-    restart: unless-stopped
-
   backend:
     image: ${BACKEND_IMAGE:-u-ride-backend:latest}
     build:
@@ -30,11 +8,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3002
-      DB_HOST: postgres
+      DB_HOST: u-ride-db
       DB_PORT: 5432
-      DB_USER: ${DB_USER:-u_ride_user}
-      DB_PASSWORD: ${DB_PASSWORD:-secure_password_123}
-      DB_NAME: ${DB_NAME:-u_ride_dev}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-182004}
+      DB_NAME: ${DB_NAME:-u_ride_esp}
       JWT_SECRET: ${JWT_SECRET:-change_me_in_jenkins}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh_in_jenkins}
@@ -45,9 +23,6 @@ services:
       EMAIL_PASS: ${EMAIL_PASS:-}
     ports:
       - "${BACKEND_PORT:-3002}:3002"
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - u-ride-network
     restart: unless-stopped
@@ -68,10 +43,7 @@ services:
       - u-ride-network
     restart: unless-stopped
 
-volumes:
-  postgres_data:
-    driver: local
-
 networks:
   u-ride-network:
-    driver: bridge
+    external: true
+    name: proyecto-transporte_u-ride-network
