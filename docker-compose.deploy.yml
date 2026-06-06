@@ -36,7 +36,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3002/api/v1}
     container_name: u-ride-frontend
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "${FRONTEND_PORT:-8081}:80"
     depends_on:
       - backend
     networks:

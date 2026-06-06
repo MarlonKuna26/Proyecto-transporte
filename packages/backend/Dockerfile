@@ -17,16 +17,16 @@ RUN pnpm --filter @u-ride/backend build
 RUN pnpm prune --prod
 
 FROM node:20-alpine AS runtime
-WORKDIR /app
+WORKDIR /app/packages/backend
 ENV NODE_ENV=production
 ENV PORT=3002
 
 RUN addgroup -S app && adduser -S app -G app
-COPY --from=build --chown=app:app /app/node_modules ./node_modules
-COPY --from=build --chown=app:app /app/packages/backend/node_modules ./packages/backend/node_modules
-COPY --from=build --chown=app:app /app/packages/backend/package.json ./packages/backend/package.json
-COPY --from=build --chown=app:app /app/packages/backend/dist ./packages/backend/dist
+COPY --from=build --chown=app:app /app/node_modules /app/node_modules
+COPY --from=build --chown=app:app /app/packages/backend/node_modules ./node_modules
+COPY --from=build --chown=app:app /app/packages/backend/package.json ./package.json
+COPY --from=build --chown=app:app /app/packages/backend/dist ./dist
 
 USER app
 EXPOSE 3002
-CMD ["node", "packages/backend/dist/main.js"]
+CMD ["node", "dist/main.js"]
