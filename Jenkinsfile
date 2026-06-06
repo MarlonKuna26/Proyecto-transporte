@@ -190,6 +190,14 @@ pipeline {
         allowMissing: true,
         alwaysLinkToLastBuild: true
       ])
+      
+      // Pipeline finished message
+      echo "========================================="
+      echo "🏁 Pipeline finished for build ${env.BUILD_NUMBER}"
+      echo "========================================="
+      // Opcional: Limpiar contenedores después de las pruebas
+      // Descomenta la siguiente línea si quieres limpiar automáticamente
+      // sh 'docker compose -f "$COMPOSE_FILE" down'
     }
     success {
       echo "========================================="
@@ -219,14 +227,6 @@ pipeline {
         echo "Printing last 50 lines of logs..."
         docker compose -f "$COMPOSE_FILE" logs --tail=50
       '''
-    }
-    always {
-      echo "========================================="
-      echo "🏁 Pipeline finished for build ${env.BUILD_NUMBER}"
-      echo "========================================="
-      // Opcional: Limpiar contenedores después de las pruebas
-      // Descomenta la siguiente línea si quieres limpiar automáticamente
-      // sh 'docker compose -f "$COMPOSE_FILE" down'
     }
   }
 }
