@@ -1,15 +1,39 @@
 services:
+  # NUEVO: Servicio de base de datos
+  database:
+    image: postgres:15-alpine
+    container_name: u-ride-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-182004}
+      POSTGRES_DB: ${DB_NAME:-u_ride_esp}
+    ports:
+      - "5433:5432"  # Mapea 5433 del host a 5432 del contenedor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - u-ride-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     image: ${BACKEND_IMAGE:-u-ride-backend:latest}
     build:
       context: .
       dockerfile: packages/backend/Dockerfile
     container_name: u-ride-backend
+    depends_on:
+      database:
+        condition: service_healthy  # Espera que BD esté lista
     environment:
       NODE_ENV: production
       PORT: 3002
-      DB_HOST: u-ride-db
-      DB_PORT: 5432
+      DB_HOST: database  # Cambiado de u-ride-db a database (nombre del servicio)
+      DB_PORT: 5432      # Puerto interno del contenedor
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-182004}
       DB_NAME: ${DB_NAME:-u_ride_esp}
@@ -42,6 +66,10 @@ services:
     networks:
       - u-ride-network
     restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: u-ride-postgres-data
 
 networks:
   u-ride-network:
