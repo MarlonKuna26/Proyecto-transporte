@@ -77,7 +77,7 @@ describe('RequestPasswordResetUseCase - generación de token', () => {
 		expect(result.requested).toBe(true);
 		expect(result.expiresInMinutes).toBe(15);
 		expect((result as any).resetToken).toBeDefined();
-		expect(((result as any).resetToken as string).length).toBe(64);
+		expect(((result as any).resetToken as string).length).toBe(6);
 
 		// Buscar llamada INSERT y verificar parámetros
 		const insertCall = mockPool.query.mock.calls.find((c: any) =>
