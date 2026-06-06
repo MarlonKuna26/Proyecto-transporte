@@ -1,16 +1,15 @@
 services:
-  # NUEVO: Servicio de base de datos
   database:
     image: postgres:15-alpine
-    container_name: u-ride-db
+    container_name: u-ride-db-jenkins  # ✅ Nombre diferente
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-182004}
       POSTGRES_DB: ${DB_NAME:-u_ride_esp}
     ports:
-      - "5433:5432"  # Mapea 5433 del host a 5432 del contenedor
+      - "5434:5432"  # ✅ Puerto diferente para evitar conflicto
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_jenkins:/var/lib/postgresql/data  # ✅ Volumen diferente
     networks:
       - u-ride-network
     healthcheck:
@@ -21,55 +20,18 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ${BACKEND_IMAGE:-u-ride-backend:latest}
-    build:
-      context: .
-      dockerfile: packages/backend/Dockerfile
-    container_name: u-ride-backend
+    # ...
+    environment:
+      # ✅ Apuntar al nuevo contenedor
+      DB_HOST: u-ride-db-jenkins
+      DB_PORT: 5432
+      # ...
     depends_on:
       database:
-        condition: service_healthy  # Espera que BD esté lista
-    environment:
-      NODE_ENV: production
-      PORT: 3002
-      DB_HOST: database  # Cambiado de u-ride-db a database (nombre del servicio)
-      DB_PORT: 5432      # Puerto interno del contenedor
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-182004}
-      DB_NAME: ${DB_NAME:-u_ride_esp}
-      JWT_SECRET: ${JWT_SECRET:-change_me_in_jenkins}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh_in_jenkins}
-      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-30d}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8081,http://localhost:5173}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      EMAIL_USER: ${EMAIL_USER:-}
-      EMAIL_PASS: ${EMAIL_PASS:-}
-    ports:
-      - "3002:3002"
-    networks:
-      - u-ride-network
-    restart: unless-stopped
-
-  frontend:
-    image: ${FRONTEND_IMAGE:-u-ride-frontend:latest}
-    build:
-      context: .
-      dockerfile: packages/frontend/Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3002/api/v1}
-    container_name: u-ride-frontend
-    ports:
-      - "8081:80"
-    depends_on:
-      - backend
-    networks:
-      - u-ride-network
-    restart: unless-stopped
+        condition: service_healthy
 
 volumes:
-  postgres_data:
-    name: u-ride-postgres-data
+  postgres_data_jenkins:  # ✅ Volumen diferente
 
 networks:
   u-ride-network:
