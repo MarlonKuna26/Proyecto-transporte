@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev": "kill-port 3002 && concurrently \"tsc --watch\" \"tsx watch src/main.ts\"",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "seed:data": "node scripts/seed-data.js",
     "test:apis": "node scripts/test-apis.js",
