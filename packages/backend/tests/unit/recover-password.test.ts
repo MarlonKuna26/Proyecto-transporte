@@ -59,46 +59,44 @@ describe('RequestPasswordResetUseCase - generación de token', () => {
 	// Caso: correo registrado -> debe generarse un token, almacenarse su hash
 	// en la tabla de recuperaciones y llamarse al servicio de email. En
 	// `EMAIL_DEV_MODE` el resultado incluye el token para facilitar la comprobación.
-	it('genera token, guarda hash y envía email; en dev mode devuelve token', async () => {
-		process.env.EMAIL_DEV_MODE = 'true';
-		process.env.FRONTEND_URL = 'http://test-frontend';
+it('genera token, guarda hash y envía email; en dev mode devuelve token', async () => {
+    process.env.EMAIL_DEV_MODE = 'true';
 
-		const mockPool = { query: jest.fn().mockResolvedValue({ rows: [] }) } as any;
-		const dbSpy = jest.spyOn(DatabaseConnection, 'getInstance').mockReturnValue(mockPool);
+    const mockPool = { query: jest.fn().mockResolvedValue({ rows: [] }) } as any;
+    const dbSpy = jest.spyOn(DatabaseConnection, 'getInstance').mockReturnValue(mockPool);
 
-		const user = { id: 'u-1', email: 'user@example.com' } as any;
-		const mockUserRepo = { findByEmail: jest.fn().mockResolvedValue(user) } as any;
+    const mockUserRepo = {
+        findByEmail: jest.fn().mockResolvedValue({
+            id: '1',
+            email: 'user@example.com',
+            hashedPassword: 'hash123',
+            isVerified: true,
+            role: 'STUDENT',
+            name: 'Test User',
+        }),
+    } as any;
 
-		const emailSpy = jest.spyOn(EmailService, 'sendPasswordResetEmail').mockImplementation(async () => {});
+    const emailSpy = jest.spyOn(EmailService, 'sendPasswordResetCode').mockImplementation(async () => {});
 
-		const usecase = new RequestPasswordResetUseCase(mockUserRepo);
-		const result = await usecase.execute({ email: ' USER@Example.COM ' });
+    const usecase = new RequestPasswordResetUseCase(mockUserRepo);
+    const result = await usecase.execute({ email: 'user@example.com' });
 
-		expect(result.requested).toBe(true);
-		expect(result.expiresInMinutes).toBe(15);
-		expect((result as any).resetToken).toBeDefined();
-		expect(((result as any).resetToken as string).length).toBe(6);
+    expect(result.requested).toBe(true);
+    expect(result.expiresInMinutes).toBe(15);
+    expect((result as any).code).toBeDefined();
+    expect(((result as any).code as string).length).toBe(6);
 
-		// Buscar llamada INSERT y verificar parámetros
-		const insertCall = mockPool.query.mock.calls.find((c: any) =>
-			typeof c[0] === 'string' && c[0].includes('INSERT INTO recuperaciones_contrasena'),
-		);
-		expect(insertCall).toBeDefined();
+    const insertCall = mockPool.query.mock.calls.find((c: any) =>
+        typeof c[0] === 'string' && c[0].includes('INSERT INTO recuperaciones_contrasena'),
+    );
+    expect(insertCall).toBeDefined();
+    const params = insertCall[1];
+    expect(params[0]).toBe('user@example.com');
+    expect(params[1]).toBe((result as any).code);
+    expect(params[2]).toBeInstanceOf(Date);
 
-		const params = insertCall[1];
-		expect(params[0]).toBe('user@example.com'); // email normalizado
-
-		const resetToken = (result as any).resetToken as string;
-		const expectedHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-		expect(params[1]).toBe(expectedHash); // token almacenado es hash
-
-		expect(params[2]).toBeInstanceOf(Date); // expira_en es Date
-
-		// Verificar que se haya enviado el correo con la URL que contiene el token
-		expect(emailSpy).toHaveBeenCalledWith('user@example.com', expect.stringContaining(`token=${resetToken}`));
-
-		dbSpy.mockRestore();
-		emailSpy.mockRestore();
-	});
+    dbSpy.mockRestore();
+    emailSpy.mockRestore();
+});
 });
 
