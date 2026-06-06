@@ -213,7 +213,7 @@ pipeline {
       // Opcional: Limpiar contenedores después de las pruebas
       // Descomenta la siguiente línea si quieres limpiar automáticamente
       // sh 'docker compose -f "$COMPOSE_FILE" down'
-    cleanWs()
+    cleanWs() 
     }
     success {
       echo "========================================="
