@@ -13,7 +13,7 @@ module.exports = {
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@modules/(.*)$': '<rootDir>/src/modules/$1'
   },
-  setupFiles: ['<rootDir>/jest.unit.setup.js'],
+  // setupFiles eliminado
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['lcov', 'text', 'clover']
