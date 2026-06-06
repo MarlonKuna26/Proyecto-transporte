@@ -1,17 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: u-ride-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 182004
-      POSTGRES_DB: u_ride_esp
-    ports:
-      - "5432:5432"
-    networks:
-      - u-ride-network
-    restart: unless-stopped
-
   backend:
     image: ${BACKEND_IMAGE:-u-ride-backend:latest}
     build:
@@ -36,8 +23,6 @@ services:
       EMAIL_PASS: ${EMAIL_PASS:-}
     ports:
       - "3002:3002"
-    depends_on:
-      - db
     networks:
       - u-ride-network
     restart: unless-stopped
