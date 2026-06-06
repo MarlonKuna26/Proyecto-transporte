@@ -6,9 +6,10 @@ pipeline {
     IMAGE_TAG = "${env.BUILD_NUMBER}"
     BACKEND_IMAGE = "u-ride-backend:${env.BUILD_NUMBER}"
     FRONTEND_IMAGE = "u-ride-frontend:${env.BUILD_NUMBER}"
-    VITE_API_URL = 'http://localhost:3002/api/v1'
     FRONTEND_PORT = '8081'
     BACKEND_PORT = '3002'
+    // Variables para tests de integración
+    DB_HOST = 'localhost'
     DB_PORT = '5434'
     DB_USER = 'postgres'
     DB_PASSWORD = '182004'
@@ -24,31 +25,18 @@ pipeline {
 
     stage('Install dependencies') {
       steps {
-        script {
-          if (isUnix()) {
-            sh 'pnpm install --frozen-lockfile'
-          } else {
-            bat 'pnpm install --frozen-lockfile'
-          }
-        }
+        sh 'pnpm install --frozen-lockfile'
       }
     }
 
     stage('Unit Tests') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          script {
-            if (isUnix()) {
-              sh 'pnpm -r run test:unit'
-            } else {
-              bat 'pnpm -r run test:unit'
-            }
-          }
+          sh 'pnpm -r run test:unit'
         }
       }
       post {
         always {
-          // Publicar resultados de tests unitarios si existen
           junit allowEmptyResults: true, 
                 testResults: '**/test-results/unit/*.xml, **/coverage/*.xml'
         }
@@ -57,165 +45,119 @@ pipeline {
 
     stage('Build Docker Images') {
       steps {
-        script {
-          if (isUnix()) {
-            sh 'docker compose -f "$COMPOSE_FILE" build --pull'
-          } else {
-            bat 'docker compose -f %COMPOSE_FILE% build --pull'
-          }
-        }
+        sh 'docker compose -f "$COMPOSE_FILE" build --pull'
       }
     }
 
-    stage('Deploy Controlled Environment') {
+    stage('Deploy Services') {
       steps {
-        script {
-          if (isUnix()) {
-            sh 'docker compose -f "$COMPOSE_FILE" up -d --remove-orphans'
-          } else {
-            bat 'docker compose -f %COMPOSE_FILE% up -d --remove-orphans'
-          }
-        }
+        sh 'docker compose -f "$COMPOSE_FILE" up -d --remove-orphans'
       }
     }
 
     stage('Health Check') {
       steps {
-        script {
-          if (isUnix()) {
-            sh '''
-              echo "Waiting for database to be ready..."
-              for i in $(seq 1 30); do
-                if docker exec u-ride-db-jenkins pg_isready -U ${DB_USER}; then
-                  echo "✅ Database is ready!"
-                  break
-                fi
-                echo "Waiting for database... attempt $i"
-                sleep 2
-              done
-
-              echo "Waiting for backend to be ready..."
-              for i in $(seq 1 30); do
-                if docker exec u-ride-backend wget -qO- http://localhost:3002/health; then
-                  echo "✅ Backend is ready!"
-                  break
-                fi
-                echo "Waiting for backend... attempt $i"
-                sleep 2
-              done
-
-              echo "Waiting for frontend to be ready..."
-              for i in $(seq 1 30); do
-                if curl -sf http://localhost:8081; then
-                  echo "✅ Frontend is ready!"
-                  break
-                fi
-                echo "Waiting for frontend... attempt $i"
-                sleep 2
-              done
-            '''
-          } else {
-            bat '''
-              powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-                "Write-Host 'Waiting for backend...'; ^
-                for ($i=1; $i -le 30; $i++) { ^
-                  try { ^
-                    $r = Invoke-WebRequest -UseBasicParsing http://localhost:%BACKEND_PORT%/health; ^
-                    if ($r.StatusCode -eq 200) { Write-Host 'Backend is ready!'; break } ^
-                  } catch { Start-Sleep -Seconds 3 } ^
-                }"
-            '''
-          }
-        }
+        sh '''
+          echo "========================================="
+          echo "Checking services health"
+          echo "========================================="
+          
+          echo "Waiting for database..."
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if docker exec u-ride-db-jenkins pg_isready -U postgres 2>/dev/null; then
+              echo "✅ Database is ready"
+              break
+            fi
+            echo "Attempt $i/10 - Waiting for database..."
+            sleep 3
+          done
+          
+          echo "Waiting for backend..."
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -sf http://localhost:3002/health > /dev/null 2>&1; then
+              echo "✅ Backend is ready"
+              break
+            fi
+            echo "Attempt $i/10 - Waiting for backend..."
+            sleep 3
+          done
+          
+          echo "Waiting for frontend..."
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -sf http://localhost:8081 > /dev/null 2>&1; then
+              echo "✅ Frontend is ready"
+              break
+            fi
+            echo "Attempt $i/10 - Waiting for frontend..."
+            sleep 3
+          done
+          
+          echo "========================================="
+          echo "All services are ready!"
+          echo "========================================="
+        '''
       }
     }
 
     stage('Integration Tests') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          script {
-            if (isUnix()) {
-              sh '''
-                export DB_HOST=localhost
-                export DB_PORT=5434
-                export DB_USER=${DB_USER}
-                export DB_PASSWORD=${DB_PASSWORD}
-                export DB_NAME=${DB_NAME}
-                pnpm -r run test:integration
-              '''
-            } else {
-              bat '''
-                set DB_HOST=localhost
-                set DB_PORT=5434
-                set DB_USER=%DB_USER%
-                set DB_PASSWORD=%DB_PASSWORD%
-                set DB_NAME=%DB_NAME%
-                pnpm -r run test:integration
-              '''
-            }
-          }
+          sh '''
+            echo "========================================="
+            echo "Running Integration Tests"
+            echo "========================================="
+            echo "DB_HOST=${DB_HOST}"
+            echo "DB_PORT=${DB_PORT}"
+            echo "DB_NAME=${DB_NAME}"
+            echo "DB_USER=${DB_USER}"
+            echo "========================================="
+            
+            export DB_HOST=${DB_HOST}
+            export DB_PORT=${DB_PORT}
+            export DB_USER=${DB_USER}
+            export DB_PASSWORD=${DB_PASSWORD}
+            export DB_NAME=${DB_NAME}
+            
+            pnpm -r run test:integration
+          '''
         }
       }
       post {
         always {
-          // Publicar resultados de tests de integración
           junit allowEmptyResults: true, 
-                testResults: '**/test-results/integration/*.xml, **/coverage/*.xml'
+                testResults: '**/test-results/**/*.xml, **/coverage/*.xml'
         }
       }
     }
 
-    stage('E2E Tests (Cypress)') {
+    stage('E2E Tests') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          script {
-            if (isUnix()) {
-              sh '''
-                echo "Waiting for frontend to be ready for E2E tests..."
-                for i in $(seq 1 30); do
-                  if curl -sf http://localhost:${FRONTEND_PORT}; then
-                    echo "✅ Frontend is ready for E2E tests!"
-                    break
-                  fi
-                  echo "Waiting for frontend... attempt $i"
-                  sleep 3
-                done
-                
-                cd tests
-                export CYPRESS_BASE_URL=http://localhost:${FRONTEND_PORT}
-                xvfb-run pnpm cypress run --e2e --config baseUrl=http://localhost:${FRONTEND_PORT}
-                cd ..
-              '''
-            } else {
-              bat '''
-                cd tests
-                set CYPRESS_BASE_URL=http://localhost:%FRONTEND_PORT%
-                pnpm cypress run --e2e --config baseUrl=http://localhost:%FRONTEND_PORT%
-                cd ..
-              '''
-            }
-          }
+          sh '''
+            echo "========================================="
+            echo "Running E2E Tests"
+            echo "========================================="
+            
+            echo "Waiting for frontend to be ready for E2E tests..."
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -sf http://localhost:8081 > /dev/null 2>&1; then
+                echo "✅ Frontend is ready for E2E"
+                break
+              fi
+              echo "Attempt $i/10 - Waiting for frontend..."
+              sleep 3
+            done
+            
+            cd tests
+            xvfb-run pnpm cypress run --e2e --config baseUrl=http://localhost:8081
+            cd ..
+          '''
         }
       }
       post {
         always {
-          // Publicar resultados de E2E
           junit allowEmptyResults: true, 
-                testResults: 'tests/test-results/*.xml, tests/cypress/results/*.xml'
-          
-          // Publicar videos y screenshots si existen
-          publishHTML([
-            reportDir: 'tests/cypress/videos',
-            reportFiles: '*.mp4',
-            reportName: 'Cypress Videos',
-            allowMissing: true
-          ])
-          publishHTML([
-            reportDir: 'tests/cypress/screenshots',
-            reportFiles: '*.png',
-            reportName: 'Cypress Screenshots',
-            allowMissing: true
-          ])
+                testResults: 'tests/cypress/results/*.xml, tests/test-results/*.xml'
         }
       }
     }
@@ -223,42 +165,41 @@ pipeline {
 
   post {
     success {
-      echo "✅ Despliegue exitoso!"
-      echo "📱 Frontend: http://localhost:${FRONTEND_PORT}"
-      echo "🔧 Backend: http://localhost:${BACKEND_PORT}/health"
-      echo "🗄️ Database: localhost:${DB_PORT}"
+      echo "========================================="
+      echo "✅ Pipeline completed successfully!"
+      echo "========================================="
+      echo "📱 Frontend: http://localhost:8081"
+      echo "🔧 Backend: http://localhost:3002/health"
+      echo "🗄️ Database: localhost:5434"
+      echo "========================================="
     }
     unstable {
-      echo "⚠️ Despliegue completado con algunos tests fallidos"
-      echo "📊 Revisa los reportes de pruebas en Jenkins"
+      echo "========================================="
+      echo "⚠️ Pipeline completed with test failures"
+      echo "========================================="
+      echo "📊 Check the test reports in Jenkins"
+      echo "========================================="
     }
     failure {
-      script {
-        if (isUnix()) {
-          sh '''
-            echo "❌ Pipeline failed! Printing logs..."
-            docker compose -f "$COMPOSE_FILE" ps
-            docker compose -f "$COMPOSE_FILE" logs --tail=100
-          '''
-        } else {
-          bat '''
-            echo "❌ Pipeline failed! Printing logs..."
-            docker compose -f %COMPOSE_FILE% ps
-            docker compose -f %COMPOSE_FILE% logs --tail=100
-          '''
-        }
-      }
+      echo "========================================="
+      echo "❌ Pipeline failed!"
+      echo "========================================="
+      sh '''
+        echo "Printing container status..."
+        docker compose -f "$COMPOSE_FILE" ps
+        
+        echo ""
+        echo "Printing last 50 lines of logs..."
+        docker compose -f "$COMPOSE_FILE" logs --tail=50
+      '''
     }
     always {
-      script {
-        // Opcional: Limpiar después de los tests (comentar si quieres mantener los contenedores para debug)
-        // if (isUnix()) {
-        //   sh 'docker compose -f "$COMPOSE_FILE" down'
-        // } else {
-        //   bat 'docker compose -f %COMPOSE_FILE% down'
-        // }
-        echo "🏁 Pipeline finished"
-      }
+      echo "========================================="
+      echo "🏁 Pipeline finished for build ${env.BUILD_NUMBER}"
+      echo "========================================="
+      // Opcional: Limpiar contenedores después de las pruebas
+      // Descomenta la siguiente línea si quieres limpiar automáticamente
+      // sh 'docker compose -f "$COMPOSE_FILE" down'
     }
   }
 }
