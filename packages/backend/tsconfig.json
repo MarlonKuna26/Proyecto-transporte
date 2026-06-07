@@ -27,7 +27,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["jest", "node"]
+    "types": ["jest"]
   },
   "include": ["src","tests"],
   "exclude": ["node_modules", "dist", "build"]

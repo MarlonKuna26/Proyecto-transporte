@@ -13,8 +13,9 @@ FROM deps AS build
 WORKDIR /app
 COPY packages/backend packages/backend
 COPY packages/shared packages/shared
+# Ensure all dependencies are available in the workspace
+RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @u-ride/backend build
-RUN pnpm prune --prod
 
 FROM node:20-alpine AS runtime
 WORKDIR /app/packages/backend
