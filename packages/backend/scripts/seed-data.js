@@ -5,13 +5,17 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
 
 const pool = new Pool({
-  host: '127.0.0.1',
-  port: 5432,
-  user: 'postgres',
-  password: '182004',
-  database: 'u_ride_esp',
+  host: process.env.DB_HOST || 'u-ride-db-jenkins',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '182004',
+  database: process.env.DB_NAME || 'u_ride_esp',
 });
 
 async function seed() {

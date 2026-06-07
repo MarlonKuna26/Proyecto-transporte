@@ -1,10 +1,10 @@
 // jest.integration.setup.js - Versión flexible
-// Tomar variables de entorno, o usar defaults que coincidan con docker-compose
-process.env.DB_HOST = process.env.DB_HOST || 'u-ride-db-jenkins';
-process.env.DB_PORT = process.env.DB_PORT || '5432';      // Coincide con docker-compose
-process.env.DB_USER = process.env.DB_USER || 'postgres';   // Coincide con docker-compose
+// Tomar variables de entorno, o usar defaults que coincidan con el host donde Jenkins ejecuta los tests
+process.env.DB_HOST = process.env.DB_HOST || 'localhost';
+process.env.DB_PORT = process.env.DB_PORT || '5434';
+process.env.DB_USER = process.env.DB_USER || 'postgres';
 process.env.DB_PASSWORD = process.env.DB_PASSWORD || '182004';
-process.env.DB_NAME = process.env.DB_NAME || 'u_ride_esp'; // Coincide con docker-compose
+process.env.DB_NAME = process.env.DB_NAME || 'u_ride_esp';
 process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_secret';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test_refresh_secret';

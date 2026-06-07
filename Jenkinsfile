@@ -3,6 +3,7 @@ pipeline {
 
   environment {
     COMPOSE_FILE = 'docker-compose.deploy.yml'
+    COMPOSE_PROJECT_NAME = 'proyecto-transporte'
     IMAGE_TAG = "${env.BUILD_NUMBER}"
     BACKEND_IMAGE = "u-ride-backend:${env.BUILD_NUMBER}"
     FRONTEND_IMAGE = "u-ride-frontend:${env.BUILD_NUMBER}"
@@ -50,34 +51,55 @@ pipeline {
           echo "========================================="
           
           echo "Waiting for database..."
-          for i in {1..20}; do
-            if docker exec u-ride-db-jenkins pg_isready -U postgres 2>/dev/null; then
+          db_ready=false
+          for i in $(seq 1 20); do
+            if docker exec u-ride-db-jenkins pg_isready -U postgres > /dev/null 2>&1; then
               echo "✅ Database is ready"
+              db_ready=true
               break
             fi
             echo "Attempt $i/20 - Waiting for database..."
             sleep 2
           done
+          if [ "$db_ready" != true ]; then
+            echo "❌ Database failed to become ready"
+            docker compose -f \"$COMPOSE_FILE\" logs database || true
+            exit 1
+          fi
           
           echo "Waiting for backend..."
-          for i in {1..30}; do
+          backend_ready=false
+          for i in $(seq 1 30); do
             if curl -sf http://localhost:3002/health > /dev/null 2>&1; then
               echo "✅ Backend is ready"
+              backend_ready=true
               break
             fi
             echo "Attempt $i/30 - Waiting for backend..."
             sleep 2
           done
+          if [ "$backend_ready" != true ]; then
+            echo "❌ Backend failed to become ready"
+            docker compose -f \"$COMPOSE_FILE\" logs u-ride-backend || true
+            exit 1
+          fi
           
           echo "Waiting for frontend..."
-          for i in {1..30}; do
+          frontend_ready=false
+          for i in $(seq 1 30); do
             if curl -sf http://localhost:8081 > /dev/null 2>&1; then
               echo "✅ Frontend is ready"
+              frontend_ready=true
               break
             fi
             echo "Attempt $i/30 - Waiting for frontend..."
             sleep 2
           done
+          if [ "$frontend_ready" != true ]; then
+            echo "❌ Frontend failed to become ready"
+            docker compose -f \"$COMPOSE_FILE\" logs u-ride-frontend || true
+            exit 1
+          fi
           
           echo "========================================="
           echo "All services are ready!"
@@ -117,21 +139,6 @@ pipeline {
             echo "========================================="
             echo "Running Integration Tests"
             echo "========================================="
-            echo "DB_HOST=${DB_HOST}"
-            echo "DB_PORT=${DB_PORT}"
-            echo "DB_NAME=${DB_NAME}"
-            echo "DB_USER=${DB_USER}"
-            echo "========================================="
-            
-            # Verify database connectivity
-            echo "Verifying database connectivity..."
-            docker exec u-ride-db-jenkins pg_isready -U postgres || true
-            
-            export DB_HOST=${DB_HOST}
-            export DB_PORT=${DB_PORT}
-            export DB_USER=${DB_USER}
-            export DB_PASSWORD=${DB_PASSWORD}
-            export DB_NAME=${DB_NAME}
             
             # Run integration tests with verbose output
             pnpm -r run test:integration || (
@@ -159,7 +166,7 @@ pipeline {
             echo "========================================="
             
             echo "Waiting for frontend to be ready for E2E tests..."
-            for i in {1..30}; do
+            for i in $(seq 1 30); do
               if curl -sf http://localhost:8081 > /dev/null 2>&1; then
                 echo "✅ Frontend is ready for E2E"
                 break
@@ -197,15 +204,6 @@ pipeline {
                         fingerprint: true,
                         allowEmptyArchive: true
       
-      // Publish coverage to Jenkins
-      publishHTML([
-        reportDir: 'packages/backend/coverage/lcov-report',
-        reportFiles: 'index.html',
-        reportName: 'Coverage Report',
-        allowMissing: true,
-        alwaysLinkToLastBuild: true
-      ])
-      
       // Pipeline finished message
       echo "========================================="
       echo "🏁 Pipeline finished for build ${env.BUILD_NUMBER}"
@@ -213,7 +211,6 @@ pipeline {
       // Opcional: Limpiar contenedores después de las pruebas
       // Descomenta la siguiente línea si quieres limpiar automáticamente
       // sh 'docker compose -f "$COMPOSE_FILE" down'
-    cleanWs() 
     }
     success {
       echo "========================================="
