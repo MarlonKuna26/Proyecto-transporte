@@ -68,19 +68,31 @@ pipeline {
           fi
           
           echo "Waiting for backend..."
+          if ! command -v curl > /dev/null 2>&1; then
+            echo "❌ curl is not installed on this agent. Backend health check cannot run."
+            exit 1
+          fi
+
           backend_ready=false
           for i in $(seq 1 30); do
             if curl -sf http://localhost:3002/health > /dev/null 2>&1; then
-              echo "✅ Backend is ready"
+              echo "✅ Backend is ready (host port check)"
+              backend_ready=true
+              break
+            fi
+            if docker compose -f "$COMPOSE_FILE" exec -T backend curl -sf http://localhost:3002/health > /dev/null 2>&1; then
+              echo "✅ Backend is ready (inside container check)"
               backend_ready=true
               break
             fi
             echo "Attempt $i/30 - Waiting for backend..."
+            docker compose -f "$COMPOSE_FILE" ps backend || true
             sleep 2
           done
           if [ "$backend_ready" != true ]; then
             echo "❌ Backend failed to become ready"
-            docker compose -f \"$COMPOSE_FILE\" logs u-ride-backend || true
+            docker compose -f \"$COMPOSE_FILE\" ps -a
+            docker compose -f \"$COMPOSE_FILE\" logs backend || true
             exit 1
           fi
           
@@ -143,7 +155,7 @@ pipeline {
             # Run integration tests with verbose output
             pnpm -r run test:integration || (
               echo "Integration tests failed - showing logs:"
-              docker compose -f "$COMPOSE_FILE" logs u-ride-backend || true
+              docker compose -f "$COMPOSE_FILE" logs backend || true
               exit 1
             )
           '''
