@@ -14,8 +14,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Descargar el código desde la rama feature/jenkis
-                git branch: 'feature/jenkis', url: 'https://github.com/MarlonKuna26/Proyecto-transporte.git'
+                // Descargar el código desde la rama feature/jenkins
+                git branch: 'feature/jenkins', url: 'https://github.com/MarlonKuna26/Proyecto-transporte.git'
             }
         }
 
