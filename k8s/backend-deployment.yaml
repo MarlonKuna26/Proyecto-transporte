@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: u-ride-backend:latest
+          imagePullPolicy: Never # Asume que la imagen se construyó localmente en Minikube o Docker Desktop
+          ports:
+            - containerPort: 3002
+          env:
+            - name: DB_HOST
+              value: "postgres-service"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: "u_ride_user"
+            - name: DB_PASSWORD
+              value: "secure_password_123"
+            - name: DB_NAME
+              value: "u_ride_dev"
+            - name: PORT
+              value: "3002"
+            - name: JWT_SECRET
+              value: "super_secret_jwt_key"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 3002
+      targetPort: 3002
+  type: ClusterIP

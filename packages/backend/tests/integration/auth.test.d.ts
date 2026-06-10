@@ -1,2 +1,2 @@
-import 'reflect-metadata';
+export {};
 //# sourceMappingURL=auth.test.d.ts.map
