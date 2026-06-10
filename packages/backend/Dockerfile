@@ -11,6 +11,9 @@ COPY . .
 # Instalar dependencias del monorepo
 RUN pnpm install --frozen-lockfile
 
+# Ejecutar pruebas (si falla, no se construye la imagen)
+RUN pnpm --filter @u-ride/backend run test
+
 # Construir el backend
 RUN pnpm --filter @u-ride/backend build
 
