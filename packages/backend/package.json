@@ -22,7 +22,7 @@
     "test:integration": "jest --config ./jest.integration.config.js --runInBand",
     "test": "npm run test:unit && npm run test:integration",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage --config ./jest.unit.config.js",
     "merge:coverage": "node scripts/merge-coverage.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
