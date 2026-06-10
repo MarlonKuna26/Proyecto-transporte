@@ -27,7 +27,7 @@ pipeline {
         stage('Deploy con Docker Compose') {
             steps {
                 echo 'Desplegando servicios localmente'
-                sh 'docker-compose up -d backend frontend'
+                sh 'docker-compose -p proyecto-transporte up -d backend frontend'
             }
         }
     }
