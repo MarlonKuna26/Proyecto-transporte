@@ -21,13 +21,13 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.log('Escribiendo email...');
     cy.get('input[type="email"]')
       .should('be.visible')
-      .type('hvillavicencio8210@uta.edu.ec');
+      .type('pepe@uta.edu.ec');
     cy.wait(700);
 
     cy.log('Escribiendo contraseña...');
     cy.get('input[type="password"]')
       .should('be.visible')
-      .type('Josu123456');
+      .type('Pepe1234');
     cy.wait(700);
 
     cy.log('Clickeando botón submit...');
@@ -443,9 +443,9 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
     cy.get('#profile-dropdown-trigger').should('be.visible').click();
     cy.contains('Cerrar sesión', { timeout: 10000 }).should('be.visible').click();
 
-    cy.get('input[type="email"]').should('be.visible').type('hvillavicencio8210@uta.edu.ec');
+    cy.get('input[type="email"]').should('be.visible').type('pepe@uta.edu.ec');
     cy.wait(700);
-    cy.get('input[type="password"]').should('be.visible').type('Josu123456');
+    cy.get('input[type="password"]').should('be.visible').type('Pepe1234');
     cy.wait(700);
     cy.get('button[type="submit"]').should('be.visible').click();
     cy.wait(3000);
@@ -630,9 +630,9 @@ describe('U-Ride Create, Edit, Delete Ride Visual Test', () => {
 
     // LOGIN PEPE
     cy.log(' INICIANDO SESIÓN COMO PEPE...');
-    cy.get('input[type="email"]').should('be.visible').type('hvillavicencio8210@uta.edu.ec');
+    cy.get('input[type="email"]').should('be.visible').type('pepe@uta.edu.ec');
     cy.wait(700);
-    cy.get('input[type="password"]').should('be.visible').type('Josu123456');
+    cy.get('input[type="password"]').should('be.visible').type('Pepe1234');
     cy.wait(700);
     cy.get('button[type="submit"]').should('be.visible').click();
     cy.wait(3000);
