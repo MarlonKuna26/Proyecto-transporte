@@ -31,9 +31,9 @@ Se crearon archivos `Dockerfile` tanto para el **Backend** (`packages/backend/Do
 
 ### 2.2. Pipeline de Jenkins
 El archivo `Jenkinsfile` ubicado en la raíz del proyecto define un pipeline declarativo con las siguientes etapas:
-1. **Checkout:** Clona/actualiza el código.
-2. **Test Backend & Frontend:** Ejecuta las pruebas unitarias y de integración de ambos paquetes.
-3. **Build Docker Images:** Construye las imágenes localmente.
+1. **Checkout:** Clona/actualiza el código desde el repositorio de GitHub.
+2. **Test & Coverage:** Utiliza una imagen Docker temporal basada en Node para instalar las dependencias, ejecutar las pruebas automatizadas del backend (`test:coverage`) y extraer los resultados de la cobertura de código. Estos resultados se publican en la interfaz de Jenkins mediante el plugin HTML Publisher.
+3. **Build Docker Images:** Construye las imágenes definitivas de producción tanto para el Backend como para el Frontend utilizando sus respectivos `Dockerfile`.
 4. **Deploy con Docker Compose:** Utiliza `docker-compose up -d backend frontend` para levantar los servicios orquestados localmente junto a la base de datos y Jenkins.
 
 **Instrucción de Captura:** _(Tomar captura de pantalla de la interfaz de BlueOcean o del Dashboard de Jenkins mostrando el Pipeline ejecutándose con todos los recuadros en verde)_.
