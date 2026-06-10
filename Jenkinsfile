@@ -14,6 +14,33 @@ pipeline {
             }
         }
 
+        stage('Test & Coverage') {
+            steps {
+                echo 'Ejecutando pruebas y extrayendo coverage...'
+                
+                // 1. Construir una imagen temporal que ejecute las pruebas con coverage
+                writeFile file: 'Dockerfile.test', text: '''FROM node:20-alpine
+RUN npm install -g pnpm@9.0.0
+WORKDIR /app
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @u-ride/backend run test:coverage
+'''
+                sh 'docker build -t test-coverage-img -f Dockerfile.test .'
+                
+                // 2. Extraer la carpeta de coverage al workspace de Jenkins
+                sh '''
+                # Si existe una carpeta anterior, la borramos
+                rm -rf packages/backend/coverage
+                
+                docker create --name temp-test test-coverage-img
+                docker cp temp-test:/app/packages/backend/coverage ./packages/backend/coverage
+                docker rm temp-test
+                '''
+            }
+        }
+
+
         stage('Build Docker Images & Run Tests') {
             steps {
                 echo 'Construyendo imagen del Backend (y ejecutando pruebas internamente)...'
@@ -35,6 +62,17 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline ejecutado exitosamente. La aplicación está desplegada.'
+            
+            // Publicar el reporte HTML de coverage en Jenkins
+            // Requiere el plugin "HTML Publisher" en Jenkins
+            publishHTML(target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: false,
+                keepAll: true,
+                reportDir: 'packages/backend/coverage/lcov-report',
+                reportFiles: 'index.html',
+                reportName: 'Backend Coverage Report'
+            ])
         }
         failure {
             echo '❌ El pipeline falló en alguna de las etapas.'

@@ -11,8 +11,7 @@ COPY . .
 # Instalar dependencias del monorepo
 RUN pnpm install --frozen-lockfile
 
-# Ejecutar pruebas unitarias (las de integración requieren DB y se hacen aparte)
-RUN pnpm --filter @u-ride/backend run test:unit
+# Las pruebas se ejecutan en el pipeline de Jenkins para extraer el coverage
 
 # Construir el backend
 RUN pnpm --filter @u-ride/backend build
