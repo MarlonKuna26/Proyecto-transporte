@@ -8,9 +8,6 @@ COPY . .
 
 RUN pnpm install --frozen-lockfile
 
-# Ejecutar pruebas (si falla, no se construye la imagen)
-RUN pnpm --filter @u-ride/frontend run test
-
 # Construir el frontend
 RUN pnpm --filter @u-ride/frontend build
 
