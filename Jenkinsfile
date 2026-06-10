@@ -65,7 +65,6 @@ RUN pnpm --filter @u-ride/backend run test:coverage
             echo '✅ Pipeline ejecutado exitosamente. La aplicación está desplegada.'
             
             // Publicar el reporte HTML de coverage en Jenkins
-            // Requiere el plugin "HTML Publisher" en Jenkins
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: false,
