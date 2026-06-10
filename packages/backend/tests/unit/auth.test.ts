@@ -57,7 +57,7 @@ describe('LoginUseCase', () => {
 		const input = new LoginDTO('hvillavicencio8210@uta.edu.ec', 'Heidi2003');
 
 		await expect(useCase.execute(input)).rejects.toThrow(
-			'Invalid email or password'
+			'Correo o contraseña inválidos'
 		);
 	});
 
@@ -98,7 +98,7 @@ describe('LoginUseCase', () => {
 		const input = new LoginDTO('hvillavicencio8210@uta.edu.ec', 'malaclave');
 
 		await expect(useCase.execute(input)).rejects.toThrow(
-			'Invalid email or password'
+			'Correo o contraseña inválidos'
 		);
 	});
 });
