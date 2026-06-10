@@ -1,31 +1,36 @@
 pipeline {
     agent any
 
+    // Configuramos Jenkins para que inyecte Node y NPM
+    tools {
+        nodejs 'node20'
+    }
+
     environment {
-        DOCKER_IMAGE_BACKEND = 'u-ride-backend'
-        DOCKER_IMAGE_FRONTEND = 'u-ride-frontend'
+        DOCKER_IMAGE_BACKEND = 'proyecto-transporte-backend'
+        DOCKER_IMAGE_FRONTEND = 'proyecto-transporte-frontend'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Jenkins automáticamente hace checkout del SCM si el pipeline está configurado desde Git
-                // Pero si es local, podemos hacer checkout explícito:
-                checkout scm
-                echo 'Código descargado correctamente'
+                // Descargar el código desde la rama feature/jenkis
+                git branch: 'feature/jenkis', url: 'https://github.com/MarlonKuna26/Proyecto-transporte.git'
             }
         }
 
         stage('Test Backend') {
             steps {
-                echo 'Ejecutando pruebas de unidad en el Backend'
-                sh 'pnpm --filter @u-ride/backend run test:unit'
+                echo 'Ejecutando pruebas de unidad en el Backend...'
+                sh 'npm install -g pnpm'
+                sh 'pnpm install'
+                sh 'pnpm --filter @u-ride/backend run test'
             }
         }
 
         stage('Test Frontend') {
             steps {
-                echo 'Ejecutando pruebas de unidad en el Frontend'
+                echo 'Ejecutando pruebas de unidad en el Frontend...'
                 sh 'pnpm --filter @u-ride/frontend run test'
             }
         }
@@ -50,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline ejecutado exitosamente. La aplicación está desplegada.'
+            echo '✅ Pipeline ejecutado exitosamente. La aplicación está desplegada.'
         }
         failure {
-            echo 'El pipeline falló en alguna de las etapas.'
+            echo '❌ El pipeline falló en alguna de las etapas.'
         }
     }
 }
