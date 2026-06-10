@@ -23,6 +23,7 @@ pipeline {
 RUN npm install -g pnpm@9.0.0
 WORKDIR /app
 COPY . .
+ENV CYPRESS_INSTALL_BINARY=0
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @u-ride/backend run test:coverage
 '''
